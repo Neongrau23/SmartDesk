@@ -9,10 +9,20 @@ Alle von Benutzern gesehenen Texte sollten hier definiert werden.
 # Diese Funktion wird von allen anderen Modulen importiert
 def get_text(key: str, **kwargs) -> str:
     """
+    Retrieves a localized text using dot notation and formats it with parameters.
+    
     Holt einen Textbaustein anhand seines Schlüssels (Punkt-Notation) und formatiert ihn.
     
-    Beispiel: get_text("ui.menu.main.switch")
-              get_text("desktop_handler.error.path_invalid", path="/foo")
+    Args:
+        key: Dot-separated path to text (e.g., "ui.menu.main.switch")
+        **kwargs: Format parameters for text template
+    
+    Returns:
+        Formatted text string, or error message if key not found
+    
+    Examples:
+        get_text("ui.menu.main.switch")
+        get_text("desktop_handler.error.path_invalid", path="/foo")
     """
     keys = key.split('.')
     value = TEXT
