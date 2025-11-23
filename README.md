@@ -1,4 +1,4 @@
-# 🖥️ SmartDeskTerminal
+# 🖥️ SmartDesk.CLI
 
 **Eine professionelle Python-Anwendung zur Verwaltung virtueller Desktop-Umgebungen unter Windows.**
 
@@ -41,8 +41,8 @@ Das Projekt nutzt keine externen Abhängigkeiten. Es basiert rein auf der Python
 
 1. Repository klonen:
 ```bash
-git clone https://github.com/Neongrau23/SmartDeskTerminal.git
-cd SmartDeskTerminal
+git clone https://github.com/Neongrau23/SmartDesk.CLI.git
+cd SmartDesk.CLI
 ```
 
 2. Starten:
@@ -72,7 +72,7 @@ Das CLI bietet folgende Funktionen:
 Das Projekt folgt strikten "Clean Code" Prinzipien und einer modularen Paketstruktur:
 
 ```
-SmartDeskTerminal/
+SmartDesk.CLI/
 ├── src/smartdesk/
 │   ├── main.py                # Einstiegspunkt der Anwendung
 │   ├── config.py              # Zentrale Konfiguration
