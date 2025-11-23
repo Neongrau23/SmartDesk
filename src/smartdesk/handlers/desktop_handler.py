@@ -1,15 +1,23 @@
+# Dateipfad: src/smartdesk/handlers/desktop_handler.py
+# (Vollständige, korrigierte Datei)
+
 import winreg
 import os
-import shutil  # Für das Verschieben und Löschen von Ordnern
+import shutil
 from typing import List, Optional
 
-# Importiere unsere neuen Module
 from ..config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
-# Neu: get_registry_value importieren
 from ..utils.registry_operations import update_registry_key, get_registry_value
 from ..utils.path_validator import ensure_directory_exists
 from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
+
+# --- KORREKTUR HIER ---
+# Da icon_manager.py im selben Ordner (handlers) wie diese Datei liegt,
+# verwenden wir einen einzelnen Punkt (.) für einen relativen Import.
+from .icon_manager import get_current_icon_positions, set_icon_positions
+# --- ENDE KORREKTUR ---
+
 
 def create_desktop(name: str, path: str) -> bool:
     """Erstellt einen neuen Desktop und speichert ihn."""
@@ -30,10 +38,7 @@ def create_desktop(name: str, path: str) -> bool:
     return True
 
 def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
-    """
-    Aktualisiert Name und Pfad eines existierenden Desktops.
-    Verschiebt den Ordner physisch, wenn der Pfad geändert wird.
-    """
+    """Aktualisiert Name und Pfad eines existierenden Desktops."""
     desktops = load_desktops()
     target_desktop = next((d for d in desktops if d.name == old_name), None)
 
@@ -45,7 +50,6 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
         print(f"Fehler: Der Name '{new_name}' ist bereits vergeben.")
         return False
 
-    # --- Physisches Verschieben des Ordners ---
     if new_path != target_desktop.path:
         old_path_exists = os.path.exists(target_desktop.path)
         
@@ -73,14 +77,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     return True
 
 def delete_desktop(name: str, delete_folder: bool = False) -> bool:
-    """
-    Löscht einen Desktop aus der Datenbank.
-    Synchronisiert vorher den Status mit der Registry, um sicherzustellen,
-    dass wir keine aktiven Desktops löschen.
-    """
-    # ÄNDERUNG: Wir rufen get_all_desktops() auf statt load_desktops().
-    # Das führt automatisch den Registry-Sync durch und aktualisiert 'is_active'
-    # in der Datenbank, BEVOR wir prüfen.
+    """Löscht einen Desktop aus der Datenbank."""
     desktops = get_all_desktops()
     
     target_desktop = next((d for d in desktops if d.name == name), None)
@@ -89,14 +86,10 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
         print(f"Fehler: Desktop '{name}' nicht gefunden.")
         return False
 
-    # --- CHECK 1: Interne Datenbank Status (jetzt frisch synchronisiert) ---
     if target_desktop.is_active:
         print(f"Fehler: Laut Datenbank (synchronisiert) ist '{name}' aktiv. Bitte wechseln Sie vorher den Desktop.")
         return False
 
-    # --- CHECK 2: Echte Registry Prüfung (Zusätzliches Sicherheitsnetz) ---
-    # Auch wenn get_all_desktops() schon gesynct hat, behalten wir diesen expliziten
-    # Check bei, falls beim Sync etwas schiefging.
     real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
     
     if real_registry_path:
@@ -109,7 +102,6 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
             print("Löschen verweigert, um Datenverlust zu verhindern.")
             return False
 
-    # --- Physisches Löschen ---
     if delete_folder:
         if os.path.exists(target_desktop.path):
             try:
@@ -134,44 +126,53 @@ def get_all_desktops() -> List[Desktop]:
     desktops = load_desktops()
     
     try:
-        # Den echten Pfad aus der Registry holen
         real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
         
         if real_registry_path:
-            # Pfad normalisieren (Kleinbuchstaben, Slash/Backslash, Variablen auflösen)
             norm_registry = os.path.normpath(os.path.expandvars(real_registry_path)).lower()
-            
             data_changed = False
             
             for d in desktops:
                 norm_desktop = os.path.normpath(os.path.expandvars(d.path)).lower()
-                
-                # Sollte dieser Desktop aktiv sein? (Vergleich mit Registry)
                 should_be_active = (norm_desktop == norm_registry)
                 
-                # Wenn der Status in der DB falsch ist, korrigieren wir ihn
                 if d.is_active != should_be_active:
                     d.is_active = should_be_active
                     data_changed = True
             
-            # Nur speichern, wenn wir wirklich etwas korrigiert haben
             if data_changed:
                 save_desktops(desktops)
                 
     except Exception as e:
         print(f"Warnung: Konnte Status nicht mit Registry synchronisieren: {e}")
-        # Bei Fehler geben wir die Liste einfach so zurück, wie sie in der DB steht
 
     return desktops
 
 def switch_to_desktop(desktop_name: str) -> bool:
-    """Aktiviert einen Desktop anhand des Namens."""
+    """
+    Aktiviert einen Desktop anhand des Namens.
+    Speichert die Icons des alten Desktops und lädt die Icons des neuen.
+    """
     desktops = load_desktops()
+    
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
 
     if not target_desktop:
         print(f"Fehler: Desktop '{desktop_name}' nicht gefunden.")
         return False
+        
+    if target_desktop.is_active:
+        print(f"'{desktop_name}' ist bereits aktiv.")
+        return True
+
+    active_desktop = next((d for d in desktops if d.is_active), None)
+
+    if active_desktop:
+        print(f"Speichere Icon-Positionen für '{active_desktop.name}'...")
+        active_desktop.icon_positionen = get_current_icon_positions()
+        active_desktop.is_active = False
+    else:
+        print("Warnung: Es wurde kein aktiver Desktop gefunden. Überspringe Speichern der Icons.")
 
     print(f"Wechsle zu Desktop: {target_desktop.name} ({target_desktop.path})...")
 
@@ -182,11 +183,44 @@ def switch_to_desktop(desktop_name: str) -> bool:
     if not update_registry_key(KEY_LEGACY_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_SZ):
         reg_success = False
 
-    if reg_success:
-        for d in desktops:
-            d.is_active = (d.name == desktop_name)
-            
-        save_desktops(desktops)
-        return True
+    if not reg_success:
+        print("FEHLER: Konnte Registry nicht aktualisieren. Wechsel wird abgebrochen.")
+        if active_desktop:
+            active_desktop.is_active = True
+        return False
+
+    target_desktop.is_active = True
+    save_desktops(desktops)
+    print("Datenbank aktualisiert.")
+
+    print(f"Stelle Icon-Positionen für '{target_desktop.name}' wieder her...")
+    set_icon_positions(target_desktop.icon_positionen)
     
-    return False
+    return True
+
+def save_current_desktop_icons() -> bool:
+    """
+    Findet den aktuell aktiven Desktop, liest seine
+    Icon-Positionen aus und speichert sie in der Datenbank.
+    """
+    desktops = get_all_desktops()
+    
+    active_desktop = next((d for d in desktops if d.is_active), None)
+    
+    if not active_desktop:
+        print("Fehler: Konnte keinen aktiven Desktop finden.")
+        print("Möglicherweise ist der in Windows eingestellte Pfad")
+        print("in SmartDesk nicht registriert.")
+        return False
+        
+    try:
+        print(f"Lese aktuelle Icon-Positionen für '{active_desktop.name}'...")
+        active_desktop.icon_positionen = get_current_icon_positions()
+        
+        save_desktops(desktops)
+        print(f"Icon-Positionen für '{active_desktop.name}' erfolgreich gespeichert.")
+        return True
+    except Exception as e:
+        print(f"Fehler beim Speichern der Icons: {e}")
+        return False
+    
