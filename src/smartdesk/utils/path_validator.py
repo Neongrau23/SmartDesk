@@ -1,4 +1,5 @@
 import os
+from ..localization import get_text # <-- NEUER IMPORT
 
 def ensure_directory_exists(path: str) -> bool:
     """
@@ -13,6 +14,7 @@ def ensure_directory_exists(path: str) -> bool:
             os.makedirs(path)
         return True
     except OSError as e:
-        print(f"Fehler beim Erstellen des Verzeichnisses {path}: {e}")
+        # --- LOKALISIERT ---
+        print(get_text("PV_ERROR_CREATE_DIR", path=path, e=e))
         return False
     

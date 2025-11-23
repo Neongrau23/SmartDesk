@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/handlers/icon_manager.py
-# (Komplett neu geschrieben, basierend auf deinen PowerShell-Skripten)
+# (Aktualisiert, um die neue localization.py zu verwenden)
 
 import win32gui
 import win32con
@@ -14,14 +14,17 @@ try:
         LVIF_TEXT
     )
 except ImportError:
+    # --- LOKALISIERT (get_text ist hier noch nicht verfügbar, daher hartcodiert) ---
     print("FATAL ERROR: 'commctrl' nicht gefunden. pywin32 ist nicht korrekt installiert.")
     LVM_FIRST = 0x1000 
     LVIF_TEXT = 0x0001
 
 from ..models.desktop import IconPosition
+from ..localization import get_text # <-- NEUER IMPORT
 
-# --- C-Strukturen ---
-# (Wir brauchen LVFINDINFO nicht mehr, aber LVITEM und POINT schon)
+# --- (C-Strukturen und Konstanten bleiben unverändert) ---
+# ... (POINT, LVITEM, Konstanten) ...
+# ... (Code von oben, der unverändert bleibt) ...
 class POINT(ctypes.Structure):
     _fields_ = [("x", ctypes.c_long),
                 ("y", ctypes.c_long)]
@@ -41,13 +44,11 @@ class LVITEM(ctypes.Structure):
                 ("cColumns", ctypes.c_uint),
                 ("puColumns", ctypes.c_void_p)]
 
-# --- Konstanten ---
-# (LVM_FINDITEMW und LVFI_STRING werden nicht mehr benötigt)
 LVM_GETITEMCOUNT = (LVM_FIRST + 4)
 LVM_GETITEMW = (LVM_FIRST + 75)
 LVM_GETITEMPOSITION = (LVM_FIRST + 16)
-LVM_SETITEMPOSITION = (LVM_FIRST + 15) # Das ist die Wichtige!
-LVM_UPDATE = (LVM_FIRST + 42)          # 0x102A, wie in deinem PS-Skript
+LVM_SETITEMPOSITION = (LVM_FIRST + 15) 
+LVM_UPDATE = (LVM_FIRST + 42)          
 
 PROCESS_VM_READ = 0x0010
 PROCESS_VM_WRITE = 0x0020
@@ -56,7 +57,6 @@ MEM_COMMIT = 0x1000
 MEM_RELEASE = 0x8000
 PAGE_READWRITE = 0x04
 
-# ctypes-Definitionen für API-Aufrufe
 get_last_error = ctypes.windll.kernel32.GetLastError
 set_last_error = ctypes.windll.kernel32.SetLastError
 read_process_memory = ctypes.windll.kernel32.ReadProcessMemory
@@ -66,7 +66,6 @@ def _get_desktop_listview_handle():
     """Findet das "Handle" des Desktop-ListView-Fensters."""
     h_progman = win32gui.FindWindow("Progman", "Program Manager")
     
-    # Der robuste Such-Loop aus deinem PowerShell-Skript
     h_shell_def_view = 0
     h_workerw = 0
     while h_shell_def_view == 0:
@@ -79,12 +78,14 @@ def _get_desktop_listview_handle():
         h_shell_def_view = win32gui.FindWindowEx(h_progman, 0, "SHELLDLL_DefView", None)
 
     if h_shell_def_view == 0:
-        print("[IconManager ERROR] SHELLDLL_DefView-Fenster nicht gefunden.")
+        # --- LOKALISIERT ---
+        print(get_text("IM_ERROR_SHELLDLL_NOT_FOUND"))
         return None
 
     h_listview = win32gui.FindWindowEx(h_shell_def_view, 0, "SysListView32", "FolderView")
     if h_listview == 0:
-        print("[IconManager ERROR] SysListView32 (FolderView) nicht gefunden.")
+        # --- LOKALISIERT ---
+        print(get_text("IM_ERROR_LISTVIEW_NOT_FOUND"))
         return None
         
     return h_listview
@@ -92,7 +93,8 @@ def _get_desktop_listview_handle():
 
 def get_current_icon_positions() -> List[IconPosition]:
     """Liest die  Positionen aller Icons vom Windows-Desktop aus."""
-    print("[IconManager] Lese Icon-Positionen vom Desktop...")
+    # --- LOKALISIERT ---
+    print(get_text("IM_INFO_READING_ICONS"))
     h_listview = _get_desktop_listview_handle()
     if not h_listview:
         return []
@@ -103,35 +105,34 @@ def get_current_icon_positions() -> List[IconPosition]:
     h_process = ctypes.windll.kernel32.OpenProcess(
         PROCESS_VM_READ | PROCESS_VM_OPERATION | PROCESS_VM_WRITE, False, pid)
     if not h_process:
-        print(f"[IconManager ERROR] Konnte Prozess nicht öffnen. Fehlercode: {get_last_error()}")
+        # --- LOKALISIERT ---
+        print(get_text("IM_ERROR_OPEN_PROCESS", code=get_last_error()))
         return []
 
-    # Speicher für die POINT-Struktur (für LVM_GETITEMPOSITION)
     p_point = ctypes.windll.kernel32.VirtualAllocEx(
         h_process, 0, ctypes.sizeof(POINT), MEM_COMMIT, PAGE_READWRITE)
-    # Speicher für die LVITEM-Struktur (für LVM_GETITEMW)
     p_lvitem = ctypes.windll.kernel32.VirtualAllocEx(
         h_process, 0, ctypes.sizeof(LVITEM), MEM_COMMIT, PAGE_READWRITE)
-    # Speicher für den Text-Puffer
     p_text_buffer = ctypes.windll.kernel32.VirtualAllocEx(
         h_process, 0, 260 * 2, MEM_COMMIT, PAGE_READWRITE)
         
     if not all([p_point, p_lvitem, p_text_buffer]):
-        print(f"[IconManager ERROR] Speicherreservierung fehlgeschlagen. Fehlercode: {get_last_error()}")
+        # --- LOKALISIERT ---
+        print(get_text("IM_ERROR_MEM_ALLOC", code=get_last_error()))
         if h_process:
             ctypes.windll.kernel32.CloseHandle(h_process)
         return []
 
     try:
         item_count = win32gui.SendMessage(h_listview, LVM_GETITEMCOUNT, 0, 0)
-        print(f"[IconManager DEBUG] Anzahl gefundener Items (Icons): {item_count}")
+        # --- LOKALISIERT ---
+        print(get_text("IM_DEBUG_ITEM_COUNT", count=item_count))
         
         bytes_read = ctypes.c_size_t(0)
         bytes_written = ctypes.c_size_t(0)
 
         for i in range(item_count):
             
-            # --- Position (X, Y) holen (unverändert) ---
             win32gui.SendMessage(
                 h_listview, LVM_GETITEMPOSITION, i, p_point)
             
@@ -139,7 +140,6 @@ def get_current_icon_positions() -> List[IconPosition]:
             read_process_memory(
                 h_process, p_point, ctypes.byref(point), ctypes.sizeof(point), ctypes.byref(bytes_read))
 
-            # --- Name (Text) holen (unverändert) ---
             lvitem = LVITEM()
             lvitem.mask = LVIF_TEXT 
             lvitem.iItem = i
@@ -159,10 +159,7 @@ def get_current_icon_positions() -> List[IconPosition]:
             name = text_buffer.value
             
             if name:
-                # --- HIER IST DIE ÄNDERUNG ---
-                # Wir erstellen das IconPosition-Objekt jetzt MIT Index
                 icons.append(IconPosition(index=i, name=name, x=point.x, y=point.y))
-                # --- ENDE ÄNDERUNG ---
 
     finally:
         ctypes.windll.kernel32.VirtualFreeEx(h_process, p_point, 0, MEM_RELEASE)
@@ -170,55 +167,42 @@ def get_current_icon_positions() -> List[IconPosition]:
         ctypes.windll.kernel32.VirtualFreeEx(h_process, p_text_buffer, 0, MEM_RELEASE)
         ctypes.windll.kernel32.CloseHandle(h_process)
 
-    print(f"-> {len(icons)} Icons gefunden und zur Liste hinzugefügt.")
+    # --- LOKALISIERT ---
+    print(get_text("IM_INFO_ICONS_FOUND", count=len(icons)))
     return icons
 
 
-# --- KOMPLETT NEU GESCHRIEBENE FUNKTION ---
 def set_icon_positions(icons: List[IconPosition]):
     """
     Setzt die Positionen der Icons auf dem Windows-Desktop.
-    Diese Version basiert auf der PowerShell-Logik:
-    Sie setzt die Positionen per Index und packt X/Y in lParam.
     """
-    print(f"[IconManager] Setze {len(icons)} Icon-Positionen (via Index-Methode)...")
+    # --- LOKALISIERT ---
+    print(get_text("IM_INFO_SETTING_ICONS", count=len(icons)))
     if not icons:
-        print("-> Keine Icons zum Setzen vorhanden.")
+        # --- LOKALISIERT ---
+        print(get_text("IM_INFO_NO_ICONS_TO_SET"))
         return
 
     h_listview = _get_desktop_listview_handle()
     if not h_listview:
         return
         
-    # Wir brauchen KEINEN Prozess-Handle und KEIN VirtualAllocEx für diese Methode!
-    
-    # Aktuelle Anzahl der Icons prüfen (wie im PS-Skript)
     current_item_count = win32gui.SendMessage(h_listview, LVM_GETITEMCOUNT, 0, 0)
     if current_item_count == 0:
-        print("[IconManager WARN] Aktueller Desktop hat 0 Icons. Breche Wiederherstellung ab.")
+        # --- LOKALISIERT ---
+        print(get_text("IM_WARN_NO_ICONS_ON_DESKTOP"))
         return
         
     restored = 0
     failed = 0
     
     for icon in icons:
-        # Prüfen, ob der Index noch gültig ist
         if icon.index < current_item_count:
             
-            # --- Python-Implementierung des $lParam-Tricks ---
-            # ($icon.Y -shl 16) -bor ($icon.X -band 0xFFFF)
-            # Wir müssen sicherstellen, dass wir mit 32-Bit-Integern arbeiten
-            
-            # (icon.y << 16)
             y_shifted = (icon.y & 0xFFFF) << 16
-            # (icon.x & 0xFFFF)
             x_masked = icon.x & 0xFFFF
-            
-            # Kombinieren
             lParam = y_shifted | x_masked
-            # --- Ende des Tricks ---
 
-            # Position setzen
             result = win32gui.SendMessage(
                 h_listview,
                 LVM_SETITEMPOSITION,
@@ -231,15 +215,16 @@ def set_icon_positions(icons: List[IconPosition]):
             else:
                 failed += 1
                 
-            # Update für dieses Icon erzwingen (wie im PS-Skript)
             win32gui.SendMessage(h_listview, LVM_UPDATE, icon.index, 0)
             
         else:
-            print(f"[IconManager WARN] Icon-Index {icon.index} ('{icon.name}') existiert nicht mehr (Max: {current_item_count-1}). Überspringe.")
+            # --- LOKALISIERT ---
+            print(get_text("IM_WARN_INDEX_NOT_FOUND", index=icon.index, name=icon.name, max=(current_item_count-1)))
             failed += 1
 
-    # Desktop-Ansicht global aktualisieren (wie im PS-Skript)
     win32gui.InvalidateRect(h_listview, None, True)
     win32gui.UpdateWindow(h_listview)
     
-    print(f"-> Wiederherstellung abgeschlossen. Erfolgreich: {restored}, Fehlgeschlagen: {failed}")
+    # --- LOKALISIERT ---
+    print(get_text("IM_INFO_RESTORE_COMPLETE", restored=restored, failed=failed))
+    

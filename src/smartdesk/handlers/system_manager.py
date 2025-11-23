@@ -1,19 +1,20 @@
 import os
 import time
+from ..localization import get_text # <-- NEUER IMPORT
 
 
 def restart_explorer():
     """
     Startet den Windows Explorer Prozess neu.
     """
-    print("[SYSTEM] Starte Windows Explorer neu...")
+    # --- LOKALISIERT ---
+    print(get_text("SYS_INFO_RESTARTING"))
 
-    # Beendet den Prozess
     os.system("taskkill /f /im explorer.exe")
 
-    # Warten um Konflikte zu vermeiden
     time.sleep(2)
 
-    # Startet den Prozess neu
     os.system("start explorer.exe")
-    print("[SYSTEM] Explorer neu gestartet.")
+    # --- LOKALISIERT ---
+    print(get_text("SYS_INFO_RESTARTED"))
+    

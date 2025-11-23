@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/ui/cli.py
-# (Aktualisiert, um die neue locale.py für alle Menütexte zu verwenden)
+# (Aktualisiert, um die NEUE localization.py zu verwenden)
 
 import os
 import platform
@@ -11,10 +11,12 @@ try:
     from ..handlers import system_manager
     from .style import (
         PREFIX_ERROR, PREFIX_OK, PREFIX_WARN, 
-        format_status_active, format_status_inactive # <-- NEU
+        format_status_active, format_status_inactive
     )
-    from .locale import TEXT # <-- NEU: Importiert das Text-Wörterbuch
+    # --- GEÄNDERTER IMPORT ---
+    from ..localization import get_text
 except ImportError as e:
+    # --- (Lokalisierung hier nicht möglich, da Import fehlschlägt) ---
     print(f"WARNUNG: Import-Fehler in cli.py: {e}")
     print("Prüfe Import-Pfade in cli.py")
     class FakeHandler:
@@ -26,8 +28,6 @@ except ImportError as e:
     system_manager = FakeHandler()
 # --- Ende Imports ---
 
-# --- ASCII-LOGO ENTFERNT ---
-# Das Logo wird jetzt aus TEXT["LOGO_ASCII"] in locale.py geladen
 
 def clear_screen():
     """Löscht den Terminal-Bildschirm, abhängig vom Betriebssystem."""
@@ -38,72 +38,80 @@ def clear_screen():
     else:
         os.system('clear')
 
-# --- NEUES HAUPTMENÜ (ANGEPASST) ---
+# --- HAUPTMENÜ (ANGEPASST) ---
 def print_main_menu():
-    """Zeigt das neue Hauptmenü an (liest Texte aus locale.py)."""
-    print(TEXT["LOGO_ASCII"]) # <-- Geändert
-    print(TEXT["MAIN_MENU_SEPARATOR"])
-    print(f"1. {TEXT['MAIN_MENU_SWITCH']}")
-    print(f"2. {TEXT['MAIN_MENU_CREATE']}")
-    print(f"3. {TEXT['MAIN_MENU_SETTINGS']}")
-    print(f"0. {TEXT['MAIN_MENU_EXIT']}")
+    """Zeigt das Hauptmenü an (liest Texte aus localization.py)."""
+    # --- LOKALISIERT ---
+    print(get_text("LOGO_ASCII"))
+    print(get_text("MAIN_MENU_SEPARATOR"))
+    print(f"1. {get_text('MAIN_MENU_SWITCH')}")
+    print(f"2. {get_text('MAIN_MENU_CREATE')}")
+    print(f"3. {get_text('MAIN_MENU_SETTINGS')}")
+    print(f"0. {get_text('MAIN_MENU_EXIT')}")
 
-# --- NEUES EINSTELLUNGSMENÜ (ANGEPASST) ---
+# --- EINSTELLUNGSMENÜ (ANGEPASST) ---
 def print_settings_menu():
-    """Zeigt das neue Einstellungs-Untermenü an (liest Texte aus locale.py)."""
-    print(TEXT["SETTINGS_MENU_HEADER"])
-    print(TEXT["MAIN_MENU_SEPARATOR"]) # Wiederverwendung des Separators
-    print(f"1. {TEXT['SETTINGS_MENU_LIST']}")
-    print(f"2. {TEXT['SETTINGS_MENU_DELETE']}")
-    print(f"3. {TEXT['SETTINGS_MENU_SAVE_ICONS']}")
-    print(f"4. {TEXT['SETTINGS_MENU_RESTART']}")
-    print(f"0. {TEXT['SETTINGS_MENU_BACK']}")
+    """Zeigt das Einstellungs-Untermenü an (liest Texte aus localization.py)."""
+    # --- LOKALISIERT ---
+    print(get_text("SETTINGS_MENU_HEADER"))
+    print(get_text("MAIN_MENU_SEPARATOR"))
+    print(f"1. {get_text('SETTINGS_MENU_LIST')}")
+    print(f"2. {get_text('SETTINGS_MENU_DELETE')}")
+    print(f"3. {get_text('SETTINGS_MENU_SAVE_ICONS')}")
+    print(f"4. {get_text('SETTINGS_MENU_RESTART')}")
+    print(f"0. {get_text('SETTINGS_MENU_BACK')}")
 
-# --- NEUE FUNKTION FÜR EINSTELLUNGEN (ANGEPASST) ---
+# --- EINSTELLUNGEN (ANGEPASST) ---
 def run_settings_menu():
     """Verwaltet die Schleife für das Einstellungsmenü."""
     while True:
         clear_screen()
         print_settings_menu()
-        choice = input(TEXT["PROMPT_CHOOSE"]) # <-- Geändert
+        # --- LOKALISIERT ---
+        choice = input(get_text("PROMPT_CHOOSE"))
 
-        # --- 1. Alle Desktops anzeigen (Ehemals 1) ---
+        # --- 1. Alle Desktops anzeigen ---
         if choice == "1":
             desktops = desktop_handler.get_all_desktops()
             if not desktops:
-                print("Keine Desktops vorhanden.")
+                # --- LOKALISIERT ---
+                print(get_text("INFO_NO_DESKTOPS"))
             else:
-                print("\nVerfügbare Desktops:")
+                # --- LOKALISIERT ---
+                print(get_text("MAIN_INFO_LIST_HEADER"))
                 for d in desktops:
-                    # --- Geändert, um style-Funktionen zu verwenden ---
                     if d.is_active:
-                        status = format_status_active(TEXT["STATUS_ACTIVE"])
+                        status = format_status_active(get_text("STATUS_ACTIVE"))
                     else:
-                        status = format_status_inactive(TEXT["STATUS_INACTIVE"])
+                        status = format_status_inactive(get_text("STATUS_INACTIVE"))
                     print(f"{status} {d.name} -> {d.path}")
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+            # --- LOKALISIERT ---
+            input(get_text("PROMPT_CONTINUE"))
 
-        # --- 2. Desktop löschen (Ehemals 6) ---
+        # --- 2. Desktop löschen ---
         elif choice == "2":
-            print("\n--- Desktop löschen ---")
+            # --- LOKALISIERT ---
+            print(get_text("INFO_DELETE_HEADING"))
             desktops = desktop_handler.get_all_desktops()
             
             if not desktops:
-                print("Keine Desktops vorhanden.")
-                input("\n--- Drücke Enter, um fortzufahren ---")
+                # --- LOKALISIERT ---
+                print(get_text("INFO_NO_DESKTOPS"))
+                input(get_text("PROMPT_CONTINUE"))
                 continue
 
-            print("\n--- Welchen Desktop löschen? ---")
+            # --- LOKALISIERT ---
+            print(get_text("PROMPT_WHICH_DESKTOP_DELETE"))
             for i, d in enumerate(desktops, 1):
-                # --- Geändert, um style-Funktionen zu verwenden ---
                 if d.is_active:
-                    status = format_status_active(TEXT["STATUS_ACTIVE"])
+                    status = format_status_active(get_text("STATUS_ACTIVE"))
                 else:
-                    status = format_status_inactive(TEXT["STATUS_INACTIVE"])
+                    status = format_status_inactive(get_text("STATUS_INACTIVE"))
                 print(f"{i}. {status} {d.name} ({d.path})")
             
-            print("0. Abbrechen")
-            selection = input("\nNummer eingeben: ").strip()
+            # --- LOKALISIERT ---
+            print(get_text("PROMPT_CANCEL"))
+            selection = input(get_text("PROMPT_CHOOSE_NUMBER")).strip()
 
             if selection == "0":
                 continue
@@ -115,75 +123,84 @@ def run_settings_menu():
                     target_desktop = desktops[index]
                     
                     if target_desktop.is_active:
-                        # --- VERWENDET JETZT PREFIX_ERROR ---
-                        print(f"{PREFIX_ERROR} Fehler: Desktop '{target_desktop.name}' ist aktiv. Bitte wechseln Sie vorher den Desktop.")
-                        input("\n--- Drücke Enter, um fortzufahren ---")
+                        # --- LOKALISIERT (Handler-Text wird hier dupliziert, da UI-Logik) ---
+                        print(f"{PREFIX_ERROR} {get_text('DH_ERROR_DELETE_ACTIVE', name=target_desktop.name)}")
+                        input(get_text("PROMPT_CONTINUE"))
                         continue
 
-                    delete_folder_confirm = input(f"Soll der Ordner '{target_desktop.path}' auch physisch gelöscht werden? (y/n): ").strip().lower()
+                    # --- LOKALISIERT ---
+                    delete_folder_confirm = input(get_text("PROMPT_DELETE_FOLDER_CONFIRM", path=target_desktop.path)).strip().lower()
                     delete_folder = (delete_folder_confirm == 'y')
                     
+                    # Handler gibt eigene (lokalisierte) Meldungen aus
                     desktop_handler.delete_desktop(target_desktop.name, delete_folder)
                     
                 else:
-                    print("Ungültige Nummer.")
+                    # --- LOKALISIERT ---
+                    print(get_text("ERROR_INVALID_NUMBER"))
             except ValueError:
-                print("Bitte eine gültige Zahl eingeben.")
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+                # --- LOKALISIERT ---
+                print(get_text("ERROR_INVALID_NUMBER"))
+            # --- LOKALISIERT ---
+            input(get_text("PROMPT_CONTINUE"))
 
-        # --- 3. Icons speichern (Ehemals 4) ---
+        # --- 3. Icons speichern ---
         elif choice == "3":
-            print("\nSpeichere aktuelle Icon-Positionen...")
+            # --- LOKALISIERT (Handler gibt eigene Meldungen aus) ---
+            print(get_text("DH_INFO_SAVING_ICONS", name="...")) # Platzhalter, Handler weiß es besser
             if desktop_handler.save_current_desktop_icons():
-                # --- VERWENDET JETZT PREFIX_OK ---
-                print(f"{PREFIX_OK} Speichern abgeschlossen.")
+                print(f"{PREFIX_OK} {get_text('DH_SUCCESS_SAVE_ICONS', name='...')}") # Platzhalter
             else:
-                print(f"{PREFIX_ERROR} Speichern fehlgeschlagen. Siehe Meldung oben.")
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+                print(f"{PREFIX_ERROR} {get_text('DH_ERROR_SAVE_ICONS', e='...')}") # Platzhalter
+            # --- LOKALISIERT ---
+            input(get_text("PROMPT_CONTINUE"))
 
-        # --- 4. Explorer neu starten (Ehemals 5) ---
+        # --- 4. Explorer neu starten ---
         elif choice == "4":
-            print("Explorer wird manuell neu gestartet...")
+            # --- LOKALISIERT (Handler gibt eigene Meldungen aus) ---
             system_manager.restart_explorer()
-            print("Explorer wurde neu gestartet.")
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+            input(get_text("PROMPT_CONTINUE"))
 
         # --- 0. Zurück ---
         elif choice == "0":
-            break # Verlässt die Einstellungs-Schleife
+            break 
         
         else:
-            print(TEXT["ERROR_INVALID_INPUT"]) # <-- Geändert
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+            # --- LOKALISIERT ---
+            print(get_text("ERROR_INVALID_INPUT"))
+            input(get_text("PROMPT_CONTINUE"))
 
-# --- run() FUNKTION STARK ANGEPASST (ANGEPASST) ---
+# --- run() FUNKTION (ANGEPASST) ---
 def run():
     """Verwaltet die Schleife für das Hauptmenü."""
     while True:
         clear_screen()
-        print_main_menu() # Zeigt das neue Hauptmenü
-        choice = input(TEXT["PROMPT_CHOOSE"]) # <-- Geändert
+        print_main_menu()
+        # --- LOKALISIERT ---
+        choice = input(get_text("PROMPT_CHOOSE"))
 
-        # --- 1. Desktop wechseln (Ehemals 3) ---
+        # --- 1. Desktop wechseln ---
         if choice == "1":
             desktops = desktop_handler.get_all_desktops()
             
             if not desktops:
-                print("Keine Desktops vorhanden. Bitte erstelle zuerst einen.")
-                input("\n--- Drücke Enter, um fortzufahren ---")
+                # --- LOKALISIERT ---
+                print(get_text("INFO_NO_DESKTOPS_CREATE_FIRST"))
+                input(get_text("PROMPT_CONTINUE"))
                 continue
 
-            print("\n--- Zu welchem Desktop wechseln? ---")
+            # --- LOKALISIERT ---
+            print(get_text("PROMPT_WHICH_DESKTOP_SWITCH"))
             for i, d in enumerate(desktops, 1):
-                # --- Geändert, um style-Funktionen zu verwenden ---
                 if d.is_active:
-                    status = format_status_active(TEXT["STATUS_ACTIVE"])
+                    status = format_status_active(get_text("STATUS_ACTIVE"))
                 else:
-                    status = format_status_inactive(TEXT["STATUS_INACTIVE"])
+                    status = format_status_inactive(get_text("STATUS_INACTIVE"))
                 print(f"{i}. {status} {d.name} ({d.path})")
             
-            print("0. Abbrechen")
-            selection = input("\nNummer eingeben: ").strip()
+            # --- LOKALISIERT ---
+            print(get_text("PROMPT_CANCEL"))
+            selection = input(get_text("PROMPT_CHOOSE_NUMBER")).strip()
 
             if selection == "0":
                 continue
@@ -194,82 +211,90 @@ def run():
                 if 0 <= index < len(desktops):
                     target_desktop = desktops[index]
                     
+                    # Handler (switch_to_desktop) gibt lokalisierte Meldungen aus
                     if desktop_handler.switch_to_desktop(target_desktop.name):
                         
-                        print(f"Registry erfolgreich auf '{target_desktop.name}' gesetzt.")
-                        print("Starte Explorer neu, um Änderungen anzuwenden...")
+                        # --- LOKALISIERT ---
+                        print(get_text("INFO_REGISTRY_SET_SUCCESS", name=target_desktop.name))
+                        print(get_text("INFO_RESTARTING_EXPLORER"))
                         system_manager.restart_explorer()
                         
-                        print("Explorer wurde neu gestartet. Warte 3 Sekunden auf Initialisierung...")
+                        print(get_text("INFO_WAITING_FOR_EXPLORER"))
                         time.sleep(3) 
 
-                        print("Synchronisiere Status und stelle Icons wieder her...")
+                        print(get_text("INFO_SYNCING_ICONS"))
                         desktop_handler.sync_desktop_state_and_apply_icons()
-                        # --- VERWENDET JETZT PREFIX_OK ---
-                        print(f"{PREFIX_OK} Wechsel zu '{target_desktop.name}' abgeschlossen.")
+                        print(f"{PREFIX_OK} {get_text('SWITCH_SUCCESS', name=target_desktop.name)}")
                         
                     else:
-                        # Fehler/Bereits aktiv (Meldung kommt vom Handler)
                         pass
                 else:
-                    print("Ungültige Nummer.")
+                    # --- LOKALISIERT ---
+                    print(get_text("ERROR_INVALID_NUMBER"))
             except ValueError:
-                print("Bitte eine gültige Zahl eingeben.")
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+                # --- LOKALISIERT ---
+                print(get_text("ERROR_INVALID_NUMBER"))
+            # --- LOKALISIERT ---
+            input(get_text("PROMPT_CONTINUE"))
 
-        # --- 2. Neuen Desktop erstellen (Ehemals 2) ---
+        # --- 2. Neuen Desktop erstellen ---
         elif choice == "2":
-            print("\n--- Neuen Desktop anlegen ---")
-            name = input("Name des neuen Desktops: ").strip()
+            # --- LOKALISIERT ---
+            print(get_text("INFO_CREATE_HEADING"))
+            name = input(get_text("PROMPT_DESKTOP_NAME")).strip()
             
             if not name:
-                # --- VERWENDET JETZT PREFIX_ERROR ---
-                print(f"{PREFIX_ERROR} Fehler: Der Name darf nicht leer sein.")
-                input("\n--- Drücke Enter, um fortzufahren ---")
+                print(f"{PREFIX_ERROR} {get_text('ERROR_NAME_EMPTY')}")
+                input(get_text("PROMPT_CONTINUE"))
                 continue
 
-            print("\nWie soll der Ordner gewählt werden?")
-            print("1. Einen existierenden Ordner verwenden")
-            print("2. Einen neuen Ordner erstellen")
+            print(get_text("PROMPT_FOLDER_MODE"))
+            print(get_text("PROMPT_FOLDER_MODE_1"))
+            print(get_text("PROMPT_FOLDER_MODE_2"))
             
-            mode = input("Auswahl (1/2): ").strip()
+            mode = input(get_text("PROMPT_CHOOSE_1_OR_2")).strip()
             final_path = ""
 
             if mode == "1":
-                final_path = input(r"Bitte vollen Pfad eingeben (z.B. F:\SmartDesk\Work): ").strip()
+                final_path = input(get_text("PROMPT_EXISTING_PATH")).strip()
 
             elif mode == "2":
-                parent_path = input(r"In welchem Verzeichnis soll der Ordner erstellt werden? (z.B. F:\SmartDesk): ").strip()
+                parent_path = input(get_text("PROMPT_NEW_PATH_PARENT")).strip()
                 
                 if parent_path:
                     final_path = os.path.join(parent_path, name)
-                    print(f"Der neue Desktop wird hier erstellt: {final_path}")
+                    print(get_text("INFO_NEW_PATH_LOCATION", path=final_path))
                 else:
-                    # --- VERWENDET JETZT PREFIX_ERROR ---
-                    print(f"{PREFIX_ERROR} Fehler: Basis-Verzeichnis darf nicht leer sein.")
+                    print(f"{PREFIX_ERROR} {get_text('ERROR_BASE_DIR_EMPTY')}")
             else:
-                print("Ungültige Auswahl.")
-                input("\n--- Drücke Enter, um fortzufahren ---")
+                # --- LOKALISIERT ---
+                print(get_text("ERROR_INVALID_CHOICE"))
+                input(get_text("PROMPT_CONTINUE"))
                 continue
 
             if final_path:
+                # Handler gibt lokalisierte Meldungen aus
                 desktop_handler.create_desktop(name, final_path)
             else:
-                print("Vorgang abgebrochen (kein Pfad angegeben).")
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+                # --- LOKALISIERT ---
+                print(get_text("INFO_ABORTED_NO_PATH"))
+            # --- LOKALISIERT ---
+            input(get_text("PROMPT_CONTINUE"))
         
         # --- 3. Einstellungen ---
         elif choice == "3":
-            run_settings_menu() # Ruft die neue Untermenü-Schleife auf
+            run_settings_menu() 
         
-        # --- 0. Beenden (Ehemals 7) ---
+        # --- 0. Beenden ---
         elif choice == "0":
-            print(TEXT["EXIT_MESSAGE"]) # <-- Geändert
+            # --- LOKALISIERT ---
+            print(get_text("EXIT_MESSAGE"))
             break
             
         else:
-            print(TEXT["ERROR_INVALID_INPUT"]) # <-- Geändert
-            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+            # --- LOKALISIERT ---
+            print(get_text("ERROR_INVALID_INPUT"))
+            input(get_text("PROMPT_CONTINUE"))
 
 # --- Start des Skripts (unverändert) ---
 if __name__ == "__main__":

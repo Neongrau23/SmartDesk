@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/handlers/desktop_handler.py
-# (Aktualisiert mit Pfad-Validierung und interaktiver Abfrage beim Wechseln)
+# (Aktualisiert, um die neue localization.py zu verwenden)
 
 import winreg
 import os
@@ -8,10 +8,10 @@ from typing import List, Optional
 
 from ..config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
 from ..utils.registry_operations import update_registry_key, get_registry_value
-# Import wird jetzt für die Pfad-Validierung benötigt
 from ..utils.path_validator import ensure_directory_exists
 from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
+from ..localization import get_text # <-- NEUER IMPORT
 
 from .icon_manager import get_current_icon_positions, set_icon_positions
 
@@ -19,19 +19,22 @@ from .icon_manager import get_current_icon_positions, set_icon_positions
 def create_desktop(name: str, path: str) -> bool:
     """Erstellt einen neuen Desktop und speichert ihn."""
     if not ensure_directory_exists(path):
-        print(f"✗ Fehler: Pfad '{path}' ist ungültig oder konnte nicht erstellt werden.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_PATH_INVALID", path=path))
         return False
 
     desktops = load_desktops()
     
     if any(d.name == name for d in desktops):
-        print(f"✗ Fehler: Ein Desktop mit dem Namen '{name}' existiert bereits.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_NAME_EXISTS", name=name))
         return False
 
     new_desktop = Desktop(name=name, path=path)
     desktops.append(new_desktop)
     save_desktops(desktops)
-    print(f"✓ Desktop '{name}' erfolgreich angelegt.")
+    # --- LOKALISIERT ---
+    print(get_text("DH_SUCCESS_CREATE", name=name))
     return True
 
 # --- (Funktion update_desktop bleibt unverändert) ---
@@ -41,11 +44,13 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     target_desktop = next((d for d in desktops if d.name == old_name), None)
 
     if not target_desktop:
-        print(f"✗ Fehler: Desktop '{old_name}' nicht gefunden.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_NOT_FOUND", old_name=old_name))
         return False
 
     if new_name != old_name and any(d.name == new_name for d in desktops):
-        print(f"✗ Fehler: Der Name '{new_name}' ist bereits vergeben.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_NEW_NAME_EXISTS", new_name=new_name))
         return False
 
     if new_path != target_desktop.path:
@@ -54,24 +59,29 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
         if old_path_exists:
             try:
                 if os.path.exists(new_path):
-                     print(f"Warnung: Zielpfad '{new_path}' existiert bereits. Versuche Inhalt zu integrieren...")
+                     # --- LOKALISIERT ---
+                     print(get_text("DH_WARN_TARGET_PATH_EXISTS", path=new_path))
                 
                 shutil.move(target_desktop.path, new_path)
-                print(f"Ordner physisch verschoben von '{target_desktop.path}' nach '{new_path}'.")
+                # --- LOKALISIERT ---
+                print(get_text("DH_INFO_FOLDER_MOVED", old_path=target_desktop.path, new_path=new_path))
                 
             except Exception as e:
-                print(f"✗ Fehler beim Verschieben des Ordners: {e}")
+                # --- LOKALISIERT ---
+                print(get_text("DH_ERROR_FOLDER_MOVE", e=e))
                 return False
         else:
             if not ensure_directory_exists(new_path):
-                print(f"✗ Fehler: Neuer Pfad '{new_path}' konnte nicht erstellt werden.")
+                # --- LOKALISIERT ---
+                print(get_text("DH_ERROR_NEW_PATH_CREATE", path=new_path))
                 return False
 
     target_desktop.name = new_name
     target_desktop.path = new_path
     
     save_desktops(desktops)
-    print(f"✓ Desktop '{old_name}' wurde aktualisiert zu '{new_name}'.")
+    # --- LOKALISIERT ---
+    print(get_text("DH_SUCCESS_UPDATE", old_name=old_name, new_name=new_name))
     return True
 
 # --- (Funktion delete_desktop bleibt unverändert) ---
@@ -79,34 +89,33 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
     """
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
     """
-    # get_all_desktops() synchronisiert den Status, falls wir 'is_active' prüfen
     desktops = get_all_desktops()
     
     target_desktop = next((d for d in desktops if d.name == name), None)
 
     if not target_desktop:
-        # Erfüllt Akzeptanzkriterium: Fehlermeldung bei nicht existierendem Desktop
-        print(f"✗ Fehler: Desktop '{name}' existiert nicht")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_NOT_FOUND_DELETE", name=name))
         return False
 
-    # --- NEU: Akzeptanzkriterium: Bestätigungsabfrage ---
     try:
-        confirm = input(f"Desktop '{name}' wirklich löschen? (y/n): ").strip().lower()
-    except EOFError: # Verhindert Absturz bei direktem Aufruf (z.B. in Tests oder Pipes)
-        print("Löschvorgang abgebrochen.")
+        # --- LOKALISIERT ---
+        confirm = input(get_text("DH_PROMPT_DELETE_CONFIRM", name=name)).strip().lower()
+    except EOFError: 
+        # --- LOKALISIERT ---
+        print(get_text("DH_INFO_DELETE_ABORTED"))
         return False
         
     if confirm != 'y':
-        print("Löschvorgang abgebrochen.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_INFO_DELETE_ABORTED"))
         return False
-    # --- ENDE NEU ---
 
-    # Sicherheitsprüfung: Aktiven Desktop nicht löschen
     if target_desktop.is_active:
-        print(f"✗ Fehler: Desktop '{name}' ist aktiv. Bitte wechseln Sie vorher den Desktop.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_DELETE_ACTIVE", name=name))
         return False
 
-    # Sicherheitsprüfung: Vergleiche mit realem Registry-Pfad
     real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
     
     if real_registry_path:
@@ -114,34 +123,34 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
         norm_registry = os.path.normpath(os.path.expandvars(real_registry_path)).lower()
 
         if norm_registry == norm_target:
-            print(f"✗ KRITISCHER FEHLER: Windows Registry meldet, dass '{target_desktop.path}' der aktive Desktop ist!")
-            print("Löschen verweigert, um Datenverlust zu verhindern.")
+            # --- LOKALISIERT ---
+            print(get_text("DH_ERROR_DELETE_CRITICAL", path=target_desktop.path))
+            print(get_text("DH_INFO_DELETE_DENIED"))
             return False
 
-    # Physisches Löschen des Ordners (optional)
     if delete_folder:
         if os.path.exists(target_desktop.path):
             try:
                 shutil.rmtree(target_desktop.path)
-                print(f"✓ Ordner '{target_desktop.path}' wurde physisch gelöscht.")
+                # --- LOKALISIERT ---
+                print(get_text("DH_SUCCESS_FOLDER_DELETE", path=target_desktop.path))
             except Exception as e:
-                print(f"✗ Fehler beim Löschen des Ordners: {e}")
-                # Wir brechen hier nicht ab, der Eintrag soll trotzdem entfernt werden
+                # --- LOKALISIERT ---
+                print(get_text("DH_ERROR_FOLDER_DELETE", e=e))
         else:
-            print(f"Hinweis: Ordner '{target_desktop.path}' existierte nicht mehr.")
+            # --- LOKALISIERT ---
+            print(get_text("DH_INFO_FOLDER_NOT_FOUND", path=target_desktop.path))
 
-    # Erfüllt Akzeptanzkriterium: Entfernt Desktop aus desktops.json
     desktops.remove(target_desktop)
     save_desktops(desktops)
     
-    # Erfüllt Akzeptanzkriterium: Success-Message
-    print(f"✓ Desktop '{name}' erfolgreich gelöscht")
+    # --- LOKALISIERT ---
+    print(get_text("DH_SUCCESS_DELETE", name=name))
     return True
 
 # --- (Funktion get_all_desktops bleibt unverändert) ---
 def get_all_desktops() -> List[Desktop]:
     """
-    (Schritt 4, 5, 6)
     Gibt eine Liste aller Desktops zurück.
     Synchronisiert dabei automatisch den 'is_active' Status mit der Windows Registry.
     """
@@ -151,17 +160,14 @@ def get_all_desktops() -> List[Desktop]:
         real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
         
         if real_registry_path:
-            # (Schritt 4: Registry prüfen)
             norm_registry = os.path.normpath(os.path.expandvars(real_registry_path)).lower()
             data_changed = False
             
             for d in desktops:
-                # (Schritt 5: Registry-Pfad in JSON suchen)
                 norm_desktop = os.path.normpath(os.path.expandvars(d.path)).lower()
                 should_be_active = (norm_desktop == norm_registry)
                 
                 if d.is_active != should_be_active:
-                    # (Schritt 6: Desktop auf "AKTIV" stellen)
                     d.is_active = should_be_active
                     data_changed = True
             
@@ -169,101 +175,88 @@ def get_all_desktops() -> List[Desktop]:
                 save_desktops(desktops)
                 
     except Exception as e:
-        print(f"Warnung: Konnte Status nicht mit Registry synchronisieren: {e}")
+        # --- LOKALISIERT ---
+        print(get_text("DH_WARN_SYNC_FAILED", e=e))
 
     return desktops
 
-# --- FUNKTION switch_to_desktop STARK AKTUALISIERT (BUGFIX) ---
+# --- FUNKTION switch_to_desktop STARK AKTUALISIERT (BUGFIX & LOKALISIERUNG) ---
 def switch_to_desktop(desktop_name: str) -> bool:
     """
-    (Schritt 1 & 2)
-    Bereitet den Desktop-Wechsel vor:
-    0. Validiert, ob der Zielpfad existiert.
-    1. Speichert Icons des alten Desktops.
-    2. Ändert den Registry-Pfad.
-    Gibt True zurück, wenn der Explorer neugestartet werden kann.
+    Bereitet den Desktop-Wechsel vor.
     """
-    # Lade Desktops *ohne* Sync, da wir den *alten* aktiven Desktop finden wollen
     desktops = load_desktops()
     
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
     if not target_desktop:
-        print(f"✗ Fehler: Desktop '{desktop_name}' nicht gefunden.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_SWITCH_NOT_FOUND", name=desktop_name))
         return False
         
-    # --- NEU: BUGFIX FÜR GELÖSCHTE PFADE ---
-    # Wir prüfen den Pfad, bevor wir irgendetwas anderes tun
-    # Wichtig: Umgebungsvariablen (wie %USERPROFILE%) müssen aufgelöst werden
     target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
     
+    # --- START LOKALISIERUNG BUGFIX ---
     if not os.path.exists(target_path):
-        print(f"✗ WARNUNG: Der Pfad für Desktop '{desktop_name}' existiert nicht mehr:")
-        print(f"  -> {target_path}")
-        print("\nWas möchten Sie tun?")
-        print("  [1] Den Ordner neu erstellen und den Wechsel fortsetzen.")
-        print("  [2] Den Desktop aus der Konfiguration entfernen.")
-        print("  [j] Jegliche andere Eingabe bricht den Vorgang ab.")
+        print(get_text("DH_WARN_PATH_NOT_FOUND", name=desktop_name))
+        print(get_text("DH_INFO_PATH_IS", path=target_path))
+        print(get_text("DH_PROMPT_PATH_NOT_FOUND_TITLE"))
+        print(get_text("DH_PROMPT_PATH_RECREATE"))
+        print(get_text("DH_PROMPT_PATH_REMOVE"))
+        print(get_text("DH_PROMPT_PATH_ABORT"))
         
         try:
-            choice = input("Ihre Wahl: ").strip()
+            choice = input(get_text("DH_PROMPT_YOUR_CHOICE")).strip()
         except EOFError:
-            choice = "j" # Standardmäßig abbrechen
+            choice = "j"
             
         if choice == '1':
-            # Option 1: Ordner neu erstellen
-            print(f"Erstelle Ordner neu: {target_path}...")
+            print(get_text("DH_INFO_RECREATING_FOLDER", path=target_path))
             if ensure_directory_exists(target_path):
-                print("✓ Ordner erfolgreich erstellt. Wechsel wird fortgesetzt.")
-                # Der Code kann nun normal weiterlaufen
+                print(get_text("DH_SUCCESS_RECREATING_FOLDER"))
             else:
-                print(f"✗ FEHLER: Der Ordner konnte nicht neu erstellt werden.")
-                print("Wechsel wird abgebrochen.")
-                return False # Abbruch, kein Neustart
+                print(get_text("DH_ERROR_RECREATING_FOLDER"))
+                print(get_text("DH_INFO_ABORTING_SWITCH"))
+                return False 
                 
         elif choice == '2':
-            # Option 2: Desktop aus Konfiguration entfernen
-            # Wir replizieren hier die Kernlogik von delete_desktop(),
-            # aber ohne die erneute Bestätigungsabfrage.
-            print(f"Entferne '{desktop_name}' aus der Konfiguration...")
+            print(get_text("DH_INFO_REMOVING_CONFIG", name=desktop_name))
             try:
                 desktops.remove(target_desktop)
                 save_desktops(desktops)
-                print(f"✓ Desktop '{desktop_name}' wurde entfernt.")
+                print(get_text("DH_SUCCESS_REMOVING_CONFIG"))
             except Exception as e:
-                print(f"✗ FEHLER beim Entfernen des Desktops: {e}")
+                print(get_text("DH_ERROR_REMOVING_CONFIG", e=e))
             
-            print("Wechsel wird abgebrochen.")
-            return False # Abbruch, kein Neustart
+            print(get_text("DH_INFO_ABORTING_SWITCH"))
+            return False 
             
         else:
-            # Option 3: Abbrechen
-            print("Wechsel wird abgebrochen.")
-            return False # Abbruch, kein Neustart
-    # --- ENDE BUGFIX ---
+            print(get_text("DH_INFO_ABORTING_SWITCH"))
+            return False 
+    # --- ENDE LOKALISIERUNG BUGFIX ---
 
-    # Prüfe, ob der *eigentlich* aktive Desktop (laut Registry) bereits das Ziel ist
     current_active_desktops = get_all_desktops()
     current_active = next((d for d in current_active_desktops if d.is_active), None)
     if current_active and current_active.name == desktop_name:
-        print(f"'{desktop_name}' ist bereits aktiv.")
-        return False # False signalisiert "kein Neustart nötig"
+        # --- LOKALISIERT ---
+        print(get_text("DH_INFO_ALREADY_ACTIVE", name=desktop_name))
+        return False 
 
-    # (Schritt 1: Icon Position von Desktop1 (alt) speichern)
-    # Wir nutzen die nicht-synchronisierte Liste, um den *alten* aktiven Desktop zu finden
     active_desktop = next((d for d in desktops if d.is_active), None)
     if active_desktop:
-        print(f"Speichere Icon-Positionen für '{active_desktop.name}'...")
+        # --- LOKALISIERT ---
+        print(get_text("DH_INFO_SAVING_ICONS", name=active_desktop.name))
         active_desktop.icon_positionen = get_current_icon_positions()
-        active_desktop.is_active = False # Flag in lokaler Kopie setzen
-        # Speichere die *gesamte* Liste (inkl. der neuen Icons)
+        active_desktop.is_active = False 
         save_desktops(desktops)
-        print("Datenbank (Icon-Speicherung) aktualisiert.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_SUCCESS_DB_UPDATE"))
     else:
-        print("Warnung: Es wurde kein als 'aktiv' markierter Desktop gefunden. Überspringe Speichern der Icons.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_WARN_NO_ACTIVE_DESKTOP"))
 
-    # (Schritt 2: Änderung in der Registry vornehmen)
-    # WICHTIG: Wir verwenden hier target_desktop.path (mit %vars%), nicht target_path
-    print(f"Wechsle Registry zu Desktop: {target_desktop.name} ({target_desktop.path})...")
+    # --- LOKALISIERT ---
+    print(get_text("DH_INFO_SWITCHING_REGISTRY", name=target_desktop.name, path=target_desktop.path))
     reg_success = True
     if not update_registry_key(KEY_USER_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_EXPAND_SZ):
         reg_success = False
@@ -271,43 +264,43 @@ def switch_to_desktop(desktop_name: str) -> bool:
         reg_success = False
 
     if not reg_success:
-        print("✗ FEHLER: Konnte Registry nicht aktualisieren. Wechsel wird abgebrochen.")
-        # Rollback: setze das 'is_active' Flag zurück, das wir lokal geändert haben
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_REGISTRY_UPDATE_FAILED"))
         if active_desktop:
             active_desktop.is_active = True
-            save_desktops(desktops) # Speichern, um den Rollback zu vollziehen
+            save_desktops(desktops)
         return False
     
-    print("Registry-Änderung erfolgreich. Neustart des Explorers erforderlich.")
-    return True # Signal an CLI, dass der Neustart erfolgen kann
+    # --- LOKALISIERT ---
+    print(get_text("DH_INFO_REGISTRY_SUCCESS"))
+    return True 
 
 # --- (Funktion sync_desktop_state_and_apply_icons bleibt unverändert) ---
 def sync_desktop_state_and_apply_icons():
     """
-    (Schritt 4, 5, 6, 7)
     Führt die Aktionen *nach* dem Explorer-Neustart aus.
-    - Synchronisiert DB-Status mit Registry (get_all_desktops)
-    - Stellt Icons des neuen aktiven Desktops wieder her
     """
-    print("Synchronisiere Status nach Neustart...")
+    # --- LOKALISIERT ---
+    print(get_text("DH_INFO_SYNC_AFTER_RESTART"))
     
-    # (Schritt 4, 5, 6: get_all_desktops() prüft Registry, findet Pfad, setzt 'is_active')
     desktops = get_all_desktops()
     
     new_active_desktop = next((d for d in desktops if d.is_active), None)
     
     if not new_active_desktop:
-        print("✗ FEHLER: Konnte nach Neustart keinen aktiven Desktop in der DB finden.")
-        print("Möglicherweise ist der Registry-Pfad in der desktops.json nicht registriert.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_SYNC_NO_ACTIVE"))
+        print(get_text("DH_ERROR_SYNC_PATH_NOT_REGISTERED"))
         return
 
-    print(f"Registry-Pfad '{new_active_desktop.path}' gefunden.")
-    print(f"Desktop '{new_active_desktop.name}' ist jetzt aktiv.")
+    # --- LOKALISIERT ---
+    print(get_text("DH_INFO_SYNC_PATH_FOUND", path=new_active_desktop.path))
+    print(get_text("DH_INFO_SYNC_DESKTOP_ACTIVE", name=new_active_desktop.name))
     
-    # (Schritt 7: Desktop icons des aktiven Desktops (Desktop2) an Position verschieben)
-    print(f"Stelle Icon-Positionen für '{new_active_desktop.name}' wieder her...")
+    print(get_text("DH_INFO_SYNC_RESTORING_ICONS", name=new_active_desktop.name))
     set_icon_positions(new_active_desktop.icon_positionen)
-    print("Icon-Wiederherstellung abgeschlossen.")
+    # --- LOKALISIERT ---
+    print(get_text("DH_INFO_SYNC_ICONS_DONE"))
 
 # --- (Funktion save_current_desktop_icons bleibt unverändert) ---
 def save_current_desktop_icons() -> bool:
@@ -315,25 +308,27 @@ def save_current_desktop_icons() -> bool:
     Findet den aktuell aktiven Desktop, liest seine
     Icon-Positionen aus und speichert sie in der Datenbank.
     """
-    # get_all_desktops() synchronisiert erst den Status
     desktops = get_all_desktops()
     
     active_desktop = next((d for d in desktops if d.is_active), None)
     
     if not active_desktop:
-        print("✗ Fehler: Konnte keinen aktiven Desktop finden.")
-        print("Möglicherweise ist der in Windows eingestellte Pfad")
-        print("in SmartDesk nicht registriert.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_SAVE_ICONS_NO_ACTIVE"))
+        print(get_text("DH_ERROR_SAVE_ICONS_NOT_REGISTERED"))
         return False
         
     try:
-        print(f"Lese aktuelle Icon-Positionen für '{active_desktop.name}'...")
+        # --- LOKALISIERT ---
+        print(get_text("DH_INFO_READING_ICONS", name=active_desktop.name))
         active_desktop.icon_positionen = get_current_icon_positions()
         
         save_desktops(desktops)
-        print(f"✓ Icon-Positionen für '{active_desktop.name}' erfolgreich gespeichert.")
+        # --- LOKALISIERT ---
+        print(get_text("DH_SUCCESS_SAVE_ICONS", name=active_desktop.name))
         return True
     except Exception as e:
-        print(f"✗ Fehler beim Speichern der Icons: {e}")
+        # --- LOKALISIERT ---
+        print(get_text("DH_ERROR_SAVE_ICONS", e=e))
         return False
     
