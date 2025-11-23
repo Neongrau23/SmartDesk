@@ -42,24 +42,24 @@ def clear_screen():
 def print_main_menu():
     """Zeigt das Hauptmenü an (liest Texte aus localization.py)."""
     # --- LOKALISIERT ---
-    print(get_text("LOGO_ASCII"))
-    print(get_text("MAIN_MENU_SEPARATOR"))
-    print(f"1. {get_text('MAIN_MENU_SWITCH')}")
-    print(f"2. {get_text('MAIN_MENU_CREATE')}")
-    print(f"3. {get_text('MAIN_MENU_SETTINGS')}")
-    print(f"0. {get_text('MAIN_MENU_EXIT')}")
+    print(get_text("logo.ascii"))
+    print(get_text("ui.menu.main.separator"))
+    print(f"1. {get_text('ui.menu.main.switch')}")
+    print(f"2. {get_text('ui.menu.main.create')}")
+    print(f"3. {get_text('ui.menu.main.settings')}")
+    print(f"0. {get_text('ui.menu.main.exit')}")
 
 # --- EINSTELLUNGSMENÜ (ANGEPASST) ---
 def print_settings_menu():
     """Zeigt das Einstellungs-Untermenü an (liest Texte aus localization.py)."""
     # --- LOKALISIERT ---
-    print(get_text("SETTINGS_MENU_HEADER"))
-    print(get_text("MAIN_MENU_SEPARATOR"))
-    print(f"1. {get_text('SETTINGS_MENU_LIST')}")
-    print(f"2. {get_text('SETTINGS_MENU_DELETE')}")
-    print(f"3. {get_text('SETTINGS_MENU_SAVE_ICONS')}")
-    print(f"4. {get_text('SETTINGS_MENU_RESTART')}")
-    print(f"0. {get_text('SETTINGS_MENU_BACK')}")
+    print(get_text("ui.menu.settings.header"))
+    print(get_text("ui.menu.main.separator"))
+    print(f"1. {get_text('ui.menu.settings.list')}")
+    print(f"2. {get_text('ui.menu.settings.delete')}")
+    print(f"3. {get_text('ui.menu.settings.save_icons')}")
+    print(f"4. {get_text('ui.menu.settings.restart')}")
+    print(f"0. {get_text('ui.menu.settings.back')}")
 
 # --- EINSTELLUNGEN (ANGEPASST) ---
 def run_settings_menu():
@@ -68,50 +68,50 @@ def run_settings_menu():
         clear_screen()
         print_settings_menu()
         # --- LOKALISIERT ---
-        choice = input(get_text("PROMPT_CHOOSE"))
+        choice = input(get_text("ui.prompts.choose"))
 
         # --- 1. Alle Desktops anzeigen ---
         if choice == "1":
             desktops = desktop_handler.get_all_desktops()
             if not desktops:
                 # --- LOKALISIERT ---
-                print(get_text("INFO_NO_DESKTOPS"))
+                print(get_text("ui.messages.no_desktops"))
             else:
                 # --- LOKALISIERT ---
-                print(get_text("MAIN_INFO_LIST_HEADER"))
+                print(get_text("main.info.list_header"))
                 for d in desktops:
                     if d.is_active:
-                        status = format_status_active(get_text("STATUS_ACTIVE"))
+                        status = format_status_active(get_text("ui.status.active"))
                     else:
-                        status = format_status_inactive(get_text("STATUS_INACTIVE"))
+                        status = format_status_inactive(get_text("ui.status.inactive"))
                     print(f"{status} {d.name} -> {d.path}")
             # --- LOKALISIERT ---
-            input(get_text("PROMPT_CONTINUE"))
+            input(get_text("ui.prompts.continue"))
 
         # --- 2. Desktop löschen ---
         elif choice == "2":
             # --- LOKALISIERT ---
-            print(get_text("INFO_DELETE_HEADING"))
+            print(get_text("ui.headings.delete"))
             desktops = desktop_handler.get_all_desktops()
             
             if not desktops:
                 # --- LOKALISIERT ---
-                print(get_text("INFO_NO_DESKTOPS"))
-                input(get_text("PROMPT_CONTINUE"))
+                print(get_text("ui.messages.no_desktops"))
+                input(get_text("ui.prompts.continue"))
                 continue
 
             # --- LOKALISIERT ---
-            print(get_text("PROMPT_WHICH_DESKTOP_DELETE"))
+            print(get_text("ui.headings.which_desktop_delete"))
             for i, d in enumerate(desktops, 1):
                 if d.is_active:
-                    status = format_status_active(get_text("STATUS_ACTIVE"))
+                    status = format_status_active(get_text("ui.status.active"))
                 else:
-                    status = format_status_inactive(get_text("STATUS_INACTIVE"))
+                    status = format_status_inactive(get_text("ui.status.inactive"))
                 print(f"{i}. {status} {d.name} ({d.path})")
             
             # --- LOKALISIERT ---
-            print(get_text("PROMPT_CANCEL"))
-            selection = input(get_text("PROMPT_CHOOSE_NUMBER")).strip()
+            print(get_text("ui.prompts.cancel"))
+            selection = input(get_text("ui.prompts.choose_number")).strip()
 
             if selection == "0":
                 continue
@@ -124,12 +124,12 @@ def run_settings_menu():
                     
                     if target_desktop.is_active:
                         # --- LOKALISIERT (Handler-Text wird hier dupliziert, da UI-Logik) ---
-                        print(f"{PREFIX_ERROR} {get_text('DH_ERROR_DELETE_ACTIVE', name=target_desktop.name)}")
-                        input(get_text("PROMPT_CONTINUE"))
+                        print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.delete_active', name=target_desktop.name)}")
+                        input(get_text("ui.prompts.continue"))
                         continue
 
                     # --- LOKALISIERT ---
-                    delete_folder_confirm = input(get_text("PROMPT_DELETE_FOLDER_CONFIRM", path=target_desktop.path)).strip().lower()
+                    delete_folder_confirm = input(get_text("ui.prompts.delete_folder_confirm", path=target_desktop.path)).strip().lower()
                     delete_folder = (delete_folder_confirm == 'y')
                     
                     # Handler gibt eigene (lokalisierte) Meldungen aus
@@ -137,29 +137,29 @@ def run_settings_menu():
                     
                 else:
                     # --- LOKALISIERT ---
-                    print(get_text("ERROR_INVALID_NUMBER"))
+                    print(get_text("ui.errors.invalid_number"))
             except ValueError:
                 # --- LOKALISIERT ---
-                print(get_text("ERROR_INVALID_NUMBER"))
+                print(get_text("ui.errors.invalid_number"))
             # --- LOKALISIERT ---
-            input(get_text("PROMPT_CONTINUE"))
+            input(get_text("ui.prompts.continue"))
 
         # --- 3. Icons speichern ---
         elif choice == "3":
             # --- LOKALISIERT (Handler gibt eigene Meldungen aus) ---
-            print(get_text("DH_INFO_SAVING_ICONS", name="...")) # Platzhalter, Handler weiß es besser
+            print(get_text("desktop_handler.info.saving_icons", name="...")) # Platzhalter, Handler weiß es besser
             if desktop_handler.save_current_desktop_icons():
-                print(f"{PREFIX_OK} {get_text('DH_SUCCESS_SAVE_ICONS', name='...')}") # Platzhalter
+                print(f"{PREFIX_OK} {get_text('desktop_handler.success.save_icons', name='...')}") # Platzhalter
             else:
-                print(f"{PREFIX_ERROR} {get_text('DH_ERROR_SAVE_ICONS', e='...')}") # Platzhalter
+                print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.save_icons', e='...')}") # Platzhalter
             # --- LOKALISIERT ---
-            input(get_text("PROMPT_CONTINUE"))
+            input(get_text("ui.prompts.continue"))
 
         # --- 4. Explorer neu starten ---
         elif choice == "4":
             # --- LOKALISIERT (Handler gibt eigene Meldungen aus) ---
             system_manager.restart_explorer()
-            input(get_text("PROMPT_CONTINUE"))
+            input(get_text("ui.prompts.continue"))
 
         # --- 0. Zurück ---
         elif choice == "0":
@@ -167,8 +167,8 @@ def run_settings_menu():
         
         else:
             # --- LOKALISIERT ---
-            print(get_text("ERROR_INVALID_INPUT"))
-            input(get_text("PROMPT_CONTINUE"))
+            print(get_text("ui.errors.invalid_input"))
+            input(get_text("ui.prompts.continue"))
 
 # --- run() FUNKTION (ANGEPASST) ---
 def run():
@@ -177,7 +177,7 @@ def run():
         clear_screen()
         print_main_menu()
         # --- LOKALISIERT ---
-        choice = input(get_text("PROMPT_CHOOSE"))
+        choice = input(get_text("ui.prompts.choose"))
 
         # --- 1. Desktop wechseln ---
         if choice == "1":
@@ -185,22 +185,22 @@ def run():
             
             if not desktops:
                 # --- LOKALISIERT ---
-                print(get_text("INFO_NO_DESKTOPS_CREATE_FIRST"))
-                input(get_text("PROMPT_CONTINUE"))
+                print(get_text("ui.messages.no_desktops_create_first"))
+                input(get_text("ui.prompts.continue"))
                 continue
 
             # --- LOKALISIERT ---
-            print(get_text("PROMPT_WHICH_DESKTOP_SWITCH"))
+            print(get_text("ui.headings.which_desktop_switch"))
             for i, d in enumerate(desktops, 1):
                 if d.is_active:
-                    status = format_status_active(get_text("STATUS_ACTIVE"))
+                    status = format_status_active(get_text("ui.status.active"))
                 else:
-                    status = format_status_inactive(get_text("STATUS_INACTIVE"))
+                    status = format_status_inactive(get_text("ui.status.inactive"))
                 print(f"{i}. {status} {d.name} ({d.path})")
             
             # --- LOKALISIERT ---
-            print(get_text("PROMPT_CANCEL"))
-            selection = input(get_text("PROMPT_CHOOSE_NUMBER")).strip()
+            print(get_text("ui.prompts.cancel"))
+            selection = input(get_text("ui.prompts.choose_number")).strip()
 
             if selection == "0":
                 continue
@@ -215,61 +215,61 @@ def run():
                     if desktop_handler.switch_to_desktop(target_desktop.name):
                         
                         # --- LOKALISIERT ---
-                        print(get_text("INFO_REGISTRY_SET_SUCCESS", name=target_desktop.name))
-                        print(get_text("INFO_RESTARTING_EXPLORER"))
+                        print(get_text("ui.messages.registry_set_success", name=target_desktop.name))
+                        print(get_text("ui.messages.restarting_explorer"))
                         system_manager.restart_explorer()
                         
-                        print(get_text("INFO_WAITING_FOR_EXPLORER"))
+                        print(get_text("ui.messages.waiting_for_explorer"))
                         time.sleep(3) 
 
-                        print(get_text("INFO_SYNCING_ICONS"))
+                        print(get_text("ui.messages.syncing_icons"))
                         desktop_handler.sync_desktop_state_and_apply_icons()
-                        print(f"{PREFIX_OK} {get_text('SWITCH_SUCCESS', name=target_desktop.name)}")
+                        print(f"{PREFIX_OK} {get_text('ui.messages.switch_success', name=target_desktop.name)}")
                         
                     else:
                         pass
                 else:
                     # --- LOKALISIERT ---
-                    print(get_text("ERROR_INVALID_NUMBER"))
+                    print(get_text("ui.errors.invalid_number"))
             except ValueError:
                 # --- LOKALISIERT ---
-                print(get_text("ERROR_INVALID_NUMBER"))
+                print(get_text("ui.errors.invalid_number"))
             # --- LOKALISIERT ---
-            input(get_text("PROMPT_CONTINUE"))
+            input(get_text("ui.prompts.continue"))
 
         # --- 2. Neuen Desktop erstellen ---
         elif choice == "2":
             # --- LOKALISIERT ---
-            print(get_text("INFO_CREATE_HEADING"))
-            name = input(get_text("PROMPT_DESKTOP_NAME")).strip()
+            print(get_text("ui.headings.create"))
+            name = input(get_text("ui.prompts.desktop_name")).strip()
             
             if not name:
-                print(f"{PREFIX_ERROR} {get_text('ERROR_NAME_EMPTY')}")
-                input(get_text("PROMPT_CONTINUE"))
+                print(f"{PREFIX_ERROR} {get_text('ui.errors.name_empty')}")
+                input(get_text("ui.prompts.continue"))
                 continue
 
-            print(get_text("PROMPT_FOLDER_MODE"))
-            print(get_text("PROMPT_FOLDER_MODE_1"))
-            print(get_text("PROMPT_FOLDER_MODE_2"))
+            print(get_text("ui.prompts.folder_mode"))
+            print(get_text("ui.prompts.folder_mode_1"))
+            print(get_text("ui.prompts.folder_mode_2"))
             
-            mode = input(get_text("PROMPT_CHOOSE_1_OR_2")).strip()
+            mode = input(get_text("ui.prompts.choose_1_or_2")).strip()
             final_path = ""
 
             if mode == "1":
-                final_path = input(get_text("PROMPT_EXISTING_PATH")).strip()
+                final_path = input(get_text("ui.prompts.existing_path")).strip()
 
             elif mode == "2":
-                parent_path = input(get_text("PROMPT_NEW_PATH_PARENT")).strip()
+                parent_path = input(get_text("ui.prompts.new_path_parent")).strip()
                 
                 if parent_path:
                     final_path = os.path.join(parent_path, name)
-                    print(get_text("INFO_NEW_PATH_LOCATION", path=final_path))
+                    print(get_text("ui.messages.new_path_location", path=final_path))
                 else:
-                    print(f"{PREFIX_ERROR} {get_text('ERROR_BASE_DIR_EMPTY')}")
+                    print(f"{PREFIX_ERROR} {get_text('ui.errors.base_dir_empty')}")
             else:
                 # --- LOKALISIERT ---
-                print(get_text("ERROR_INVALID_CHOICE"))
-                input(get_text("PROMPT_CONTINUE"))
+                print(get_text("ui.errors.invalid_choice"))
+                input(get_text("ui.prompts.continue"))
                 continue
 
             if final_path:
@@ -277,9 +277,9 @@ def run():
                 desktop_handler.create_desktop(name, final_path)
             else:
                 # --- LOKALISIERT ---
-                print(get_text("INFO_ABORTED_NO_PATH"))
+                print(get_text("ui.messages.aborted_no_path"))
             # --- LOKALISIERT ---
-            input(get_text("PROMPT_CONTINUE"))
+            input(get_text("ui.prompts.continue"))
         
         # --- 3. Einstellungen ---
         elif choice == "3":
@@ -288,13 +288,13 @@ def run():
         # --- 0. Beenden ---
         elif choice == "0":
             # --- LOKALISIERT ---
-            print(get_text("EXIT_MESSAGE"))
+            print(get_text("ui.messages.exit"))
             break
             
         else:
             # --- LOKALISIERT ---
-            print(get_text("ERROR_INVALID_INPUT"))
-            input(get_text("PROMPT_CONTINUE"))
+            print(get_text("ui.errors.invalid_input"))
+            input(get_text("ui.prompts.continue"))
 
 # --- Start des Skripts (unverändert) ---
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ def _ensure_data_dir():
             os.makedirs(DATA_DIR)
         except OSError as e:
             # --- LOKALISIERT ---
-            print(get_text("FS_ERROR_CREATE_DIR", e=e))
+            print(get_text("storage.error.create_dir", e=e))
 
 def save_desktops(desktops: List[Desktop]):
     """Speichert die Liste der Desktops in die JSON-Datei."""
@@ -22,7 +22,7 @@ def save_desktops(desktops: List[Desktop]):
             json.dump([d.to_dict() for d in desktops], f, indent=4)
     except Exception as e:
         # --- LOKALISIERT ---
-        print(get_text("FS_ERROR_SAVE", e=e))
+        print(get_text("storage.error.save", e=e))
 
 def load_desktops() -> List[Desktop]:
     """Lädt alle Desktops aus der JSON-Datei."""
@@ -35,6 +35,6 @@ def load_desktops() -> List[Desktop]:
             return [Desktop.from_dict(item) for item in data]
     except Exception as e:
         # --- LOKALISIERT ---
-        print(get_text("FS_ERROR_LOAD", e=e))
+        print(get_text("storage.error.load", e=e))
         return []
     

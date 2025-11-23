@@ -27,20 +27,20 @@ except ImportError as e:
         from handlers import system_manager
     except ImportError:
         # --- LOKALISIERT ---
-        print(get_text("MAIN_ERROR_IMPORT", e=e))
-        print(get_text("MAIN_ERROR_IMPORT_HINT_1"))
-        print(get_text("MAIN_ERROR_IMPORT_HINT_2"))
+        print(get_text("main.error.import", e=e))
+        print(get_text("main.error.import_hint_1"))
+        print(get_text("main.error.import_hint_2"))
         sys.exit(1)
 
 # --- FAKE HANDLER FÜR DEN FALL EINES FEHLERS ---
 if 'desktop_handler' not in locals():
     # --- LOKALISIERT ---
-    print(get_text("MAIN_WARN_HANDLER_LOAD_FAILED", handler="desktop_handler"))
+    print(get_text("main.warn.handler_load_failed", handler="desktop_handler"))
     class FakeHandler:
         def __getattr__(self, name):
             def method(*args, **kwargs):
                 # --- LOKALISIERT ---
-                print(get_text("MAIN_ERROR_HANDLER_CALL_FAILED", name=name))
+                print(get_text("main.error.handler_call_failed", name=name))
             return method
     desktop_handler = FakeHandler()
     system_manager = FakeHandler()
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # --- KEINE ARGUMENTE: Interaktives Menü ---
     if not args:
         # --- LOKALISIERT ---
-        print(get_text("MAIN_INFO_STARTING_INTERACTIVE"))
+        print(get_text("main.info.starting_interactive"))
         cli.run()
         
     # --- ARGUMENTE VORHANDEN: Befehl parsen ---
@@ -64,8 +64,8 @@ if __name__ == "__main__":
         if command == "delete":
             if len(args) < 2:
                 # --- LOKALISIERT ---
-                print(f"{PREFIX_ERROR} {get_text('MAIN_ERROR_NAME_MISSING')}")
-                print(get_text("MAIN_USAGE_DELETE"))
+                print(f"{PREFIX_ERROR} {get_text('main.error.name_missing')}")
+                print(get_text("main.usage.delete"))
             else:
                 name = args[1]
                 delete_folder = "--delete-folder" in args or "-f" in args
@@ -77,42 +77,42 @@ if __name__ == "__main__":
         elif command == "switch":
             if len(args) < 2:
                  # --- LOKALISIERT ---
-                 print(f"{PREFIX_ERROR} {get_text('MAIN_ERROR_NAME_MISSING')}")
-                 print(get_text("MAIN_USAGE_SWITCH"))
+                 print(f"{PREFIX_ERROR} {get_text('main.error.name_missing')}")
+                 print(get_text("main.usage.switch"))
             else:
                 name = args[1]
                 # --- LOKALISIERT ---
-                print(get_text("MAIN_INFO_SWITCHING_TO", name=name))
+                print(get_text("main.info.switching_to", name=name))
                 
                 if desktop_handler.switch_to_desktop(name):
                     # --- LOKALISIERT ---
-                    print(get_text("MAIN_INFO_RESTARTING_EXPLORER"))
+                    print(get_text("main.info.restarting_explorer"))
                     system_manager.restart_explorer()
-                    print(get_text("MAIN_INFO_WAITING_EXPLORER"))
+                    print(get_text("main.info.waiting_explorer"))
                     import time
                     time.sleep(3) 
                     
                     desktop_handler.sync_desktop_state_and_apply_icons()
-                    print(f"{PREFIX_OK} {get_text('MAIN_SUCCESS_SWITCH', name=name)}")
+                    print(f"{PREFIX_OK} {get_text('main.success.switch', name=name)}")
 
         # --- BEFEHL: list ---
         elif command == "list":
              desktops = desktop_handler.get_all_desktops()
              if not desktops:
                 # --- LOKALISIERT ---
-                print(get_text("INFO_NO_DESKTOPS"))
+                print(get_text("ui.messages.no_desktops"))
              else:
                 # --- LOKALISIERT ---
-                print(get_text("MAIN_INFO_LIST_HEADER"))
+                print(get_text("main.info.list_header"))
                 for d in desktops:
                     # --- LOKALISIERT ---
-                    status = f"[{get_text('STATUS_ACTIVE')}]" if d.is_active else f"[{get_text('STATUS_INACTIVE')}]"
+                    status = f"[{get_text('ui.status.active')}]" if d.is_active else f"[{get_text('ui.status.inactive')}]"
                     print(f"{status} {d.name} -> {d.path}")
 
         # --- UNBEKANNTER BEFEHL ---
         else:
             # --- LOKALISIERT ---
-            print(get_text("MAIN_ERROR_UNKNOWN_COMMAND", command=command))
-            print(get_text("MAIN_INFO_AVAILABLE_COMMANDS"))
-            print(get_text("MAIN_INFO_HINT_INTERACTIVE"))
+            print(get_text("main.error.unknown_command", command=command))
+            print(get_text("main.info.available_commands"))
+            print(get_text("main.info.hint_interactive"))
             

@@ -10,13 +10,13 @@ from typing import List
 
 try:
     from commctrl import (
-        LVM_FIRST, 
+        LVM_FIRST,
         LVIF_TEXT
     )
 except ImportError:
     # --- LOKALISIERT (get_text ist hier noch nicht verfügbar, daher hartcodiert) ---
     print("FATAL ERROR: 'commctrl' nicht gefunden. pywin32 ist nicht korrekt installiert.")
-    LVM_FIRST = 0x1000 
+    LVM_FIRST = 0x1000
     LVIF_TEXT = 0x0001
 
 from ..models.desktop import IconPosition
@@ -35,7 +35,7 @@ class LVITEM(ctypes.Structure):
                 ("iSubItem", ctypes.c_int),
                 ("state", ctypes.c_uint),
                 ("stateMask", ctypes.c_uint),
-                ("pszText", ctypes.c_wchar_p), 
+                ("pszText", ctypes.c_wchar_p),
                 ("cchTextMax", ctypes.c_int),
                 ("iImage", ctypes.c_int),
                 ("lParam", ctypes.c_void_p),
@@ -47,8 +47,8 @@ class LVITEM(ctypes.Structure):
 LVM_GETITEMCOUNT = (LVM_FIRST + 4)
 LVM_GETITEMW = (LVM_FIRST + 75)
 LVM_GETITEMPOSITION = (LVM_FIRST + 16)
-LVM_SETITEMPOSITION = (LVM_FIRST + 15) 
-LVM_UPDATE = (LVM_FIRST + 42)          
+LVM_SETITEMPOSITION = (LVM_FIRST + 15)
+LVM_UPDATE = (LVM_FIRST + 42)
 
 PROCESS_VM_READ = 0x0010
 PROCESS_VM_WRITE = 0x0020
@@ -65,7 +65,7 @@ write_process_memory = ctypes.windll.kernel32.WriteProcessMemory
 def _get_desktop_listview_handle():
     """Findet das "Handle" des Desktop-ListView-Fensters."""
     h_progman = win32gui.FindWindow("Progman", "Program Manager")
-    
+
     h_shell_def_view = 0
     h_workerw = 0
     while h_shell_def_view == 0:
@@ -73,40 +73,40 @@ def _get_desktop_listview_handle():
         if h_workerw == 0:
             break
         h_shell_def_view = win32gui.FindWindowEx(h_workerw, 0, "SHELLDLL_DefView", None)
-    
+
     if h_shell_def_view == 0:
         h_shell_def_view = win32gui.FindWindowEx(h_progman, 0, "SHELLDLL_DefView", None)
 
     if h_shell_def_view == 0:
         # --- LOKALISIERT ---
-        print(get_text("IM_ERROR_SHELLDLL_NOT_FOUND"))
+        print(get_text("icon_manager.error.shelldll_not_found"))
         return None
 
     h_listview = win32gui.FindWindowEx(h_shell_def_view, 0, "SysListView32", "FolderView")
     if h_listview == 0:
         # --- LOKALISIERT ---
-        print(get_text("IM_ERROR_LISTVIEW_NOT_FOUND"))
+        print(get_text("icon_manager.error.listview_not_found"))
         return None
-        
+
     return h_listview
 
 
 def get_current_icon_positions() -> List[IconPosition]:
     """Liest die  Positionen aller Icons vom Windows-Desktop aus."""
     # --- LOKALISIERT ---
-    print(get_text("IM_INFO_READING_ICONS"))
+    print(get_text("icon_manager.info.reading"))
     h_listview = _get_desktop_listview_handle()
     if not h_listview:
         return []
 
     icons = []
     pid = win32process.GetWindowThreadProcessId(h_listview)[1]
-    
+
     h_process = ctypes.windll.kernel32.OpenProcess(
         PROCESS_VM_READ | PROCESS_VM_OPERATION | PROCESS_VM_WRITE, False, pid)
     if not h_process:
         # --- LOKALISIERT ---
-        print(get_text("IM_ERROR_OPEN_PROCESS", code=get_last_error()))
+        print(get_text("icon_manager.error.open_process", code=get_last_error()))
         return []
 
     p_point = ctypes.windll.kernel32.VirtualAllocEx(
@@ -115,10 +115,10 @@ def get_current_icon_positions() -> List[IconPosition]:
         h_process, 0, ctypes.sizeof(LVITEM), MEM_COMMIT, PAGE_READWRITE)
     p_text_buffer = ctypes.windll.kernel32.VirtualAllocEx(
         h_process, 0, 260 * 2, MEM_COMMIT, PAGE_READWRITE)
-        
+
     if not all([p_point, p_lvitem, p_text_buffer]):
         # --- LOKALISIERT ---
-        print(get_text("IM_ERROR_MEM_ALLOC", code=get_last_error()))
+        print(get_text("icon_manager.error.mem_alloc", code=get_last_error()))
         if h_process:
             ctypes.windll.kernel32.CloseHandle(h_process)
         return []
@@ -126,38 +126,38 @@ def get_current_icon_positions() -> List[IconPosition]:
     try:
         item_count = win32gui.SendMessage(h_listview, LVM_GETITEMCOUNT, 0, 0)
         # --- LOKALISIERT ---
-        print(get_text("IM_DEBUG_ITEM_COUNT", count=item_count))
-        
+        print(get_text("icon_manager.debug.item_count", count=item_count))
+
         bytes_read = ctypes.c_size_t(0)
         bytes_written = ctypes.c_size_t(0)
 
         for i in range(item_count):
-            
+
             win32gui.SendMessage(
                 h_listview, LVM_GETITEMPOSITION, i, p_point)
-            
+
             point = POINT()
             read_process_memory(
                 h_process, p_point, ctypes.byref(point), ctypes.sizeof(point), ctypes.byref(bytes_read))
 
             lvitem = LVITEM()
-            lvitem.mask = LVIF_TEXT 
+            lvitem.mask = LVIF_TEXT
             lvitem.iItem = i
             lvitem.iSubItem = 0
             lvitem.pszText = p_text_buffer
             lvitem.cchTextMax = 260
-            
+
             write_process_memory(
                 h_process, p_lvitem, ctypes.byref(lvitem), ctypes.sizeof(lvitem), ctypes.byref(bytes_written))
-            
+
             win32gui.SendMessage(h_listview, LVM_GETITEMW, i, p_lvitem)
-            
+
             text_buffer = ctypes.create_unicode_buffer(260)
             read_process_memory(
                 h_process, p_text_buffer, text_buffer, 260 * 2, ctypes.byref(bytes_read))
-            
+
             name = text_buffer.value
-            
+
             if name:
                 icons.append(IconPosition(index=i, name=name, x=point.x, y=point.y))
 
@@ -168,7 +168,7 @@ def get_current_icon_positions() -> List[IconPosition]:
         ctypes.windll.kernel32.CloseHandle(h_process)
 
     # --- LOKALISIERT ---
-    print(get_text("IM_INFO_ICONS_FOUND", count=len(icons)))
+    print(get_text("icon_manager.info.icons_found", count=len(icons)))
     return icons
 
 
@@ -177,28 +177,28 @@ def set_icon_positions(icons: List[IconPosition]):
     Setzt die Positionen der Icons auf dem Windows-Desktop.
     """
     # --- LOKALISIERT ---
-    print(get_text("IM_INFO_SETTING_ICONS", count=len(icons)))
+    print(get_text("icon_manager.info.setting", count=len(icons)))
     if not icons:
         # --- LOKALISIERT ---
-        print(get_text("IM_INFO_NO_ICONS_TO_SET"))
+        print(get_text("icon_manager.info.no_icons_to_set"))
         return
 
     h_listview = _get_desktop_listview_handle()
     if not h_listview:
         return
-        
+
     current_item_count = win32gui.SendMessage(h_listview, LVM_GETITEMCOUNT, 0, 0)
     if current_item_count == 0:
         # --- LOKALISIERT ---
-        print(get_text("IM_WARN_NO_ICONS_ON_DESKTOP"))
+        print(get_text("icon_manager.warn.no_icons_on_desktop"))
         return
-        
+
     restored = 0
     failed = 0
-    
+
     for icon in icons:
         if icon.index < current_item_count:
-            
+
             y_shifted = (icon.y & 0xFFFF) << 16
             x_masked = icon.x & 0xFFFF
             lParam = y_shifted | x_masked
@@ -209,22 +209,21 @@ def set_icon_positions(icons: List[IconPosition]):
                 icon.index,
                 lParam
             )
-            
+
             if result != 0:
                 restored += 1
             else:
                 failed += 1
-                
+
             win32gui.SendMessage(h_listview, LVM_UPDATE, icon.index, 0)
-            
+
         else:
             # --- LOKALISIERT ---
-            print(get_text("IM_WARN_INDEX_NOT_FOUND", index=icon.index, name=icon.name, max=(current_item_count-1)))
+            print(get_text("icon_manager.warn.index_not_found", index=icon.index, name=icon.name, max=(current_item_count-1)))
             failed += 1
 
     win32gui.InvalidateRect(h_listview, None, True)
     win32gui.UpdateWindow(h_listview)
-    
+
     # --- LOKALISIERT ---
-    print(get_text("IM_INFO_RESTORE_COMPLETE", restored=restored, failed=failed))
-    
+    print(get_text("icon_manager.info.restore_complete", restored=restored, failed=failed))
