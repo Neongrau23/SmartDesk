@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/handlers/desktop_handler.py
-# (Vollständige, korrigierte Datei)
+# (Vollständig aktualisiert mit deiner 7-Schritt-Logik)
 
 import winreg
 import os
@@ -12,11 +12,7 @@ from ..utils.path_validator import ensure_directory_exists
 from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
 
-# --- KORREKTUR HIER ---
-# Da icon_manager.py im selben Ordner (handlers) wie diese Datei liegt,
-# verwenden wir einen einzelnen Punkt (.) für einen relativen Import.
 from .icon_manager import get_current_icon_positions, set_icon_positions
-# --- ENDE KORREKTUR ---
 
 
 def create_desktop(name: str, path: str) -> bool:
@@ -37,6 +33,7 @@ def create_desktop(name: str, path: str) -> bool:
     print(f"Desktop '{name}' erfolgreich angelegt.")
     return True
 
+# --- (Funktionen update_desktop und delete_desktop bleiben unverändert) ---
 def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     """Aktualisiert Name und Pfad eines existierenden Desktops."""
     desktops = load_desktops()
@@ -105,7 +102,7 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
     if delete_folder:
         if os.path.exists(target_desktop.path):
             try:
-                shutil.rmtree(target_desktop.path) 
+                shutil.rmtree(target_desktop.path)
                 print(f"Ordner '{target_desktop.path}' wurde vollständig gelöscht.")
             except Exception as e:
                 print(f"Fehler beim Löschen des Ordners: {e}")
@@ -120,6 +117,7 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
 
 def get_all_desktops() -> List[Desktop]:
     """
+    (Schritt 4, 5, 6)
     Gibt eine Liste aller Desktops zurück.
     Synchronisiert dabei automatisch den 'is_active' Status mit der Windows Registry.
     """
@@ -129,14 +127,17 @@ def get_all_desktops() -> List[Desktop]:
         real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
         
         if real_registry_path:
+            # (Schritt 4: Registry prüfen)
             norm_registry = os.path.normpath(os.path.expandvars(real_registry_path)).lower()
             data_changed = False
             
             for d in desktops:
+                # (Schritt 5: Registry-Pfad in JSON suchen)
                 norm_desktop = os.path.normpath(os.path.expandvars(d.path)).lower()
                 should_be_active = (norm_desktop == norm_registry)
                 
                 if d.is_active != should_be_active:
+                    # (Schritt 6: Desktop auf "AKTIV" stellen)
                     d.is_active = should_be_active
                     data_changed = True
             
@@ -150,59 +151,94 @@ def get_all_desktops() -> List[Desktop]:
 
 def switch_to_desktop(desktop_name: str) -> bool:
     """
-    Aktiviert einen Desktop anhand des Namens.
-    Speichert die Icons des alten Desktops und lädt die Icons des neuen.
+    (Schritt 1 & 2)
+    Bereitet den Desktop-Wechsel vor:
+    1. Speichert Icons des alten Desktops.
+    2. Ändert den Registry-Pfad.
+    Gibt True zurück, wenn der Explorer neugestartet werden kann.
     """
+    # Lade Desktops *ohne* Sync, da wir den *alten* aktiven Desktop finden wollen
     desktops = load_desktops()
     
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
-
     if not target_desktop:
         print(f"Fehler: Desktop '{desktop_name}' nicht gefunden.")
         return False
         
-    if target_desktop.is_active:
+    # Prüfe, ob der *eigentlich* aktive Desktop (laut Registry) bereits das Ziel ist
+    current_active_desktops = get_all_desktops()
+    current_active = next((d for d in current_active_desktops if d.is_active), None)
+    if current_active and current_active.name == desktop_name:
         print(f"'{desktop_name}' ist bereits aktiv.")
-        return True
+        return False # False signalisiert "kein Neustart nötig"
 
+    # (Schritt 1: Icon Position von Desktop1 (alt) speichern)
+    # Wir nutzen die nicht-synchronisierte Liste, um den *alten* aktiven Desktop zu finden
     active_desktop = next((d for d in desktops if d.is_active), None)
-
     if active_desktop:
         print(f"Speichere Icon-Positionen für '{active_desktop.name}'...")
         active_desktop.icon_positionen = get_current_icon_positions()
-        active_desktop.is_active = False
+        active_desktop.is_active = False # Flag in lokaler Kopie setzen
+        # Speichere die *gesamte* Liste (inkl. der neuen Icons)
+        save_desktops(desktops)
+        print("Datenbank (Icon-Speicherung) aktualisiert.")
     else:
-        print("Warnung: Es wurde kein aktiver Desktop gefunden. Überspringe Speichern der Icons.")
+        print("Warnung: Es wurde kein als 'aktiv' markierter Desktop gefunden. Überspringe Speichern der Icons.")
 
-    print(f"Wechsle zu Desktop: {target_desktop.name} ({target_desktop.path})...")
-
+    # (Schritt 2: Änderung in der Registry vornehmen)
+    print(f"Wechsle Registry zu Desktop: {target_desktop.name} ({target_desktop.path})...")
     reg_success = True
     if not update_registry_key(KEY_USER_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_EXPAND_SZ):
         reg_success = False
-    
     if not update_registry_key(KEY_LEGACY_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_SZ):
         reg_success = False
 
     if not reg_success:
         print("FEHLER: Konnte Registry nicht aktualisieren. Wechsel wird abgebrochen.")
+        # Rollback: setze das 'is_active' Flag zurück, das wir lokal geändert haben
         if active_desktop:
             active_desktop.is_active = True
+            save_desktops(desktops) # Speichern, um den Rollback zu vollziehen
         return False
-
-    target_desktop.is_active = True
-    save_desktops(desktops)
-    print("Datenbank aktualisiert.")
-
-    print(f"Stelle Icon-Positionen für '{target_desktop.name}' wieder her...")
-    set_icon_positions(target_desktop.icon_positionen)
     
-    return True
+    print("Registry-Änderung erfolgreich. Neustart des Explorers erforderlich.")
+    return True # Signal an CLI, dass der Neustart erfolgen kann
+
+# --- NEUE FUNKTION HINZUGEFÜGT ---
+def sync_desktop_state_and_apply_icons():
+    """
+    (Schritt 4, 5, 6, 7)
+    Führt die Aktionen *nach* dem Explorer-Neustart aus.
+    - Synchronisiert DB-Status mit Registry (get_all_desktops)
+    - Stellt Icons des neuen aktiven Desktops wieder her
+    """
+    print("Synchronisiere Status nach Neustart...")
+    
+    # (Schritt 4, 5, 6: get_all_desktops() prüft Registry, findet Pfad, setzt 'is_active')
+    desktops = get_all_desktops()
+    
+    new_active_desktop = next((d for d in desktops if d.is_active), None)
+    
+    if not new_active_desktop:
+        print("FEHLER: Konnte nach Neustart keinen aktiven Desktop in der DB finden.")
+        print("Möglicherweise ist der Registry-Pfad in der desktops.json nicht registriert.")
+        return
+
+    print(f"Registry-Pfad '{new_active_desktop.path}' gefunden.")
+    print(f"Desktop '{new_active_desktop.name}' ist jetzt aktiv.")
+    
+    # (Schritt 7: Desktop icons des aktiven Desktops (Desktop2) an Position verschieben)
+    print(f"Stelle Icon-Positionen für '{new_active_desktop.name}' wieder her...")
+    set_icon_positions(new_active_desktop.icon_positionen)
+    print("Icon-Wiederherstellung abgeschlossen.")
+
 
 def save_current_desktop_icons() -> bool:
     """
     Findet den aktuell aktiven Desktop, liest seine
     Icon-Positionen aus und speichert sie in der Datenbank.
     """
+    # get_all_desktops() synchronisiert erst den Status
     desktops = get_all_desktops()
     
     active_desktop = next((d for d in desktops if d.is_active), None)
