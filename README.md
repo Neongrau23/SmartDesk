@@ -1,8 +1,8 @@
-# 🖥️ SmartDesk Manager
+# 🖥️ SmartDeskTerminal
 
 **Eine professionelle Python-Anwendung zur Verwaltung virtueller Desktop-Umgebungen unter Windows.**
 
-SmartDesk ermöglicht es, intuitiv per Knopfdruck zwischen verschiedenen Desktop-Ordnern zu wechseln (z.B. "Arbeit", "Gaming", "Privat"). Anders als virtuelle Desktops von Windows, die nur Fenster sortieren, ändert SmartDesk den tatsächlichen Speicherort des Desktops. So hast du immer nur die Dateien vor Augen, die du gerade brauchst.
+SmartDeskTerminal ermöglicht es, intuitiv zwischen verschiedenen Desktop-Ordnern zu wechseln (z.B. "Arbeit", "Gaming", "Privat"). Anders als virtuelle Desktops von Windows, die nur Fenster organisieren, verwaltet SmartDeskTerminal die tatsächlichen Dateien und Verknüpfungen auf deinem Desktop durch intelligente Manipulation der Windows Registry.
 
 ## ✨ Features
 
@@ -10,13 +10,13 @@ SmartDesk ermöglicht es, intuitiv per Knopfdruck zwischen verschiedenen Desktop
 
 **Schneller Wechsel**: Tausche deinen Desktop-Inhalt in Sekunden aus.
 
-**Single-Window GUI**: Moderne, übersichtliche Oberfläche (basierend auf Tkinter).
+**CLI-Interface**: Schlanke, terminalbasierte Bedienung für maximale Kontrolle.
 
 **Explorer Integration**: Automatischer Neustart des Windows Explorers, um Änderungen sofort sichtbar zu machen.
 
 ### 🛡️ Sicherheit & Stabilität
 
-**Self-Healing Status**: Das Programm prüft beim Start die echte Windows-Registry und synchronisiert den Status. Wenn du den Desktop manuell änderst, erkennt SmartDesk das.
+**Self-Healing Status**: Das Programm prüft beim Start die echte Windows-Registry und synchronisiert den Status. Wenn du den Desktop manuell änderst, erkennt SmartDeskTerminal das automatisch.
 
 **Schutzmechanismen**: Verhindert das versehentliche Löschen des Desktops, der gerade aktiv ist.
 
@@ -41,8 +41,8 @@ Das Projekt nutzt keine externen Abhängigkeiten. Es basiert rein auf der Python
 
 1. Repository klonen:
 ```bash
-git clone https://github.com/Neongrau23/SmartDesk.git
-cd SmartDesk
+git clone https://github.com/Neongrau23/SmartDeskTerminal.git
+cd SmartDeskTerminal
 ```
 
 2. Starten:
@@ -52,52 +52,76 @@ python src/smartdesk/main.py
 
 ## 📖 Benutzung
 
-### Grafische Oberfläche (Standard)
-
-Startet das Programm im Fenster-Modus.
-
-- **Dashboard**: Zeigt alle Desktops. Der aktive ist mit einem Haken (✔) markiert.
-- **Erstellen**: Gib einen Namen und einen Pfad an. Die Live-Vorschau zeigt dir genau, wo der Ordner landet.
-- **Wechseln**: Wähle einen Desktop und klicke "Wechseln". Bestätige den Explorer-Neustart.
-- **Einstellungen**: Klicke oben rechts auf "Einstellungen" -> "Desktops Verwalten", um Desktops umzubenennen, zu verschieben oder zu löschen (Klick auf das Zahnrad ⚙).
-
 ### Kommandozeile (CLI)
 
-Für Puristen oder Batch-Skripte steht ein Text-Modus zur Verfügung:
+SmartDeskTerminal bietet eine terminalbasierte Benutzeroberfläche für effiziente Desktop-Verwaltung:
 
 ```bash
-python src/smartdesk/main.py --cli
+python src/smartdesk/main.py
 ```
+
+Das CLI bietet folgende Funktionen:
+- **Desktop-Übersicht**: Zeigt alle konfigurierten Desktops an
+- **Wechseln**: Schneller Wechsel zwischen verschiedenen Desktop-Umgebungen
+- **Erstellen**: Neue Desktop-Konfigurationen anlegen
+- **Verwalten**: Desktops umbenennen, verschieben oder löschen
+- **Status-Synchronisation**: Automatische Erkennung manueller Registry-Änderungen
 
 ## 🏗️ Projektstruktur
 
 Das Projekt folgt strikten "Clean Code" Prinzipien und einer modularen Paketstruktur:
 
 ```
-src/smartdesk/
-├── main.py                # Einstiegspunkt (Router zwischen GUI/CLI)
-├── config.py              # Zentrale Konfiguration
-├── handlers/              # Geschäftslogik (Business Logic)
-│   ├── desktop_handler.py # Core-Logik & Registry Sync
-│   └── system_manager.py  # Windows-Prozesssteuerung
-├── models/                # Datenmodelle (Dataclasses)
-├── storage/               # JSON-Datenbankzugriff
-├── ui/                    # Benutzeroberfläche (View)
-│   ├── gui.py             # Hauptfenster & Frame-Navigation
-│   ├── pages.py           # Die einzelnen Ansichten
-│   └── dialogs.py         # Popups (Erstellen/Löschen etc.)
-└── utils/                 # Hilfsfunktionen (Registry/Pfade)
+SmartDeskTerminal/
+├── src/smartdesk/
+│   ├── main.py                # Einstiegspunkt der Anwendung
+│   ├── config.py              # Zentrale Konfiguration
+│   ├── handlers/              # Geschäftslogik (Business Logic)
+│   │   ├── desktop_handler.py # Core-Logik & Registry Sync
+│   │   └── system_manager.py  # Windows-Prozesssteuerung
+│   ├── models/                # Datenmodelle (Dataclasses)
+│   ├── storage/               # JSON-Datenbankzugriff
+│   ├── ui/                    # Benutzeroberfläche
+│   │   ├── cli.py             # Terminal-Interface
+│   │   └── dialogs.py         # Interaktive Eingaben
+│   └── utils/                 # Hilfsfunktionen (Registry/Pfade)
+├── data/                      # Persistente Daten (wird automatisch erstellt)
+│   └── desktops.json          # Desktop-Konfigurationen
+└── LICENSE                    # MIT License
 ```
 
-## ⚠️ Wichtiger Hinweis
+## ⚙️ Technische Details
 
-Dieses Tool ändert Einträge in der Windows Registry unter:
+### Registry-Integration
+
+SmartDeskTerminal manipuliert folgende Windows Registry-Einträge:
 ```
 HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders
 ```
 
-Obwohl umfangreiche Sicherheitschecks implementiert sind (z.B. Abgleich vor dem Löschen), erfolgt die Nutzung auf eigene Gefahr. Backups wichtiger Daten werden empfohlen.
+Das Programm ändert den `Desktop`-Wert, um den Pfad des aktiven Desktop-Ordners zu steuern.
+
+### Datenspeicherung
+
+Alle Desktop-Konfigurationen werden in einer lokalen JSON-Datei (`data/desktops.json`) gespeichert, die beim ersten Start automatisch erstellt wird.
+
+## ⚠️ Wichtiger Hinweis
+
+Dieses Tool ändert Einträge in der Windows Registry. Obwohl umfangreiche Sicherheitschecks implementiert sind (z.B. Self-Healing Status, Abgleich vor dem Löschen), erfolgt die Nutzung auf eigene Gefahr. 
+
+**Empfehlungen:**
+- Erstelle vor der ersten Nutzung ein Backup wichtiger Desktop-Dateien
+- Teste das Tool zunächst mit unwichtigen Test-Desktops
+- Schließe alle wichtigen Programme, bevor du den Desktop wechselst
+
+## 📄 Lizenz
+
+Dieses Projekt steht unter der MIT-Lizenz. Siehe [LICENSE](LICENSE) für Details.
+
+## 🤝 Beitragen
+
+Contributions, Issues und Feature-Requests sind willkommen! Fühle dich frei, das [Issues](https://github.com/Neongrau23/SmartDeskTerminal/issues) zu nutzen.
 
 ---
 
-Entwickelt mit 🐍 in Python.
+Entwickelt mit 🐍 von [Neongrau23](https://github.com/Neongrau23)
