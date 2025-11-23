@@ -58,7 +58,7 @@ def set_wallpaper(image_path: str) -> bool:
             print("[Wallpaper] Fehler beim Setzen des Hintergrunds (SystemParametersInfo fehlgeschlagen)")
             return False
             
-    except WindowsError as e:
+    except OSError as e:
         print(f"[Wallpaper] Registry-Fehler: {e}")
         return False
     except Exception as e:
@@ -77,7 +77,7 @@ def get_current_wallpaper() -> Optional[str]:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, WALLPAPER_KEY_PATH, 0, winreg.KEY_READ) as key:
             wallpaper_path, _ = winreg.QueryValueEx(key, WALLPAPER_VALUE_NAME)
             return wallpaper_path if wallpaper_path else None
-    except WindowsError:
+    except OSError:
         print("[Wallpaper] Konnte aktuellen Hintergrund nicht aus Registry lesen")
         return None
 

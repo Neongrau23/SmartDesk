@@ -184,12 +184,18 @@ def run_settings_menu():
                     if action == "1":
                         wallpaper_path = input("Vollständiger Pfad zum Hintergrundbild: ").strip()
                         if wallpaper_path:
-                            desktop_handler.set_desktop_wallpaper(target_desktop.name, wallpaper_path)
+                            if desktop_handler.set_desktop_wallpaper(target_desktop.name, wallpaper_path):
+                                print(f"{PREFIX_OK} Hintergrund erfolgreich konfiguriert.")
+                            else:
+                                print(f"{PREFIX_ERROR} Fehler beim Konfigurieren des Hintergrunds.")
                         else:
                             print("Kein Pfad angegeben. Vorgang abgebrochen.")
                     
                     elif action == "2":
-                        desktop_handler.clear_desktop_wallpaper(target_desktop.name)
+                        if desktop_handler.clear_desktop_wallpaper(target_desktop.name):
+                            print(f"{PREFIX_OK} Hintergrund-Konfiguration entfernt.")
+                        else:
+                            print(f"{PREFIX_ERROR} Fehler beim Entfernen der Konfiguration.")
                     
                 else:
                     print("Ungültige Nummer.")
