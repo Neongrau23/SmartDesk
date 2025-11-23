@@ -15,6 +15,6 @@ def ensure_directory_exists(path: str) -> bool:
         return True
     except OSError as e:
         # --- LOKALISIERT ---
-        print(get_text("PV_ERROR_CREATE_DIR", path=path, e=e))
+        print(get_text("path_validator.error.create_dir", path=path, e=e))
         return False
     

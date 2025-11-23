@@ -20,21 +20,21 @@ def create_desktop(name: str, path: str) -> bool:
     """Erstellt einen neuen Desktop und speichert ihn."""
     if not ensure_directory_exists(path):
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_PATH_INVALID", path=path))
+        print(get_text("desktop_handler.error.path_invalid", path=path))
         return False
 
     desktops = load_desktops()
     
     if any(d.name == name for d in desktops):
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_NAME_EXISTS", name=name))
+        print(get_text("desktop_handler.error.name_exists", name=name))
         return False
 
     new_desktop = Desktop(name=name, path=path)
     desktops.append(new_desktop)
     save_desktops(desktops)
     # --- LOKALISIERT ---
-    print(get_text("DH_SUCCESS_CREATE", name=name))
+    print(get_text("desktop_handler.success.create", name=name))
     return True
 
 # --- (Funktion update_desktop bleibt unverändert) ---
@@ -45,12 +45,12 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
 
     if not target_desktop:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_NOT_FOUND", old_name=old_name))
+        print(get_text("desktop_handler.error.not_found", old_name=old_name))
         return False
 
     if new_name != old_name and any(d.name == new_name for d in desktops):
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_NEW_NAME_EXISTS", new_name=new_name))
+        print(get_text("desktop_handler.error.new_name_exists", new_name=new_name))
         return False
 
     if new_path != target_desktop.path:
@@ -60,20 +60,20 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
             try:
                 if os.path.exists(new_path):
                      # --- LOKALISIERT ---
-                     print(get_text("DH_WARN_TARGET_PATH_EXISTS", path=new_path))
+                     print(get_text("desktop_handler.warn.target_path_exists", path=new_path))
                 
                 shutil.move(target_desktop.path, new_path)
                 # --- LOKALISIERT ---
-                print(get_text("DH_INFO_FOLDER_MOVED", old_path=target_desktop.path, new_path=new_path))
+                print(get_text("desktop_handler.info.folder_moved", old_path=target_desktop.path, new_path=new_path))
                 
             except Exception as e:
                 # --- LOKALISIERT ---
-                print(get_text("DH_ERROR_FOLDER_MOVE", e=e))
+                print(get_text("desktop_handler.error.folder_move", e=e))
                 return False
         else:
             if not ensure_directory_exists(new_path):
                 # --- LOKALISIERT ---
-                print(get_text("DH_ERROR_NEW_PATH_CREATE", path=new_path))
+                print(get_text("desktop_handler.error.new_path_create", path=new_path))
                 return False
 
     target_desktop.name = new_name
@@ -81,7 +81,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     
     save_desktops(desktops)
     # --- LOKALISIERT ---
-    print(get_text("DH_SUCCESS_UPDATE", old_name=old_name, new_name=new_name))
+    print(get_text("desktop_handler.success.update", old_name=old_name, new_name=new_name))
     return True
 
 # --- (Funktion delete_desktop bleibt unverändert) ---
@@ -95,25 +95,25 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
 
     if not target_desktop:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_NOT_FOUND_DELETE", name=name))
+        print(get_text("desktop_handler.error.not_found_delete", name=name))
         return False
 
     try:
         # --- LOKALISIERT ---
-        confirm = input(get_text("DH_PROMPT_DELETE_CONFIRM", name=name)).strip().lower()
+        confirm = input(get_text("desktop_handler.prompts.delete_confirm", name=name)).strip().lower()
     except EOFError: 
         # --- LOKALISIERT ---
-        print(get_text("DH_INFO_DELETE_ABORTED"))
+        print(get_text("desktop_handler.info.delete_aborted"))
         return False
         
     if confirm != 'y':
         # --- LOKALISIERT ---
-        print(get_text("DH_INFO_DELETE_ABORTED"))
+        print(get_text("desktop_handler.info.delete_aborted"))
         return False
 
     if target_desktop.is_active:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_DELETE_ACTIVE", name=name))
+        print(get_text("desktop_handler.error.delete_active", name=name))
         return False
 
     real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
@@ -124,8 +124,8 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
 
         if norm_registry == norm_target:
             # --- LOKALISIERT ---
-            print(get_text("DH_ERROR_DELETE_CRITICAL", path=target_desktop.path))
-            print(get_text("DH_INFO_DELETE_DENIED"))
+            print(get_text("desktop_handler.error.delete_critical", path=target_desktop.path))
+            print(get_text("desktop_handler.info.delete_denied"))
             return False
 
     if delete_folder:
@@ -133,19 +133,19 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
             try:
                 shutil.rmtree(target_desktop.path)
                 # --- LOKALISIERT ---
-                print(get_text("DH_SUCCESS_FOLDER_DELETE", path=target_desktop.path))
+                print(get_text("desktop_handler.success.folder_delete", path=target_desktop.path))
             except Exception as e:
                 # --- LOKALISIERT ---
-                print(get_text("DH_ERROR_FOLDER_DELETE", e=e))
+                print(get_text("desktop_handler.error.folder_delete", e=e))
         else:
             # --- LOKALISIERT ---
-            print(get_text("DH_INFO_FOLDER_NOT_FOUND", path=target_desktop.path))
+            print(get_text("desktop_handler.info.folder_not_found", path=target_desktop.path))
 
     desktops.remove(target_desktop)
     save_desktops(desktops)
     
     # --- LOKALISIERT ---
-    print(get_text("DH_SUCCESS_DELETE", name=name))
+    print(get_text("desktop_handler.success.delete", name=name))
     return True
 
 # --- (Funktion get_all_desktops bleibt unverändert) ---
@@ -176,7 +176,7 @@ def get_all_desktops() -> List[Desktop]:
                 
     except Exception as e:
         # --- LOKALISIERT ---
-        print(get_text("DH_WARN_SYNC_FAILED", e=e))
+        print(get_text("desktop_handler.warn.sync_failed", e=e))
 
     return desktops
 
@@ -190,48 +190,48 @@ def switch_to_desktop(desktop_name: str) -> bool:
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
     if not target_desktop:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_SWITCH_NOT_FOUND", name=desktop_name))
+        print(get_text("desktop_handler.error.switch_not_found", name=desktop_name))
         return False
         
     target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
     
     # --- START LOKALISIERUNG BUGFIX ---
     if not os.path.exists(target_path):
-        print(get_text("DH_WARN_PATH_NOT_FOUND", name=desktop_name))
-        print(get_text("DH_INFO_PATH_IS", path=target_path))
-        print(get_text("DH_PROMPT_PATH_NOT_FOUND_TITLE"))
-        print(get_text("DH_PROMPT_PATH_RECREATE"))
-        print(get_text("DH_PROMPT_PATH_REMOVE"))
-        print(get_text("DH_PROMPT_PATH_ABORT"))
+        print(get_text("desktop_handler.warn.path_not_found", name=desktop_name))
+        print(get_text("desktop_handler.info.path_is", path=target_path))
+        print(get_text("desktop_handler.prompts.path_not_found_title"))
+        print(get_text("desktop_handler.prompts.path_recreate"))
+        print(get_text("desktop_handler.prompts.path_remove"))
+        print(get_text("desktop_handler.prompts.path_abort"))
         
         try:
-            choice = input(get_text("DH_PROMPT_YOUR_CHOICE")).strip()
+            choice = input(get_text("desktop_handler.prompts.your_choice")).strip()
         except EOFError:
             choice = "j"
             
         if choice == '1':
-            print(get_text("DH_INFO_RECREATING_FOLDER", path=target_path))
+            print(get_text("desktop_handler.info.recreating_folder", path=target_path))
             if ensure_directory_exists(target_path):
-                print(get_text("DH_SUCCESS_RECREATING_FOLDER"))
+                print(get_text("desktop_handler.success.recreating_folder"))
             else:
-                print(get_text("DH_ERROR_RECREATING_FOLDER"))
-                print(get_text("DH_INFO_ABORTING_SWITCH"))
+                print(get_text("desktop_handler.error.recreating_folder"))
+                print(get_text("desktop_handler.info.aborting_switch"))
                 return False 
                 
         elif choice == '2':
-            print(get_text("DH_INFO_REMOVING_CONFIG", name=desktop_name))
+            print(get_text("desktop_handler.info.removing_config", name=desktop_name))
             try:
                 desktops.remove(target_desktop)
                 save_desktops(desktops)
-                print(get_text("DH_SUCCESS_REMOVING_CONFIG"))
+                print(get_text("desktop_handler.success.removing_config", name=desktop_name))
             except Exception as e:
-                print(get_text("DH_ERROR_REMOVING_CONFIG", e=e))
+                print(get_text("desktop_handler.error.removing_config", e=e))
             
-            print(get_text("DH_INFO_ABORTING_SWITCH"))
+            print(get_text("desktop_handler.info.aborting_switch"))
             return False 
             
         else:
-            print(get_text("DH_INFO_ABORTING_SWITCH"))
+            print(get_text("desktop_handler.info.aborting_switch"))
             return False 
     # --- ENDE LOKALISIERUNG BUGFIX ---
 
@@ -239,24 +239,24 @@ def switch_to_desktop(desktop_name: str) -> bool:
     current_active = next((d for d in current_active_desktops if d.is_active), None)
     if current_active and current_active.name == desktop_name:
         # --- LOKALISIERT ---
-        print(get_text("DH_INFO_ALREADY_ACTIVE", name=desktop_name))
+        print(get_text("desktop_handler.info.already_active", name=desktop_name))
         return False 
 
     active_desktop = next((d for d in desktops if d.is_active), None)
     if active_desktop:
         # --- LOKALISIERT ---
-        print(get_text("DH_INFO_SAVING_ICONS", name=active_desktop.name))
+        print(get_text("desktop_handler.info.saving_icons", name=active_desktop.name))
         active_desktop.icon_positionen = get_current_icon_positions()
         active_desktop.is_active = False 
         save_desktops(desktops)
         # --- LOKALISIERT ---
-        print(get_text("DH_SUCCESS_DB_UPDATE"))
+        print(get_text("desktop_handler.success.db_update"))
     else:
         # --- LOKALISIERT ---
-        print(get_text("DH_WARN_NO_ACTIVE_DESKTOP"))
+        print(get_text("desktop_handler.warn.no_active_desktop"))
 
     # --- LOKALISIERT ---
-    print(get_text("DH_INFO_SWITCHING_REGISTRY", name=target_desktop.name, path=target_desktop.path))
+    print(get_text("desktop_handler.info.switching_registry", name=target_desktop.name, path=target_desktop.path))
     reg_success = True
     if not update_registry_key(KEY_USER_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_EXPAND_SZ):
         reg_success = False
@@ -265,14 +265,14 @@ def switch_to_desktop(desktop_name: str) -> bool:
 
     if not reg_success:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_REGISTRY_UPDATE_FAILED"))
+        print(get_text("desktop_handler.error.registry_update_failed"))
         if active_desktop:
             active_desktop.is_active = True
             save_desktops(desktops)
         return False
     
     # --- LOKALISIERT ---
-    print(get_text("DH_INFO_REGISTRY_SUCCESS"))
+    print(get_text("desktop_handler.info.registry_success"))
     return True 
 
 # --- (Funktion sync_desktop_state_and_apply_icons bleibt unverändert) ---
@@ -281,7 +281,7 @@ def sync_desktop_state_and_apply_icons():
     Führt die Aktionen *nach* dem Explorer-Neustart aus.
     """
     # --- LOKALISIERT ---
-    print(get_text("DH_INFO_SYNC_AFTER_RESTART"))
+    print(get_text("desktop_handler.info.sync_after_restart"))
     
     desktops = get_all_desktops()
     
@@ -289,18 +289,18 @@ def sync_desktop_state_and_apply_icons():
     
     if not new_active_desktop:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_SYNC_NO_ACTIVE"))
-        print(get_text("DH_ERROR_SYNC_PATH_NOT_REGISTERED"))
+        print(get_text("desktop_handler.error.sync_no_active"))
+        print(get_text("desktop_handler.warn.sync_path_not_registered"))
         return
 
     # --- LOKALISIERT ---
-    print(get_text("DH_INFO_SYNC_PATH_FOUND", path=new_active_desktop.path))
-    print(get_text("DH_INFO_SYNC_DESKTOP_ACTIVE", name=new_active_desktop.name))
+    print(get_text("desktop_handler.info.sync_path_found", path=new_active_desktop.path))
+    print(get_text("desktop_handler.info.sync_desktop_active", name=new_active_desktop.name))
     
-    print(get_text("DH_INFO_SYNC_RESTORING_ICONS", name=new_active_desktop.name))
+    print(get_text("desktop_handler.info.sync_restoring_icons", name=new_active_desktop.name))
     set_icon_positions(new_active_desktop.icon_positionen)
     # --- LOKALISIERT ---
-    print(get_text("DH_INFO_SYNC_ICONS_DONE"))
+    print(get_text("desktop_handler.info.sync_icons_done"))
 
 # --- (Funktion save_current_desktop_icons bleibt unverändert) ---
 def save_current_desktop_icons() -> bool:
@@ -314,21 +314,21 @@ def save_current_desktop_icons() -> bool:
     
     if not active_desktop:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_SAVE_ICONS_NO_ACTIVE"))
-        print(get_text("DH_ERROR_SAVE_ICONS_NOT_REGISTERED"))
+        print(get_text("desktop_handler.error.save_icons_no_active"))
+        print(get_text("desktop_handler.warn.save_icons_not_registered"))
         return False
         
     try:
         # --- LOKALISIERT ---
-        print(get_text("DH_INFO_READING_ICONS", name=active_desktop.name))
+        print(get_text("desktop_handler.info.reading_icons", name=active_desktop.name))
         active_desktop.icon_positionen = get_current_icon_positions()
         
         save_desktops(desktops)
         # --- LOKALISIERT ---
-        print(get_text("DH_SUCCESS_SAVE_ICONS", name=active_desktop.name))
+        print(get_text("desktop_handler.success.save_icons", name=active_desktop.name))
         return True
     except Exception as e:
         # --- LOKALISIERT ---
-        print(get_text("DH_ERROR_SAVE_ICONS", e=e))
+        print(get_text("desktop_handler.error.save_icons", e=e))
         return False
     

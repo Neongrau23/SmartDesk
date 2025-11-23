@@ -8,7 +8,7 @@ def restart_explorer():
     Startet den Windows Explorer Prozess neu.
     """
     # --- LOKALISIERT ---
-    print(get_text("SYS_INFO_RESTARTING"))
+    print(get_text("system.info.restarting"))
 
     os.system("taskkill /f /im explorer.exe")
 
@@ -16,5 +16,5 @@ def restart_explorer():
 
     os.system("start explorer.exe")
     # --- LOKALISIERT ---
-    print(get_text("SYS_INFO_RESTARTED"))
+    print(get_text("system.info.restarted"))
     

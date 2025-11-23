@@ -11,7 +11,7 @@ def update_registry_key(key_path: str, value_name: str, value: str, value_type=w
         return True
     except WindowsError as e:
         # --- LOKALISIERT ---
-        print(get_text("REG_ERROR_UPDATE", key_path=key_path, e=e))
+        print(get_text("registry.error.update", key_path=key_path, e=e))
         return False
 
 def get_registry_value(key_path: str, value_name: str) -> str:
