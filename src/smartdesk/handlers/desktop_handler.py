@@ -13,6 +13,7 @@ from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
 
 from .icon_manager import get_current_icon_positions, set_icon_positions
+from .wallpaper_manager import set_wallpaper, save_current_wallpaper_to_desktop
 
 
 def create_desktop(name: str, path: str) -> bool:
@@ -198,12 +199,17 @@ def switch_to_desktop(desktop_name: str) -> bool:
     # Wir nutzen die nicht-synchronisierte Liste, um den *alten* aktiven Desktop zu finden
     active_desktop = next((d for d in desktops if d.is_active), None)
     if active_desktop:
-        print(f"Speichere Icon-Positionen für '{active_desktop.name}'...")
+        print(f"Speichere Icon-Positionen und Hintergrund für '{active_desktop.name}'...")
         active_desktop.icon_positionen = get_current_icon_positions()
+        
+        # Speichere aktuellen Wallpaper, falls noch nicht gesetzt
+        if not active_desktop.wallpaper_path:
+            save_current_wallpaper_to_desktop(active_desktop)
+        
         active_desktop.is_active = False # Flag in lokaler Kopie setzen
-        # Speichere die *gesamte* Liste (inkl. der neuen Icons)
+        # Speichere die *gesamte* Liste (inkl. der neuen Icons und Wallpaper)
         save_desktops(desktops)
-        print("Datenbank (Icon-Speicherung) aktualisiert.")
+        print("Datenbank (Icon-Speicherung und Wallpaper) aktualisiert.")
     else:
         print("Warnung: Es wurde kein als 'aktiv' markierter Desktop gefunden. Überspringe Speichern der Icons.")
 
@@ -249,6 +255,13 @@ def sync_desktop_state_and_apply_icons():
     print(f"Registry-Pfad '{new_active_desktop.path}' gefunden.")
     print(f"Desktop '{new_active_desktop.name}' ist jetzt aktiv.")
     
+    # Wallpaper wiederherstellen, falls konfiguriert
+    if new_active_desktop.wallpaper_path:
+        print(f"Stelle Hintergrundbild für '{new_active_desktop.name}' wieder her...")
+        set_wallpaper(new_active_desktop.wallpaper_path)
+    else:
+        print(f"Kein individueller Hintergrund für '{new_active_desktop.name}' konfiguriert.")
+    
     # (Schritt 7: Desktop icons des aktiven Desktops (Desktop2) an Position verschieben)
     print(f"Stelle Icon-Positionen für '{new_active_desktop.name}' wieder her...")
     set_icon_positions(new_active_desktop.icon_positionen)
@@ -281,4 +294,66 @@ def save_current_desktop_icons() -> bool:
     except Exception as e:
         print(f"✗ Fehler beim Speichern der Icons: {e}")
         return False
+
+
+def set_desktop_wallpaper(desktop_name: str, wallpaper_path: str) -> bool:
+    """
+    Setzt den Hintergrund für einen bestimmten Desktop.
+    
+    Args:
+        desktop_name: Name des Desktops
+        wallpaper_path: Vollständiger Pfad zum Hintergrundbild
+        
+    Returns:
+        True bei Erfolg, False bei Fehler
+    """
+    desktops = load_desktops()
+    target_desktop = next((d for d in desktops if d.name == desktop_name), None)
+    
+    if not target_desktop:
+        print(f"✗ Fehler: Desktop '{desktop_name}' nicht gefunden.")
+        return False
+    
+    # Pfad erweitern und prüfen
+    expanded_path = os.path.expandvars(wallpaper_path)
+    if not os.path.exists(expanded_path):
+        print(f"✗ Fehler: Hintergrundbild nicht gefunden: {expanded_path}")
+        return False
+    
+    # Speichere Wallpaper-Pfad im Desktop
+    target_desktop.wallpaper_path = wallpaper_path
+    save_desktops(desktops)
+    
+    print(f"✓ Hintergrund für Desktop '{desktop_name}' gesetzt: {wallpaper_path}")
+    
+    # Wenn der Desktop aktiv ist, wende das Wallpaper sofort an
+    if target_desktop.is_active:
+        print("Desktop ist aktiv. Wende Hintergrund sofort an...")
+        return set_wallpaper(wallpaper_path)
+    
+    return True
+
+
+def clear_desktop_wallpaper(desktop_name: str) -> bool:
+    """
+    Entfernt die Wallpaper-Konfiguration für einen Desktop.
+    
+    Args:
+        desktop_name: Name des Desktops
+        
+    Returns:
+        True bei Erfolg, False bei Fehler
+    """
+    desktops = load_desktops()
+    target_desktop = next((d for d in desktops if d.name == desktop_name), None)
+    
+    if not target_desktop:
+        print(f"✗ Fehler: Desktop '{desktop_name}' nicht gefunden.")
+        return False
+    
+    target_desktop.wallpaper_path = ""
+    save_desktops(desktops)
+    
+    print(f"✓ Hintergrund-Konfiguration für Desktop '{desktop_name}' entfernt.")
+    return True
     

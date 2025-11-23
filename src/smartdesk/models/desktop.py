@@ -46,6 +46,7 @@ class Desktop:
     is_active: bool = False
     
     icon_positionen: List[IconPosition] = field(default_factory=list)
+    wallpaper_path: str = ""  # Optional: Pfad zum individuellen Hintergrundbild
 
     def to_dict(self) -> Dict[str, Any]:
         """Konvertiert das Desktop-Objekt für die JSON-Speicherung."""
@@ -53,7 +54,8 @@ class Desktop:
             "name": self.name,
             "path": self.path,
             "is_active": self.is_active,
-            "icon_positionen": [icon.to_dict() for icon in self.icon_positionen]
+            "icon_positionen": [icon.to_dict() for icon in self.icon_positionen],
+            "wallpaper_path": self.wallpaper_path
         }
 
     @classmethod
@@ -66,6 +68,7 @@ class Desktop:
             name=data["name"],
             path=data["path"],
             is_active=data.get("is_active", False),
-            icon_positionen=icons
+            icon_positionen=icons,
+            wallpaper_path=data.get("wallpaper_path", "")
         )
     

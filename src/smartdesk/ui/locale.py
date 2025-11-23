@@ -28,6 +28,7 @@ TEXT = {
     "SETTINGS_MENU_LIST": "Alle Desktops anzeigen",
     "SETTINGS_MENU_DELETE": "Desktop löschen",
     "SETTINGS_MENU_SAVE_ICONS": "Aktuelle Icon-Positionen speichern",
+    "SETTINGS_MENU_WALLPAPER": "Hintergrundbild konfigurieren",
     "SETTINGS_MENU_RESTART": "Explorer manuell neu starten",
     "SETTINGS_MENU_BACK": "Zurück",
 

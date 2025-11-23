@@ -56,7 +56,8 @@ def print_settings_menu():
     print(f"1. {TEXT['SETTINGS_MENU_LIST']}")
     print(f"2. {TEXT['SETTINGS_MENU_DELETE']}")
     print(f"3. {TEXT['SETTINGS_MENU_SAVE_ICONS']}")
-    print(f"4. {TEXT['SETTINGS_MENU_RESTART']}")
+    print(f"4. {TEXT['SETTINGS_MENU_WALLPAPER']}")
+    print(f"5. {TEXT['SETTINGS_MENU_RESTART']}")
     print(f"0. {TEXT['SETTINGS_MENU_BACK']}")
 
 # --- NEUE FUNKTION FÜR EINSTELLUNGEN (ANGEPASST) ---
@@ -141,8 +142,63 @@ def run_settings_menu():
                 print(f"{PREFIX_ERROR} Speichern fehlgeschlagen. Siehe Meldung oben.")
             input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
-        # --- 4. Explorer neu starten (Ehemals 5) ---
+        # --- 4. Hintergrundbild konfigurieren (NEU) ---
         elif choice == "4":
+            print("\n--- Hintergrundbild konfigurieren ---")
+            desktops = desktop_handler.get_all_desktops()
+            
+            if not desktops:
+                print("Keine Desktops vorhanden.")
+                input("\n--- Drücke Enter, um fortzufahren ---")
+                continue
+
+            print("\n--- Für welchen Desktop? ---")
+            for i, d in enumerate(desktops, 1):
+                if d.is_active:
+                    status = format_status_active(TEXT["STATUS_ACTIVE"])
+                else:
+                    status = format_status_inactive(TEXT["STATUS_INACTIVE"])
+                
+                wallpaper_info = f" (Hintergrund: {d.wallpaper_path})" if d.wallpaper_path else " (Kein Hintergrund konfiguriert)"
+                print(f"{i}. {status} {d.name}{wallpaper_info}")
+            
+            print("0. Abbrechen")
+            selection = input("\nNummer eingeben: ").strip()
+
+            if selection == "0":
+                continue
+
+            try:
+                index = int(selection) - 1
+                
+                if 0 <= index < len(desktops):
+                    target_desktop = desktops[index]
+                    
+                    print(f"\nAktionen für Desktop '{target_desktop.name}':")
+                    print("1. Hintergrundbild setzen")
+                    print("2. Hintergrundbild entfernen")
+                    print("0. Abbrechen")
+                    
+                    action = input("Auswahl: ").strip()
+                    
+                    if action == "1":
+                        wallpaper_path = input("Vollständiger Pfad zum Hintergrundbild: ").strip()
+                        if wallpaper_path:
+                            desktop_handler.set_desktop_wallpaper(target_desktop.name, wallpaper_path)
+                        else:
+                            print("Kein Pfad angegeben. Vorgang abgebrochen.")
+                    
+                    elif action == "2":
+                        desktop_handler.clear_desktop_wallpaper(target_desktop.name)
+                    
+                else:
+                    print("Ungültige Nummer.")
+            except ValueError:
+                print("Bitte eine gültige Zahl eingeben.")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
+
+        # --- 5. Explorer neu starten (Ehemals 4) ---
+        elif choice == "5":
             print("Explorer wird manuell neu gestartet...")
             system_manager.restart_explorer()
             print("Explorer wurde neu gestartet.")
