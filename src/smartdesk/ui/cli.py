@@ -9,7 +9,10 @@ import time
 try:
     from ..handlers import desktop_handler
     from ..handlers import system_manager
-    from .style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN 
+    from .style import (
+        PREFIX_ERROR, PREFIX_OK, PREFIX_WARN, 
+        format_status_active, format_status_inactive # <-- NEU
+    )
     from .locale import TEXT # <-- NEU: Importiert das Text-Wörterbuch
 except ImportError as e:
     print(f"WARNUNG: Import-Fehler in cli.py: {e}")
@@ -23,11 +26,8 @@ except ImportError as e:
     system_manager = FakeHandler()
 # --- Ende Imports ---
 
-# --- NEUES ASCII-LOGO ---
-SMARTDESK_LOGO = r""" ___                _   ___         _   
-/ __|_ __  __ _ _ _| |_|   \ ___ __| |__
-\__ \ '  \/ _` | '_|  _| |) / -_|_-< / /
-|___/_|_|_\__,_|_|  \__|___/\___/__/_\_\ """
+# --- ASCII-LOGO ENTFERNT ---
+# Das Logo wird jetzt aus TEXT["LOGO_ASCII"] in locale.py geladen
 
 def clear_screen():
     """Löscht den Terminal-Bildschirm, abhängig vom Betriebssystem."""
@@ -41,7 +41,7 @@ def clear_screen():
 # --- NEUES HAUPTMENÜ (ANGEPASST) ---
 def print_main_menu():
     """Zeigt das neue Hauptmenü an (liest Texte aus locale.py)."""
-    print(SMARTDESK_LOGO)
+    print(TEXT["LOGO_ASCII"]) # <-- Geändert
     print(TEXT["MAIN_MENU_SEPARATOR"])
     print(f"1. {TEXT['MAIN_MENU_SWITCH']}")
     print(f"2. {TEXT['MAIN_MENU_CREATE']}")
@@ -51,8 +51,8 @@ def print_main_menu():
 # --- NEUES EINSTELLUNGSMENÜ (ANGEPASST) ---
 def print_settings_menu():
     """Zeigt das neue Einstellungs-Untermenü an (liest Texte aus locale.py)."""
-    print({TEXT["SETTINGS_MENU_HEADER"]})
-    print({TEXT["MAIN_MENU_SEPARATOR"]}) # Wiederverwendung des Separators
+    print(TEXT["SETTINGS_MENU_HEADER"])
+    print(TEXT["MAIN_MENU_SEPARATOR"]) # Wiederverwendung des Separators
     print(f"1. {TEXT['SETTINGS_MENU_LIST']}")
     print(f"2. {TEXT['SETTINGS_MENU_DELETE']}")
     print(f"3. {TEXT['SETTINGS_MENU_SAVE_ICONS']}")
@@ -75,7 +75,11 @@ def run_settings_menu():
             else:
                 print("\nVerfügbare Desktops:")
                 for d in desktops:
-                    status = "[AKTIV]" if d.is_active else "[ ]"
+                    # --- Geändert, um style-Funktionen zu verwenden ---
+                    if d.is_active:
+                        status = format_status_active(TEXT["STATUS_ACTIVE"])
+                    else:
+                        status = format_status_inactive(TEXT["STATUS_INACTIVE"])
                     print(f"{status} {d.name} -> {d.path}")
             input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
@@ -91,7 +95,11 @@ def run_settings_menu():
 
             print("\n--- Welchen Desktop löschen? ---")
             for i, d in enumerate(desktops, 1):
-                status = "[AKTIV]" if d.is_active else "[    ]"
+                # --- Geändert, um style-Funktionen zu verwenden ---
+                if d.is_active:
+                    status = format_status_active(TEXT["STATUS_ACTIVE"])
+                else:
+                    status = format_status_inactive(TEXT["STATUS_INACTIVE"])
                 print(f"{i}. {status} {d.name} ({d.path})")
             
             print("0. Abbrechen")
@@ -167,7 +175,11 @@ def run():
 
             print("\n--- Zu welchem Desktop wechseln? ---")
             for i, d in enumerate(desktops, 1):
-                status = "[AKTIV]" if d.is_active else "[    ]"
+                # --- Geändert, um style-Funktionen zu verwenden ---
+                if d.is_active:
+                    status = format_status_active(TEXT["STATUS_ACTIVE"])
+                else:
+                    status = format_status_inactive(TEXT["STATUS_INACTIVE"])
                 print(f"{i}. {status} {d.name} ({d.path})")
             
             print("0. Abbrechen")
@@ -263,3 +275,4 @@ def run():
 if __name__ == "__main__":
     clear_screen()
     run()
+    
