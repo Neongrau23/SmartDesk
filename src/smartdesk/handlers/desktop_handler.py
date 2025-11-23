@@ -320,7 +320,9 @@ def set_desktop_wallpaper(desktop_name: str, wallpaper_path: str) -> bool:
         print(f"✗ Fehler: Hintergrundbild nicht gefunden: {expanded_path}")
         return False
     
-    # Speichere Wallpaper-Pfad im Desktop
+    # Speichere Original-Pfad (mit ggf. Umgebungsvariablen) im Desktop
+    # Dies erlaubt portable Konfigurationen (z.B. %USERPROFILE%\Pictures\wallpaper.jpg)
+    # Der Pfad wird bei der Verwendung jeweils zur Laufzeit expandiert
     target_desktop.wallpaper_path = wallpaper_path
     save_desktops(desktops)
     
