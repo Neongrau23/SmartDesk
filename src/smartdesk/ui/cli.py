@@ -1,15 +1,16 @@
 # Dateipfad: src/smartdesk/ui/cli.py
-# (Komplett überarbeitet mit neuem Hauptmenü und Einstellungs-Untermenü)
+# (Aktualisiert, um die neue locale.py für alle Menütexte zu verwenden)
 
 import os
 import platform
 import time 
 
-# --- Imports (unverändert) ---
+# --- Imports (ANGEPASST) ---
 try:
     from ..handlers import desktop_handler
     from ..handlers import system_manager
-    from .style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN # <-- NEU
+    from .style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN 
+    from .locale import TEXT # <-- NEU: Importiert das Text-Wörterbuch
 except ImportError as e:
     print(f"WARNUNG: Import-Fehler in cli.py: {e}")
     print("Prüfe Import-Pfade in cli.py")
@@ -37,34 +38,34 @@ def clear_screen():
     else:
         os.system('clear')
 
-# --- NEUES HAUPTMENÜ ---
+# --- NEUES HAUPTMENÜ (ANGEPASST) ---
 def print_main_menu():
-    """Zeigt das neue Hauptmenü an."""
+    """Zeigt das neue Hauptmenü an (liest Texte aus locale.py)."""
     print(SMARTDESK_LOGO)
-    print("-----------------------------------------")
-    print("1. Desktop wechseln")
-    print("2. Neuen Desktop erstellen")
-    print("3. Einstellungen")
-    print("0. Beenden")
+    print(TEXT["MAIN_MENU_SEPARATOR"])
+    print(f"1. {TEXT['MAIN_MENU_SWITCH']}")
+    print(f"2. {TEXT['MAIN_MENU_CREATE']}")
+    print(f"3. {TEXT['MAIN_MENU_SETTINGS']}")
+    print(f"0. {TEXT['MAIN_MENU_EXIT']}")
 
-# --- NEUES EINSTELLUNGSMENÜ ---
+# --- NEUES EINSTELLUNGSMENÜ (ANGEPASST) ---
 def print_settings_menu():
-    """Zeigt das neue Einstellungs-Untermenü an."""
-    print("        --- Einstellungen ---        ")
-    print("-----------------------------------------")
-    print("1. Alle Desktops anzeigen")
-    print("2. Desktop löschen")
-    print("3. Aktuelle Icon-Positionen speichern")
-    print("4. Explorer manuell neu starten")
-    print("0. Zurück")
+    """Zeigt das neue Einstellungs-Untermenü an (liest Texte aus locale.py)."""
+    print({TEXT["SETTINGS_MENU_HEADER"]})
+    print({TEXT["MAIN_MENU_SEPARATOR"]}) # Wiederverwendung des Separators
+    print(f"1. {TEXT['SETTINGS_MENU_LIST']}")
+    print(f"2. {TEXT['SETTINGS_MENU_DELETE']}")
+    print(f"3. {TEXT['SETTINGS_MENU_SAVE_ICONS']}")
+    print(f"4. {TEXT['SETTINGS_MENU_RESTART']}")
+    print(f"0. {TEXT['SETTINGS_MENU_BACK']}")
 
-# --- NEUE FUNKTION FÜR EINSTELLUNGEN ---
+# --- NEUE FUNKTION FÜR EINSTELLUNGEN (ANGEPASST) ---
 def run_settings_menu():
     """Verwaltet die Schleife für das Einstellungsmenü."""
     while True:
         clear_screen()
         print_settings_menu()
-        choice = input("\nBitte wählen: ")
+        choice = input(TEXT["PROMPT_CHOOSE"]) # <-- Geändert
 
         # --- 1. Alle Desktops anzeigen (Ehemals 1) ---
         if choice == "1":
@@ -76,7 +77,7 @@ def run_settings_menu():
                 for d in desktops:
                     status = "[AKTIV]" if d.is_active else "[ ]"
                     print(f"{status} {d.name} -> {d.path}")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
         # --- 2. Desktop löschen (Ehemals 6) ---
         elif choice == "2":
@@ -120,7 +121,7 @@ def run_settings_menu():
                     print("Ungültige Nummer.")
             except ValueError:
                 print("Bitte eine gültige Zahl eingeben.")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
         # --- 3. Icons speichern (Ehemals 4) ---
         elif choice == "3":
@@ -129,32 +130,31 @@ def run_settings_menu():
                 # --- VERWENDET JETZT PREFIX_OK ---
                 print(f"{PREFIX_OK} Speichern abgeschlossen.")
             else:
-                # --- VERWENDET JETZT PREFIX_ERROR ---
                 print(f"{PREFIX_ERROR} Speichern fehlgeschlagen. Siehe Meldung oben.")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
         # --- 4. Explorer neu starten (Ehemals 5) ---
         elif choice == "4":
             print("Explorer wird manuell neu gestartet...")
             system_manager.restart_explorer()
             print("Explorer wurde neu gestartet.")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
         # --- 0. Zurück ---
         elif choice == "0":
             break # Verlässt die Einstellungs-Schleife
         
         else:
-            print("Ungültige Eingabe.")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            print(TEXT["ERROR_INVALID_INPUT"]) # <-- Geändert
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
-# --- run() FUNKTION STARK ANGEPASST ---
+# --- run() FUNKTION STARK ANGEPASST (ANGEPASST) ---
 def run():
     """Verwaltet die Schleife für das Hauptmenü."""
     while True:
         clear_screen()
         print_main_menu() # Zeigt das neue Hauptmenü
-        choice = input("\nBitte wählen: ")
+        choice = input(TEXT["PROMPT_CHOOSE"]) # <-- Geändert
 
         # --- 1. Desktop wechseln (Ehemals 3) ---
         if choice == "1":
@@ -203,7 +203,7 @@ def run():
                     print("Ungültige Nummer.")
             except ValueError:
                 print("Bitte eine gültige Zahl eingeben.")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
         # --- 2. Neuen Desktop erstellen (Ehemals 2) ---
         elif choice == "2":
@@ -244,7 +244,7 @@ def run():
                 desktop_handler.create_desktop(name, final_path)
             else:
                 print("Vorgang abgebrochen (kein Pfad angegeben).")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
         
         # --- 3. Einstellungen ---
         elif choice == "3":
@@ -252,12 +252,12 @@ def run():
         
         # --- 0. Beenden (Ehemals 7) ---
         elif choice == "0":
-            print("Auf Wiedersehen!")
+            print(TEXT["EXIT_MESSAGE"]) # <-- Geändert
             break
             
         else:
-            print("Ungültige Eingabe.")
-            input("\n--- Drücke Enter, um fortzufahren ---")
+            print(TEXT["ERROR_INVALID_INPUT"]) # <-- Geändert
+            input(TEXT["PROMPT_CONTINUE"]) # <-- Geändert
 
 # --- Start des Skripts (unverändert) ---
 if __name__ == "__main__":
