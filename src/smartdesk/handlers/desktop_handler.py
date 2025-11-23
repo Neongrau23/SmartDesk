@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/handlers/desktop_handler.py
-# (Aktualisiert mit Bestätigungsabfrage und Beispiel-Ausgaben)
+# (Aktualisiert mit Pfad-Validierung und interaktiver Abfrage beim Wechseln)
 
 import winreg
 import os
@@ -8,6 +8,7 @@ from typing import List, Optional
 
 from ..config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
 from ..utils.registry_operations import update_registry_key, get_registry_value
+# Import wird jetzt für die Pfad-Validierung benötigt
 from ..utils.path_validator import ensure_directory_exists
 from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
@@ -73,7 +74,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     print(f"✓ Desktop '{old_name}' wurde aktualisiert zu '{new_name}'.")
     return True
 
-# --- FUNKTION delete_desktop STARK AKTUALISIERT ---
+# --- (Funktion delete_desktop bleibt unverändert) ---
 def delete_desktop(name: str, delete_folder: bool = False) -> bool:
     """
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
@@ -137,6 +138,7 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
     print(f"✓ Desktop '{name}' erfolgreich gelöscht")
     return True
 
+# --- (Funktion get_all_desktops bleibt unverändert) ---
 def get_all_desktops() -> List[Desktop]:
     """
     (Schritt 4, 5, 6)
@@ -171,10 +173,12 @@ def get_all_desktops() -> List[Desktop]:
 
     return desktops
 
+# --- FUNKTION switch_to_desktop STARK AKTUALISIERT (BUGFIX) ---
 def switch_to_desktop(desktop_name: str) -> bool:
     """
     (Schritt 1 & 2)
     Bereitet den Desktop-Wechsel vor:
+    0. Validiert, ob der Zielpfad existiert.
     1. Speichert Icons des alten Desktops.
     2. Ändert den Registry-Pfad.
     Gibt True zurück, wenn der Explorer neugestartet werden kann.
@@ -187,6 +191,56 @@ def switch_to_desktop(desktop_name: str) -> bool:
         print(f"✗ Fehler: Desktop '{desktop_name}' nicht gefunden.")
         return False
         
+    # --- NEU: BUGFIX FÜR GELÖSCHTE PFADE ---
+    # Wir prüfen den Pfad, bevor wir irgendetwas anderes tun
+    # Wichtig: Umgebungsvariablen (wie %USERPROFILE%) müssen aufgelöst werden
+    target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
+    
+    if not os.path.exists(target_path):
+        print(f"✗ WARNUNG: Der Pfad für Desktop '{desktop_name}' existiert nicht mehr:")
+        print(f"  -> {target_path}")
+        print("\nWas möchten Sie tun?")
+        print("  [1] Den Ordner neu erstellen und den Wechsel fortsetzen.")
+        print("  [2] Den Desktop aus der Konfiguration entfernen.")
+        print("  [j] Jegliche andere Eingabe bricht den Vorgang ab.")
+        
+        try:
+            choice = input("Ihre Wahl: ").strip()
+        except EOFError:
+            choice = "j" # Standardmäßig abbrechen
+            
+        if choice == '1':
+            # Option 1: Ordner neu erstellen
+            print(f"Erstelle Ordner neu: {target_path}...")
+            if ensure_directory_exists(target_path):
+                print("✓ Ordner erfolgreich erstellt. Wechsel wird fortgesetzt.")
+                # Der Code kann nun normal weiterlaufen
+            else:
+                print(f"✗ FEHLER: Der Ordner konnte nicht neu erstellt werden.")
+                print("Wechsel wird abgebrochen.")
+                return False # Abbruch, kein Neustart
+                
+        elif choice == '2':
+            # Option 2: Desktop aus Konfiguration entfernen
+            # Wir replizieren hier die Kernlogik von delete_desktop(),
+            # aber ohne die erneute Bestätigungsabfrage.
+            print(f"Entferne '{desktop_name}' aus der Konfiguration...")
+            try:
+                desktops.remove(target_desktop)
+                save_desktops(desktops)
+                print(f"✓ Desktop '{desktop_name}' wurde entfernt.")
+            except Exception as e:
+                print(f"✗ FEHLER beim Entfernen des Desktops: {e}")
+            
+            print("Wechsel wird abgebrochen.")
+            return False # Abbruch, kein Neustart
+            
+        else:
+            # Option 3: Abbrechen
+            print("Wechsel wird abgebrochen.")
+            return False # Abbruch, kein Neustart
+    # --- ENDE BUGFIX ---
+
     # Prüfe, ob der *eigentlich* aktive Desktop (laut Registry) bereits das Ziel ist
     current_active_desktops = get_all_desktops()
     current_active = next((d for d in current_active_desktops if d.is_active), None)
@@ -208,6 +262,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
         print("Warnung: Es wurde kein als 'aktiv' markierter Desktop gefunden. Überspringe Speichern der Icons.")
 
     # (Schritt 2: Änderung in der Registry vornehmen)
+    # WICHTIG: Wir verwenden hier target_desktop.path (mit %vars%), nicht target_path
     print(f"Wechsle Registry zu Desktop: {target_desktop.name} ({target_desktop.path})...")
     reg_success = True
     if not update_registry_key(KEY_USER_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_EXPAND_SZ):
@@ -226,7 +281,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
     print("Registry-Änderung erfolgreich. Neustart des Explorers erforderlich.")
     return True # Signal an CLI, dass der Neustart erfolgen kann
 
-# --- NEUE FUNKTION HINZUGEFÜGT ---
+# --- (Funktion sync_desktop_state_and_apply_icons bleibt unverändert) ---
 def sync_desktop_state_and_apply_icons():
     """
     (Schritt 4, 5, 6, 7)
@@ -254,7 +309,7 @@ def sync_desktop_state_and_apply_icons():
     set_icon_positions(new_active_desktop.icon_positionen)
     print("Icon-Wiederherstellung abgeschlossen.")
 
-
+# --- (Funktion save_current_desktop_icons bleibt unverändert) ---
 def save_current_desktop_icons() -> bool:
     """
     Findet den aktuell aktiven Desktop, liest seine
