@@ -232,7 +232,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
         print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.switch_not_found', name=desktop_name)}")
         return False
     
-    # ===== START ÄNDERUNG: Prüfung auf Aktivität VOR der Animation =====
+    # ===== Prüfung auf Aktivität (VOR der Animation) =====
     
     # Prüfe, ob Desktop bereits aktiv ist
     # (nach Registry-Sync durch get_all_desktops())
@@ -246,36 +246,10 @@ def switch_to_desktop(desktop_name: str) -> bool:
         )
         # Geben False zurück, damit cli.py keinen Neustart durchführt.
         return False
-    # ===== ENDE ÄNDERUNG =====
 
-
-    # ===== ANIMATION STARTEN (Jetzt erst, da wir wissen, dass gewechselt wird) =====
-    try:
-        # Pfad relativ zur desktop_handler.py -> animations/screen_fade.py
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        animation_script = os.path.join(
-            base_dir,
-            'animations', 
-            'screen_fade.py'
-        )
-        
-        # Prüfen, ob das Skript existiert
-        if not os.path.exists(animation_script):
-             print(f"{PREFIX_WARN} Animationsskript nicht gefunden unter: {animation_script}")
-        else:
-            subprocess.Popen(
-                [sys.executable, animation_script],
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                stdout=subprocess.DEVNULL, # Verstecke Ausgaben
-                stderr=subprocess.DEVNULL  # Verstecke Fehler
-            )
-    except (OSError, ValueError, FileNotFoundError) as e:
-        print(f"{PREFIX_WARN} Animation konnte nicht gestartet werden: {e}")
-    # ===== ANIMATION ENDE =====
-
+    # ===== Prüfung auf Pfad-Existenz (VOR der Animation) =====
     target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
 
-    # --- START LOKALISIERUNG BUGFIX ---
     if not os.path.exists(target_path):
         # --- LOKALISIERT & GEFÄRBT (Warnung) ---
         print(
@@ -346,7 +320,33 @@ def switch_to_desktop(desktop_name: str) -> bool:
         else:
             print(get_text("desktop_handler.info.aborting_switch"))
             return False
-    # --- ENDE LOKALISIERUNG BUGFIX ---
+    
+    # ===== START ÄNDERUNG: Animation jetzt erst starten =====
+    # (Nachdem 'is_active' und 'path_exists' geprüft wurden)
+    try:
+        # Pfad relativ zur desktop_handler.py -> animations/screen_fade.py
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        animation_script = os.path.join(
+            base_dir,
+            'animations', 
+            'screen_fade.py'
+        )
+        
+        # Prüfen, ob das Skript existiert
+        if not os.path.exists(animation_script):
+             print(f"{PREFIX_WARN} Animationsskript nicht gefunden unter: {animation_script}")
+        else:
+            subprocess.Popen(
+                [sys.executable, animation_script],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                stdout=subprocess.DEVNULL, # Verstecke Ausgaben
+                stderr=subprocess.DEVNULL  # Verstecke Fehler
+            )
+    except (OSError, ValueError, FileNotFoundError) as e:
+        print(f"{PREFIX_WARN} Animation konnte nicht gestartet werden: {e}")
+    # ===== ENDE ÄNDERUNG =====
+
+    # ===== Eigentlicher Wechselprozess =====
 
     active_desktop = next((d for d in desktops if d.is_active), None)
     if active_desktop:
