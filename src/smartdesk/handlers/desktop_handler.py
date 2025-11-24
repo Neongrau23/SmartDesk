@@ -16,12 +16,35 @@ from ..localization import get_text # <-- NEUER IMPORT
 from .icon_manager import get_current_icon_positions, set_icon_positions
 
 
-def create_desktop(name: str, path: str) -> bool:
-    """Erstellt einen neuen Desktop und speichert ihn."""
-    if not ensure_directory_exists(path):
-        # --- LOKALISIERT ---
-        print(get_text("desktop_handler.error.path_invalid", path=path))
-        return False
+def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool:
+    """
+    Erstellt einen neuen Desktop und speichert ihn.
+    
+    Args:
+        name (str): Name des Desktops.
+        path (str): Pfad zum Desktop-Ordner.
+        create_if_missing (bool): 
+            True (Modus 2): Erstellt den Ordner, falls er nicht existiert.
+            False (Modus 1): Prüft, ob der Ordner existiert, und schlägt fehl, wenn nicht.
+    """
+    
+    # --- START ÄNDERUNG: Pfad-Logik basierend auf Modus ---
+    if create_if_missing:
+        # Modus 2: "Einen neuen Ordner erstellen"
+        # Nutzt die bisherige Logik: Erstellen, wenn nicht vorhanden.
+        if not ensure_directory_exists(path):
+            # --- LOKALISIERT ---
+            print(get_text("desktop_handler.error.path_invalid", path=path))
+            return False
+    else:
+        # Modus 1: "Einen existierenden Ordner verwenden"
+        # Prüft nur, ob der Pfad existiert UND ein Verzeichnis ist.
+        if not os.path.exists(path) or not os.path.isdir(path):
+            # --- LOKALISIERT (Neue Fehlermeldung) ---
+            print(get_text("desktop_handler.error.path_not_found_or_not_dir", path=path))
+            return False
+    # --- ENDE ÄNDERUNG ---
+
 
     desktops = load_desktops()
     

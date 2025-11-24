@@ -70,6 +70,8 @@ TEXT = {
             "choose": "\nBitte wählen: ",
             "continue": "\n--- Drücke Enter, um fortzufahren ---",
             "cancel": "0. Abbrechen",
+            
+            # --- START KORREKTUR: Fehlende Texte wieder eingefügt ---
             "choose_number": "\nNummer eingeben: ",
             "desktop_name": "Name des neuen Desktops: ",
             "folder_mode": "\nWie soll der Ordner gewählt werden?",
@@ -78,7 +80,22 @@ TEXT = {
             "choose_1_or_2": "Auswahl (1/2): ",
             "existing_path": r"Bitte vollen Pfad eingeben (z.B. F:\SmartDesk\Work): ",
             "new_path_parent": r"In welchem Verzeichnis soll der Ordner erstellt werden? (z.B. F:\SmartDesk): ",
-            "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): "
+            # --- ENDE KORREKTUR ---
+            
+            "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): ",
+            # --- NEUE TEXTE HINZUGEFÜGT ---
+            "parent_dir_menu": {
+                "not_found": "✗ Warnung: Das Basis-Verzeichnis '{path}' existiert nicht.",
+                "title": "\nWas möchten Sie tun?",
+                "create": "1. Das Verzeichnis '{path}' erstellen",
+                "reenter": "2. Ein anderes Verzeichnis eingeben",
+                "abort": "0. Abbrechen"
+            },
+            # --- HINZUGEFÜGT ---
+            "path_error_menu": {
+                "title": "1. Anderen Pfad eingeben",
+                "abort": "2. Zurück zum Hauptmenü"
+            }
         },
         "status": {
             "active": "AKTIV",
@@ -100,19 +117,24 @@ TEXT = {
             "waiting_for_explorer": "Explorer wurde neu gestartet. Warte 1 Sekunde auf Initialisierung...",
             "syncing_icons": "Synchronisiere Status und stelle Icons wieder her...",
             "switch_success": "Wechsel zu '{name}' abgeschlossen.",
-            "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben)."
+            "aborted_no_path": "Vorgang abgebrochen.",
+            "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt."
         },
         "errors": {
             "invalid_input": "Ungültige Eingabe.",
             "invalid_number": "Bitte eine gültige Zahl eingeben.",
             "name_empty": "Fehler: Der Name darf nicht leer sein.",
             "base_dir_empty": "Fehler: Basis-Verzeichnis darf nicht leer sein.",
+            # --- TEXT ENTFERNT ---
+            # "base_dir_not_found": "Fehler: Basis-Verzeichnis '{path}' existiert nicht oder ist kein Ordner.",
             "invalid_choice": "Ungültige Auswahl."
         }
     },
     "desktop_handler": {
         "error": {
             "path_invalid": "✗ Fehler: Pfad '{path}' ist ungültig oder konnte nicht erstellt werden.",
+            # --- NEUER TEXT HINZUGEFÜGT ---
+            "path_not_found_or_not_dir": "✗ Fehler: Pfad '{path}' existiert nicht oder ist kein Verzeichnis.",
             "name_exists": "✗ Fehler: Ein Desktop mit dem Namen '{name}' existiert bereits.",
             "not_found": "✗ Fehler: Desktop '{old_name}' nicht gefunden.",
             "not_found_delete": "✗ Fehler: Desktop '{name}' existiert nicht",

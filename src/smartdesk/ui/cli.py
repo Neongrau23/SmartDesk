@@ -253,31 +253,121 @@ def run():
             print(get_text("ui.prompts.folder_mode_2"))
             
             mode = input(get_text("ui.prompts.choose_1_or_2")).strip()
-            final_path = ""
-
+            
+            # --- START ÄNDERUNG: Logik aufgeteilt ---
             if mode == "1":
                 final_path = input(get_text("ui.prompts.existing_path")).strip()
+                if final_path:
+                    # Rufe Handler auf, OHNE Ordner zu erstellen (create_if_missing=False)
+                    desktop_handler.create_desktop(name, final_path, create_if_missing=False)
+                else:
+                    print(get_text("ui.messages.aborted_no_path"))
 
             elif mode == "2":
-                parent_path = input(get_text("ui.prompts.new_path_parent")).strip()
-                
-                if parent_path:
-                    final_path = os.path.join(parent_path, name)
-                    print(get_text("ui.messages.new_path_location", path=final_path))
-                else:
-                    print(f"{PREFIX_ERROR} {get_text('ui.errors.base_dir_empty')}")
+                # --- START ÄNDERUNG: Schleife für Pfad-Validierung ---
+                while True: 
+                    parent_path = input(get_text("ui.prompts.new_path_parent")).strip()
+                    
+                    if not parent_path:
+                        print(f"{PREFIX_ERROR} {get_text('ui.errors.base_dir_empty')}")
+                        # --- START ERSATZ FÜR 'input(continue)' ---
+                        print(get_text("ui.menu.main.separator"))
+                        print(get_text("ui.prompts.path_error_menu.title")) # 1. Anderen Pfad eingeben
+                        print(get_text("ui.prompts.path_error_menu.abort")) # 2. Zurück zum Hauptmenü
+                        sub_choice = input(get_text("ui.prompts.choose")).strip()
+                        if sub_choice == "2":
+                            break # Verlässt die while-Schleife -> zurück zum Hauptmenü
+                        else:
+                            continue # (Wahl 1 or ungültig) -> Zurück zur parent_path-Abfrage
+                        # --- ENDE ERSATZ ---
+
+                    # --- START NEUE PRÜFUNG (DER FIX) ---
+                    try:
+                        # Zerlegt den Pfad in Laufwerk (z.B. 'K:') und Rest ('/test')
+                        # os.path.abspath stellt sicher, dass auch relative Pfade ein Laufwerk bekommen
+                        abs_path = os.path.abspath(parent_path)
+                        drive, _ = os.path.splitdrive(abs_path)
+                        
+                        # Prüft, ob das Laufwerk existiert (nur wenn es ein Laufwerk gibt)
+                        if drive and not os.path.exists(drive):
+                            # Wenn das Laufwerk ungültig ist (K: existiert nicht)
+                            # Wir nutzen die "path_invalid" Meldung, da der Pfad nicht erstellt werden KANN.
+                            print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
+                            # --- START ERSATZ FÜR 'input(continue)' ---
+                            print(get_text("ui.prompts.path_error_menu.title"))
+                            print(get_text("ui.prompts.path_error_menu.abort"))
+                            sub_choice = input(get_text("ui.prompts.choose")).strip()
+                            if sub_choice == "2":
+                                break # Verlässt die while-Schleife
+                            else:
+                                continue # Zurück zur parent_path-Abfrage
+                            # --- ENDE ERSATZ ---
+                    
+                    except Exception:
+                        # Fängt ungültige Pfad-Syntax ab (z.B. C::/test)
+                        print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
+                        # --- START ERSATZ FÜR 'input(continue)' ---
+                        print(get_text("ui.prompts.path_error_menu.title"))
+                        print(get_text("ui.prompts.path_error_menu.abort"))
+                        sub_choice = input(get_text("ui.prompts.choose")).strip()
+                        if sub_choice == "2":
+                            break # Verlässt die while-Schleife
+                        else:
+                            continue # Zurück zur parent_path-Abfrage
+                        # --- ENDE ERSATZ ---
+                    # --- ENDE NEUE PRÜFUNG ---
+
+                    # Fall 1: Pfad existiert, alles super
+                    # (Wir verwenden den ursprünglichen parent_path, nicht den abs_path)
+                    if os.path.exists(parent_path) and os.path.isdir(parent_path):
+                        final_path = os.path.join(parent_path, name)
+                        print(get_text("ui.messages.new_path_location", path=final_path))
+                        desktop_handler.create_desktop(name, final_path, create_if_missing=True)
+                        break # Verlässt die while-Schleife
+
+                    # Fall 2: Pfad existiert nicht (aber Laufwerk ist gültig)
+                    else:
+                        print(f"{PREFIX_WARN} {get_text('ui.prompts.parent_dir_menu.not_found', path=parent_path)}")
+                        print(get_text("ui.prompts.parent_dir_menu.title"))
+                        print(get_text("ui.prompts.parent_dir_menu.create", path=parent_path))
+                        print(get_text("ui.prompts.parent_dir_menu.reenter"))
+                        print(get_text("ui.prompts.parent_dir_menu.abort"))
+                        
+                        sub_choice = input(get_text("ui.prompts.choose")).strip()
+
+                        if sub_choice == "1":
+                            # Erstellen
+                            try:
+                                os.makedirs(parent_path)
+                                print(f"{PREFIX_OK} {get_text('ui.messages.parent_created', path=parent_path)}")
+                                # Jetzt, da es erstellt ist, fahre fort
+                                final_path = os.path.join(parent_path, name)
+                                print(get_text("ui.messages.new_path_location", path=final_path))
+                                desktop_handler.create_desktop(name, final_path, create_if_missing=True)
+                                break # Verlässt die while-Schleife
+
+                            except Exception as e:
+                                print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
+                                input(get_text("ui.prompts.continue"))
+                                continue # Zurück zur parent_path-Abfrage
+
+                        elif sub_choice == "2":
+                            # Anderes Verzeichnis -> Zurück zur parent_path-Abfrage
+                            continue 
+                        
+                        else: # 0 or anything else
+                            # Abbrechen
+                            print(get_text("ui.messages.aborted_no_path"))
+                            break # Verlässt die while-Schleife
+                # --- ENDE ÄNDERUNG ---
+
             else:
                 # --- LOKALISIERT ---
                 print(get_text("ui.errors.invalid_choice"))
-                input(get_text("ui.prompts.continue"))
-                continue
-
-            if final_path:
-                # Handler gibt lokalisierte Meldungen aus
-                desktop_handler.create_desktop(name, final_path)
-            else:
-                # --- LOKALISIERT ---
-                print(get_text("ui.messages.aborted_no_path"))
+            
+            # Der 'if final_path:' Block von vorher ist nun oben integriert.
+            # --- ENDE ÄNDERUNG ---
+                
             # --- LOKALISIERT ---
             input(get_text("ui.prompts.continue"))
         
@@ -300,4 +390,3 @@ def run():
 if __name__ == "__main__":
     clear_screen()
     run()
-    
