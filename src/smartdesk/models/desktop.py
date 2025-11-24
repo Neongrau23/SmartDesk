@@ -10,7 +10,7 @@ class IconPosition:
     Repräsentiert die Position eines einzelnen Desktop-Icons.
     Dies ist unser Datenmodell für ein Icon.
     """
-    index: int  # <--- HINZUGEFÜGT: Der Index (0, 1, 2...) des Icons
+    index: int  
     name: str
     x: int
     y: int
@@ -18,7 +18,7 @@ class IconPosition:
     def to_dict(self) -> dict:
         """Konvertiert das Icon-Objekt in ein Dictionary für JSON."""
         return {
-            "index": self.index, # <--- HINZUGEFÜGT
+            "index": self.index, 
             "name": self.name, 
             "x": self.x, 
             "y": self.y
@@ -28,8 +28,7 @@ class IconPosition:
     def from_dict(cls, data: dict) -> 'IconPosition':
         """Erstellt ein Icon-Objekt aus einem Dictionary."""
         return cls(
-            # .get() für Abwärtskompatibilität, falls alte JSON-Einträge noch keinen Index haben
-            index=data.get("index", 0), # <--- HINZUGEFÜGT
+            index=data.get("index", 0), 
             name=data["name"], 
             x=data["x"], 
             y=data["y"]
@@ -45,6 +44,9 @@ class Desktop:
     path: str
     is_active: bool = False
     
+    # --- NEU: Pfad zum Hintergrundbild ---
+    wallpaper_path: str = "" 
+    
     icon_positionen: List[IconPosition] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -53,6 +55,7 @@ class Desktop:
             "name": self.name,
             "path": self.path,
             "is_active": self.is_active,
+            "wallpaper_path": self.wallpaper_path, # <-- Hinzugefügt
             "icon_positionen": [icon.to_dict() for icon in self.icon_positionen]
         }
 
@@ -66,5 +69,8 @@ class Desktop:
             name=data["name"],
             path=data["path"],
             is_active=data.get("is_active", False),
+            # .get() für Abwärtskompatibilität, falls alte JSONs das Feld nicht haben
+            wallpaper_path=data.get("wallpaper_path", ""), # <-- Hinzugefügt
             icon_positionen=icons
         )
+    

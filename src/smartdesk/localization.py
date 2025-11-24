@@ -62,7 +62,8 @@ TEXT = {
                 "list": "Alle Desktops anzeigen",
                 "delete": "Desktop löschen",
                 "save_icons": "Aktuelle Icon-Positionen speichern",
-                "restart": "Explorer manuell neu starten",
+                "wallpaper": "Hintergrundbild zuweisen", # <-- NEU
+                "restart": "Explorer manuell neu starten", # <-- Nummer geändert
                 "back": "Zurück"
             }
         },
@@ -83,6 +84,8 @@ TEXT = {
             # --- ENDE KORREKTUR ---
             
             "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): ",
+            "wallpaper_path": r"Pfad zur Bilddatei (z.B. C:\Bilder\bild.jpg): ", # <-- NEU
+            
             # --- NEUE TEXTE HINZUGEFÜGT ---
             "parent_dir_menu": {
                 "not_found": "! Warnung: Das Basis-Verzeichnis '{path}' existiert nicht.",
@@ -98,13 +101,18 @@ TEXT = {
         },
         "status": {
             "active": "AKTIV",
-            "inactive": "     "
+            "active_short": "Aktiv", # <-- NEU
+            "inactive": "     ",
+            "wallpaper": "Bild", # <-- NEU
+            "wallpaper_none": "Kein Bild" # <-- NEU
         },
         "headings": {
             "delete": "\n--- Desktop löschen ---",
             "create": "\n--- Neuen Desktop anlegen ---",
+            "wallpaper": "\n--- Hintergrundbild zuweisen ---", # <-- NEU
             "which_desktop_delete": "\n--- Welchen Desktop löschen? ---",
-            "which_desktop_switch": "\n--- Zu welchem Desktop wechseln? ---"
+            "which_desktop_switch": "\n--- Zu welchem Desktop wechseln? ---",
+            "which_desktop_wallpaper": "\n--- Für welchen Desktop? ---" # <-- NEU
         },
         "messages": {
             "exit": "Auf Wiedersehen!",
@@ -114,7 +122,7 @@ TEXT = {
             "registry_set_success": "Registry erfolgreich auf '{name}' gesetzt.",
             "restarting_explorer": "Starte Explorer neu, um Änderungen anzuwenden...",
             "waiting_for_explorer": "Explorer wurde neu gestartet. Warte 1 Sekunde auf Initialisierung...",
-            "syncing_icons": "Synchronisiere Status und stelle Icons wieder her...",
+            "syncing_icons": "Synchronisiere Status und stelle Icons (und Hintergrundbild) wieder her...", # <-- Geändert
             "switch_success": "Wechsel zu '{name}' abgeschlossen.",
             "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben).",
             "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt."
@@ -125,7 +133,8 @@ TEXT = {
             "invalid_number": "Bitte eine gültige Zahl eingeben.",
             "name_empty": "Der Name darf nicht leer sein.",
             "base_dir_empty": "Basis-Verzeichnis darf nicht leer sein.",
-            "invalid_choice": "Ungültige Auswahl."
+            "invalid_choice": "Ungültige Auswahl.",
+            "path_not_absolute": "Der Pfad '{path}' muss absolut sein (z.B. C:\\Bilder)." # <-- NEU
         }
     },
     "desktop_handler": {
@@ -155,6 +164,8 @@ TEXT = {
             "update": "Desktop '{old_name}' wurde aktualisiert zu '{new_name}'.",
             "delete": "Desktop '{name}' erfolgreich gelöscht",
             "folder_delete": "Ordner '{path}' wurde physisch gelöscht.",
+            "wallpaper_delete": "Zugehöriges Hintergrundbild '{path}' gelöscht.", # <-- NEU
+            "wallpaper_assigned": "Hintergrundbild für '{name}' gespeichert.", # <-- NEU
             "db_update": "Datenbank (Icon-Speicherung) aktualisiert.",
             "save_icons": "Icon-Positionen für '{name}' erfolgreich gespeichert.",
             "recreating_folder": "Ordner erfolgreich erstellt. Wechsel wird fortgesetzt.",
@@ -178,7 +189,10 @@ TEXT = {
             "path_is": "  -> {path}",
             "recreating_folder": "Erstelle Ordner neu: {path}...",
             "aborting_switch": "Wechsel wird abgebrochen.",
-            "removing_config": "Entferne '{name}' aus der Konfiguration..."
+            "removing_config": "Entferne '{name}' aus der Konfiguration...",
+            "setting_wallpaper": "Setze Hintergrundbild...", # <-- NEU
+            "old_wallpaper_removed": "Altes Hintergrundbild entfernt.", # <-- NEU
+            "setting_wallpaper_now": "Desktop ist aktiv. Hintergrundbild wird sofort gesetzt." # <-- NEU
         },
         "warn": {
             # --- PRÄFIXE ENTFERNT ---
@@ -187,7 +201,8 @@ TEXT = {
             "no_active_desktop": "Es wurde kein als 'aktiv' markierter Desktop gefunden. Überspringe Speichern der Icons.",
             "path_not_found": "Der Pfad für Desktop '{name}' existiert nicht mehr:",
             "sync_path_not_registered": "Möglicherweise ist der Registry-Pfad in der desktops.json nicht registriert.",
-            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad\nin SmartDesk nicht registriert."
+            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad\nin SmartDesk nicht registriert.",
+            "wallpaper_delete": "Altes Hintergrundbild konnte nicht gelöscht werden: {e}" # <-- NEU
         },
         "prompts": {
             "delete_confirm": "Desktop '{name}' wirklich löschen? (y/n): ",
@@ -198,6 +213,21 @@ TEXT = {
             "your_choice": "Ihre Wahl: "
         }
     },
+    # --- NEUER ABSCHNITT ---
+    "wallpaper_manager": {
+        "error": {
+            "path_not_found": "Pfad zum Hintergrundbild existiert nicht: {path}",
+            "api_fail": "Windows API-Aufruf zum Setzen des Hintergrundbilds fehlgeschlagen.",
+            "api_exception": "Ausnahmefehler beim Setzen des Hintergrundbilds: {e}",
+            "source_not_found": "Quelldatei nicht gefunden: {path}",
+            "copy": "Fehler beim Kopieren des Hintergrundbilds: {e}"
+        },
+        "success": {
+            "set": "Hintergrundbild erfolgreich gesetzt.",
+            "copy": "Hintergrundbild erfolgreich nach '{path}' kopiert."
+        }
+    },
+    # --- ENDE NEUER ABSCHNITT ---
     "icon_manager": {
         "error": {
             # --- PRÄFIXE ENTFERNT ---

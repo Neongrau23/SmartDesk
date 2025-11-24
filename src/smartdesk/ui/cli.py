@@ -58,7 +58,9 @@ def print_settings_menu():
     print(f"1. {get_text('ui.menu.settings.list')}")
     print(f"2. {get_text('ui.menu.settings.delete')}")
     print(f"3. {get_text('ui.menu.settings.save_icons')}")
-    print(f"4. {get_text('ui.menu.settings.restart')}")
+    # --- NEU: Hintergrundbild-Option ---
+    print(f"4. {get_text('ui.menu.settings.wallpaper')}")
+    print(f"5. {get_text('ui.menu.settings.restart')}")
     print(f"0. {get_text('ui.menu.settings.back')}")
 
 # --- EINSTELLUNGEN (ANGEPASST) ---
@@ -84,7 +86,14 @@ def run_settings_menu():
                         status = format_status_active(get_text("ui.status.active"))
                     else:
                         status = format_status_inactive(get_text("ui.status.inactive"))
-                    print(f"{status} {d.name} -> {d.path}")
+                    
+                    # --- NEU: Zeige Wallpaper-Pfad an ---
+                    wallpaper_info = ""
+                    if d.wallpaper_path:
+                        wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
+                    
+                    print(f"{status} {d.name} -> {d.path}{wallpaper_info}")
+                    
             # --- LOKALISIERT ---
             input(get_text("ui.prompts.continue"))
 
@@ -157,8 +166,66 @@ def run_settings_menu():
             # --- LOKALISIERT ---
             input(get_text("ui.prompts.continue"))
 
-        # --- 4. Explorer neu starten ---
+        # --- 4. HINTERGRUNDBILD ZUWEISEN (NEU) ---
         elif choice == "4":
+            print(get_text("ui.headings.wallpaper"))
+            desktops = desktop_handler.get_all_desktops()
+            
+            if not desktops:
+                print(get_text("ui.messages.no_desktops"))
+                input(get_text("ui.prompts.continue"))
+                continue
+
+            print(get_text("ui.headings.which_desktop_wallpaper"))
+            for i, d in enumerate(desktops, 1):
+                status = format_status_inactive("") # Nur zur Formatierung
+                if d.is_active:
+                    status = format_status_active(get_text("ui.status.active_short"))
+                
+                wallpaper_info = ""
+                if d.wallpaper_path:
+                    wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
+                else:
+                    wallpaper_info = f" ({get_text('ui.status.wallpaper_none')})"
+
+                print(f"{i}. {status} {d.name}{wallpaper_info}")
+            
+            print(get_text("ui.prompts.cancel"))
+            selection = input(get_text("ui.prompts.choose_number")).strip()
+
+            if selection == "0":
+                continue
+
+            try:
+                index = int(selection) - 1
+                if not (0 <= index < len(desktops)):
+                    print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
+                    input(get_text("ui.prompts.continue"))
+                    continue
+                    
+                target_desktop = desktops[index]
+                
+                # Pfad zum Bild abfragen
+                source_path = input(get_text("ui.prompts.wallpaper_path")).strip()
+                
+                if not source_path:
+                    print(get_text("ui.messages.aborted_no_path"))
+                    input(get_text("ui.prompts.continue"))
+                    continue
+                
+                # Pfad normalisieren (z.B. Anführungszeichen entfernen)
+                source_path = source_path.strip('"')
+                
+                # Handler kümmert sich um den Rest (Kopieren, Speichern)
+                desktop_handler.assign_wallpaper(target_desktop.name, source_path)
+                
+            except ValueError:
+                print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
+            
+            input(get_text("ui.prompts.continue"))
+            
+        # --- 5. Explorer neu starten (ALT: 4) ---
+        elif choice == "5":
             # --- LOKALISIERT (Handler gibt eigene Meldungen aus) ---
             system_manager.restart_explorer()
             input(get_text("ui.prompts.continue"))
@@ -225,6 +292,7 @@ def run():
                         time.sleep(1) 
 
                         print(get_text("ui.messages.syncing_icons"))
+                        # Diese Funktion setzt jetzt auch das Hintergrundbild
                         desktop_handler.sync_desktop_state_and_apply_icons()
                         print(f"{PREFIX_OK} {get_text('ui.messages.switch_success', name=target_desktop.name)}")
                         
@@ -416,3 +484,4 @@ def run():
 if __name__ == "__main__":
     clear_screen()
     run()
+    

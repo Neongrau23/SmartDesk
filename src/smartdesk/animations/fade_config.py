@@ -14,7 +14,7 @@ class FadeConfig:
     TOPMOST = True              # Fenster immer im Vordergrund
     
     # Wartezeit
-    INITIAL_DELAY = 100         # Verzögerung vor Start in Millisekunden
+    INITIAL_DELAY = 0         # Verzögerung vor Start in Millisekunden
     
     # Debug-Modus
     DEBUG = True                # Debug-Ausgaben aktivieren

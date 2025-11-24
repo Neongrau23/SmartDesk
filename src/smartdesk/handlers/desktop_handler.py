@@ -16,8 +16,9 @@ from ..storage.file_operations import load_desktops, save_desktops
 from ..localization import get_text # <-- NEUER IMPORT
 # --- NEUE IMPORTS ---
 from ..ui.style import PREFIX_ERROR, PREFIX_WARN, PREFIX_OK
-
 from .icon_manager import get_current_icon_positions, set_icon_positions
+# --- HIER NEU: Import für Wallpaper Manager ---
+from . import wallpaper_manager
 
 
 def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool:
@@ -167,6 +168,15 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
         else:
             # --- LOKALISIERT ---
             print(get_text("desktop_handler.info.folder_not_found", path=target_desktop.path))
+
+    # --- NEU: Lösche das zugehörige Hintergrundbild, wenn es existiert ---
+    if target_desktop.wallpaper_path and os.path.exists(target_desktop.wallpaper_path):
+        try:
+            os.remove(target_desktop.wallpaper_path)
+            print(f"{PREFIX_OK} {get_text('desktop_handler.success.wallpaper_delete', path=target_desktop.wallpaper_path)}")
+        except Exception as e:
+            print(f"{PREFIX_WARN} {get_text('desktop_handler.warn.wallpaper_delete', e=e)}")
+    # --- ENDE NEU ---
 
     desktops.remove(target_desktop)
     save_desktops(desktops)
@@ -426,6 +436,12 @@ def sync_desktop_state_and_apply_icons():
             name=new_active_desktop.name
         )
     )
+    
+    # --- NEU: HINTERGRUNDBILD SETZEN ---
+    if new_active_desktop.wallpaper_path:
+        print(get_text("desktop_handler.info.setting_wallpaper"))
+        wallpaper_manager.set_wallpaper(new_active_desktop.wallpaper_path)
+    # --- ENDE NEU ---
 
     print(
         get_text(
@@ -479,4 +495,52 @@ def save_current_desktop_icons() -> bool:
         msg4 = get_text('desktop_handler.error.save_icons', e=e)
         print(f"{PREFIX_ERROR} {msg4}")
         return False
+
+
+# --- NEUE FUNKTION FÜR HINTERGRUNDBILDER ---
+def assign_wallpaper(desktop_name: str, source_image_path: str) -> bool:
+    """
+    Weist einem Desktop ein Hintergrundbild zu.
+    Kopiert das Bild in den data-Ordner und speichert den Pfad.
+    """
+    if not os.path.exists(source_image_path):
+        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.source_not_found', path=source_image_path)}")
+        return False
+        
+    desktops = get_all_desktops()
+    target_desktop = next((d for d in desktops if d.name == desktop_name), None)
     
+    if not target_desktop:
+        print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.not_found', old_name=desktop_name)}")
+        return False
+
+    # 1. Altes Bild löschen, falls vorhanden
+    if target_desktop.wallpaper_path and os.path.exists(target_desktop.wallpaper_path):
+        try:
+            os.remove(target_desktop.wallpaper_path)
+            print(get_text("desktop_handler.info.old_wallpaper_removed"))
+        except Exception as e:
+            print(f"{PREFIX_WARN} {get_text('desktop_handler.warn.wallpaper_delete', e=e)}")
+
+    # 2. Neues Bild in den data-Ordner kopieren
+    new_path = wallpaper_manager.copy_wallpaper_to_datadir(
+        source_image_path,
+        target_desktop.name
+    )
+    
+    if not new_path:
+        # copy_wallpaper_to_datadir gibt bereits eine Fehlermeldung aus
+        return False
+        
+    # 3. Pfad in der Datenbank speichern
+    target_desktop.wallpaper_path = new_path
+    save_desktops(desktops)
+    
+    print(f"{PREFIX_OK} {get_text('desktop_handler.success.wallpaper_assigned', name=desktop_name)}")
+    
+    # 4. Wenn der Desktop aktiv ist, Hintergrundbild sofort setzen
+    if target_desktop.is_active:
+        print(get_text("desktop_handler.info.setting_wallpaper_now"))
+        wallpaper_manager.set_wallpaper(new_path)
+        
+    return True
