@@ -4,7 +4,6 @@
 import os
 import platform
 import time 
-import threading
 
 # --- Imports (ANGEPASST) ---
 try:
@@ -260,8 +259,13 @@ def run():
             
             # --- START ÄNDERUNG: Logik aufgeteilt ---
             if mode == "1":
-                final_path = input(get_text("ui.prompts.existing_path")).strip()
-                if final_path:
+                # --- ÄNDERUNG: Pfad normalisieren ---
+                final_path_input = input(get_text("ui.prompts.existing_path")).strip()
+                if final_path_input:
+                    # Wandelt C:/pfad in C:\pfad um
+                    # WICHTIG: os.path.normpath() wandelt alle Slashes (/) in Backslashes (\) um,
+                    # da Windows-Pfade mit Slashes (besonders 'C:/') zu Fehlern führen.
+                    final_path = os.path.normpath(final_path_input) 
                     # Rufe Handler auf, OHNE Ordner zu erstellen (create_if_missing=False)
                     desktop_handler.create_desktop(name, final_path, create_if_missing=False)
                 else:
@@ -270,13 +274,10 @@ def run():
             elif mode == "2":
                 # --- START ÄNDERUNG: Schleife für Pfad-Validierung ---
                 while True: 
-                    parent_path = input(get_text("ui.prompts.new_path_parent")).strip()
+                    # --- ÄNDERUNG: Pfad normalisieren (Schritt 1) ---
+                    parent_path_input = input(get_text("ui.prompts.new_path_parent")).strip()
                     
-                    if not parent_path:
-                        # --- LOKALISIERT & GEFÄRBT ---
-                        print(f"{PREFIX_ERROR} {get_text('ui.errors.base_dir_empty')}")
-                        # --- START ERSATZ FÜR 'input(continue)' ---
-                        print(get_text("ui.prompts.path_error_menu.title")) # 1. Anderen Pfad eingeben
+                    if not parent_path_input:
                         print(get_text("ui.prompts.path_error_menu.abort")) # 2. Zurück zum Hauptmenü
                         sub_choice = input(get_text("ui.prompts.choose")).strip()
                         if sub_choice == "2":
@@ -284,6 +285,12 @@ def run():
                         else:
                             continue # (Wahl 1 or ungültig) -> Zurück zur parent_path-Abfrage
                         # --- ENDE ERSATZ ---
+                    
+                    # --- ÄNDERUNG: Pfad normalisieren (Schritt 2) ---
+                    # Alle Pfade werden sofort in das Windows-Format (C:\) gebracht
+                    # WICHTIG: os.path.normpath() wandelt alle Slashes (/) in Backslashes (\) um,
+                    # da Windows-Pfade mit Slashes zu Fehlern führen kann.
+                    parent_path = os.path.normpath(parent_path_input)
 
                     # --- START NEUE (VERBESSERTE) PRÜFUNG ---
                     
