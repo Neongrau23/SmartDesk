@@ -2,13 +2,32 @@
 """
 Desktop-Switch Fade-Animation für SmartDesk
 Startet Logo-Fenster als separaten Prozess
+Wartet auf eine Signal-Datei (.lock), um sich zu beenden.
 """
 import tkinter as tk
 import time
 import subprocess
 import os
 import sys
-from fade_config import FadeConfig
+
+# Importiere die Konfiguration (fade_config.py muss im selben Ordner liegen)
+try:
+    from fade_config import FadeConfig
+except ImportError:
+    print("FATALER FEHLER: fade_config.py nicht gefunden.")
+    # Fallback-Klasse, damit das Skript nicht sofort abstürzt
+    class FadeConfig:
+        FADE_IN_DURATION = 0.2
+        FADE_OUT_DURATION = 0.3
+        VISIBLE_DURATION = 3.5 # Nur als Fallback
+        FADE_STEPS = 100
+        BACKGROUND_COLOR = 'Black'
+        SHOW_LOGO = True
+        HIDE_CURSOR = True
+        TOPMOST = True
+        INITIAL_DELAY = 0
+        DEBUG = True
+        ALLOW_ESC_EXIT = True
 
 # win32api wird benötigt, um die volle Größe über MEHRERE Monitore zu ermitteln
 try:
@@ -32,6 +51,9 @@ class MultiMonitorFade:
             config: FadeConfig-Instanz oder None für Standardwerte
         """
         self.config = config or FadeConfig()
+
+        # --- Signaldatei aus Argumenten empfangen ---
+        self.signal_file = sys.argv[1] if len(sys.argv) > 1 else None
         
         self.root = tk.Tk()
         self.root.title("SmartDesk Desktop Switch")
@@ -132,13 +154,18 @@ class MultiMonitorFade:
                     print(f"WARNUNG: Logo-Script nicht gefunden: {logo_script}")
                 return
             
-            # Logo-Prozess starten (mit Dauer als Parameter)
+            # --- Signal-Pfad an Logo-Prozess übergeben ---
+            cmd = [sys.executable, logo_script]
+            if self.signal_file:
+                cmd.append(self.signal_file)
+            
+            # Logo-Prozess starten
             # DETACHED_PROCESS sorgt dafür, dass das Logo-Fenster unabhängig läuft
             if sys.platform == 'win32':
                 # Windows: Verwende CREATE_NO_WINDOW Flag
                 CREATE_NO_WINDOW = 0x08000000
                 self.logo_process = subprocess.Popen(
-                    [sys.executable, logo_script, str(self.config.VISIBLE_DURATION)],
+                    cmd,
                     creationflags=CREATE_NO_WINDOW,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
@@ -146,11 +173,11 @@ class MultiMonitorFade:
             else:
                 # Linux/Mac
                 self.logo_process = subprocess.Popen(
-                    [sys.executable, logo_script, str(self.config.VISIBLE_DURATION)],
+                    cmd,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL
                 )
-            
+
             if self.config.DEBUG:
                 print(f"Logo-Prozess gestartet (PID: {self.logo_process.pid})")
                 
@@ -219,11 +246,12 @@ class MultiMonitorFade:
                 self.start_logo()
                 time.sleep(0.3)  # Kurz warten, damit Logo-Fenster erscheint
             
+            # --- Warten auf Signal statt fester Zeit ---
             if self.config.DEBUG:
-                print(f"Bildschirm verdeckt für {self.config.VISIBLE_DURATION} Sekunden...")
+                print(f"Bildschirm verdeckt. Warte auf Signal...")
             
-            # Sichtbar bleiben während Desktop wechselt
-            time.sleep(self.config.VISIBLE_DURATION)
+            self.wait_for_signal()
+            # --- (Die alte time.sleep()-Zeile wurde entfernt) ---
             
             # Logo-Prozess beenden (falls noch aktiv)
             if self.config.SHOW_LOGO:
@@ -256,6 +284,46 @@ class MultiMonitorFade:
             self.root.destroy()
         except:
             pass
+
+    def wait_for_signal(self):
+        """Wartet auf die Signaldatei, bevor ausgeblendet wird."""
+        if not self.signal_file:
+            # Fallback auf feste Zeit, wenn keine Signaldatei übergeben wurde
+            if self.config.DEBUG:
+                print(f"Keine Signaldatei. Nutze feste Dauer: {self.config.VISIBLE_DURATION}s")
+            time.sleep(self.config.VISIBLE_DURATION)
+            return
+
+        if self.config.DEBUG:
+            print(f"Warte auf Signaldatei: {self.signal_file}")
+        
+        start_time = time.time()
+        # Maximales Timeout, falls der Hauptprozess abstürzt
+        max_wait_seconds = 30 
+        
+        try:
+            while not os.path.exists(self.signal_file):
+                time.sleep(0.1)
+                # Root-Update ist wichtig, damit das Fenster nicht einfriert
+                self.root.update_idletasks()
+                self.root.update()
+                
+                if time.time() - start_time > max_wait_seconds:
+                    if self.config.DEBUG:
+                        print(f"Timeout: Warte {max_wait_seconds}s. Breche ab.")
+                    break
+            
+            if self.config.DEBUG:
+                print("Signaldatei empfangen.")
+                
+        finally:
+            # Signaldatei aufräumen, falls sie existiert
+            if os.path.exists(self.signal_file):
+                try:
+                    os.remove(self.signal_file)
+                except Exception as e:
+                    if self.config.DEBUG:
+                        print(f"Konnte Signaldatei nicht löschen: {e}")
 
 
 if __name__ == "__main__":

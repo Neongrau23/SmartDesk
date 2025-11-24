@@ -11,6 +11,8 @@ def restart_explorer():
     # --- LOKALISIERT ---
     print(get_text("system.info.restarting"))
 
+    time.sleep(0.5)
+
     # Beendet den Prozess
     os.system("taskkill /f /im explorer.exe")
 
