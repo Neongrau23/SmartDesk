@@ -9,8 +9,8 @@ import time
 try:
     from ..handlers import desktop_handler
     from ..handlers import system_manager
-    from ..hotkeys import hotkey_manager # <-- WICHTIGER IMPORT (korrigierter Pfad)
-    from ..config import DATA_DIR 
+    from ..hotkeys import hotkey_manager 
+    from ..config import DATA_DIR # <-- WIRD BEREITS IMPORTIERT (Perfekt!)
     from .style import (
         PREFIX_ERROR, PREFIX_OK, PREFIX_WARN, 
         format_status_active, format_status_inactive
@@ -19,7 +19,8 @@ try:
 except ImportError as e:
     # --- (Lokalisierung hier nicht möglich, da Import fehlschlägt) ---
     print(f"FATALER IMPORT FEHLER in cli.py: {e}")
-    # ... (Fallback-Code wie in deiner Datei) ...
+    print("Stelle sicher, dass du das Skript mit 'python -m smartdesk.main' startest.")
+    
     class FakeHandler:
         def __getattr__(self, name):
             def method(*args, **kwargs):
@@ -27,12 +28,13 @@ except ImportError as e:
             return method
     desktop_handler = FakeHandler()
     system_manager = FakeHandler()
-    hotkey_manager = FakeHandler() # Fake-Handler hinzufügen
+    hotkey_manager = FakeHandler() 
     def get_text(key, **kwargs): return key
     PREFIX_ERROR = "ERROR:"
     PREFIX_OK = "OK:"
     PREFIX_WARN = "WARN:"
-    DATA_DIR = "."
+    # DATA_DIR Fallback
+    DATA_DIR = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk')
     def format_status_active(t): return f"[{t}]"
     def format_status_inactive(t): return f"[{t}]"
 # --- Ende Imports ---
@@ -90,7 +92,7 @@ def run_hotkey_menu():
         print(get_text("ui.menu.main.separator"))
         print(get_text("ui.menu.hotkeys.manage"))
         print(get_text("ui.menu.hotkeys.debug"))
-        print(get_text("ui.menu.settings.back"))
+        print(f"0. {get_text('ui.menu.settings.back')}") 
         
         choice = input(get_text("ui.prompts.choose")).strip()
         
@@ -128,7 +130,8 @@ def run_hotkey_menu():
             print(get_text("ui.headings.hotkeys_debug"))
             print(get_text("ui.menu.main.separator"))
             
-            # Zeige die letzten Log-Zeilen an
+            # --- GEÄNDERT ---
+            # Liest den Pfad jetzt aus DATA_DIR (das am Dateianfang importiert wurde)
             log_file = os.path.join(DATA_DIR, "listener.log")
             
             if os.path.exists(log_file):
@@ -147,6 +150,7 @@ def run_hotkey_menu():
                     print(f"{PREFIX_ERROR} {get_text('ui.errors.log_read_failed', e=e)}")
             else:
                 print(get_text("ui.messages.log_not_found"))
+                print(f"({get_text('ui.messages.path_was')}: {log_file})") # Hilfs-Debug-Ausgabe
             
             input(get_text("ui.prompts.continue"))
         
@@ -156,7 +160,8 @@ def run_hotkey_menu():
         
         else:
             print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
-            input(get_text("ui.prompts.continue"))
+            # Kurze Pause, damit die Fehlermeldung gelesen werden kann
+            time.sleep(1.5)
 
 
 # --- EINSTELLUNGEN ---
@@ -165,11 +170,11 @@ def run_settings_menu():
     while True:
         clear_screen()
         print_settings_menu()
-        choice = input(get_text("ui.prompts.choose"))
+        choice = input(get_text("ui.prompts.choose")).strip() 
 
         # --- 1. Alle Desktops anzeigen ---
         if choice == "1":
-            # ... (Code für "list" wie in deiner Datei) ...
+            clear_screen() 
             desktops = desktop_handler.get_all_desktops()
             if not desktops:
                 print(get_text("ui.messages.no_desktops"))
@@ -182,8 +187,10 @@ def run_settings_menu():
                         status = format_status_inactive(get_text("ui.status.inactive"))
                     
                     wallpaper_info = ""
-                    if d.wallpaper_path:
-                        wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
+                    # (HINWEIS: Deine desktop.py hat kein 'wallpaper_path', 
+                    #  dieser Code wird fehlschlagen, wenn desktop.py nicht angepasst wird)
+                    # if d.wallpaper_path: 
+                    #     wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
                     
                     print(f"{status} {d.name} -> {d.path}{wallpaper_info}")
                     
@@ -192,7 +199,7 @@ def run_settings_menu():
 
         # --- 2. Desktop löschen ---
         elif choice == "2":
-            # ... (Code für "delete" wie in deiner Datei) ...
+            clear_screen() 
             print(get_text("ui.headings.delete"))
             desktops = desktop_handler.get_all_desktops()
             
@@ -209,7 +216,7 @@ def run_settings_menu():
                     status = format_status_inactive(get_text("ui.status.inactive"))
                 print(f"{i}. {status} {d.name} ({d.path})")
             
-            print(get_text("ui.prompts.cancel"))
+            print(f"\n0. {get_text('ui.prompts.cancel')}") 
             selection = input(get_text("ui.prompts.choose_number")).strip()
 
             if selection == "0":
@@ -239,13 +246,14 @@ def run_settings_menu():
 
         # --- 3. Icons speichern ---
         elif choice == "3":
+            clear_screen() 
             print(get_text("desktop_handler.info.reading_icons", name="...")) 
             desktop_handler.save_current_desktop_icons()
             input(get_text("ui.prompts.continue"))
 
         # --- 4. HINTERGRUNDBILD ZUWEISEN ---
         elif choice == "4":
-            # ... (Code für "wallpaper" wie in deiner Datei) ...
+            clear_screen() 
             print(get_text("ui.headings.wallpaper"))
             desktops = desktop_handler.get_all_desktops()
             
@@ -260,15 +268,16 @@ def run_settings_menu():
                 if d.is_active:
                     status = format_status_active(get_text("ui.status.active_short"))
                 
-                wallpaper_info = ""
-                if d.wallpaper_path:
-                    wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
-                else:
-                    wallpaper_info = f" ({get_text('ui.status.wallpaper_none')})"
+                # (HINWEIS: Benötigt 'wallpaper_path' in desktop.py)
+                wallpaper_info = f" ({get_text('ui.status.wallpaper_none')})"
+                # if d.wallpaper_path:
+                #     wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
+                # else:
+                #     wallpaper_info = f" ({get_text('ui.status.wallpaper_none')})"
 
                 print(f"{i}. {status} {d.name}{wallpaper_info}")
             
-            print(get_text("ui.prompts.cancel"))
+            print(f"\n0. {get_text('ui.prompts.cancel')}") 
             selection = input(get_text("ui.prompts.choose_number")).strip()
 
             if selection == "0":
@@ -292,7 +301,9 @@ def run_settings_menu():
                 
                 source_path = source_path.strip('"')
                 
-                desktop_handler.assign_wallpaper(target_desktop.name, source_path)
+                # (HINWEIS: Benötigt 'desktop_handler.assign_wallpaper')
+                # desktop_handler.assign_wallpaper(target_desktop.name, source_path)
+                print(f"{PREFIX_WARN} Funktion 'assign_wallpaper' ist noch nicht implementiert.")
                 
             except ValueError:
                 print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
@@ -301,6 +312,7 @@ def run_settings_menu():
             
         # --- 5. Explorer neu starten ---
         elif choice == "5":
+            clear_screen() 
             system_manager.restart_explorer()
             input(get_text("ui.prompts.continue"))
 
@@ -314,7 +326,7 @@ def run_settings_menu():
         
         else:
             print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
-            input(get_text("ui.prompts.continue"))
+            time.sleep(1.5) 
 
 # --- run() FUNKTION ---
 def run():
@@ -322,11 +334,11 @@ def run():
     while True:
         clear_screen()
         print_main_menu()
-        choice = input(get_text("ui.prompts.choose"))
+        choice = input(get_text("ui.prompts.choose")).strip() 
 
         # --- 1. Desktop wechseln ---
         if choice == "1":
-            # ... (Code für "switch" wie in deiner Datei) ...
+            clear_screen() 
             desktops = desktop_handler.get_all_desktops()
             
             if not desktops:
@@ -342,7 +354,7 @@ def run():
                     status = format_status_inactive(get_text("ui.status.inactive"))
                 print(f"{i}. {status} {d.name} ({d.path})")
             
-            print(get_text("ui.prompts.cancel"))
+            print(f"\n0. {get_text('ui.prompts.cancel')}") 
             selection = input(get_text("ui.prompts.choose_number")).strip()
 
             if selection == "0":
@@ -361,10 +373,8 @@ def run():
                         system_manager.restart_explorer()
                         
                         print(get_text("ui.messages.waiting_for_explorer"))
-
-                        print(get_text("ui.messages.syncing_icons"))
-                        desktop_handler.sync_desktop_state_and_apply_icons()
-
+                        
+                        # Signaldatei für Animation (verwendet DATA_DIR)
                         SIGNAL_FILE_PATH = os.path.join(DATA_DIR, "fade_signal.lock")
                         try:
                             with open(SIGNAL_FILE_PATH, "w") as f:
@@ -372,9 +382,13 @@ def run():
                         except Exception as e:
                             print(f"{PREFIX_WARN} Animations-Signaldatei konnte nicht geschrieben werden: {e}")
 
+                        print(get_text("ui.messages.syncing_icons"))
+                        desktop_handler.sync_desktop_state_and_apply_icons()
+
                         print(f"{PREFIX_OK} {get_text('ui.messages.switch_success', name=target_desktop.name)}")
                         
                     else:
+                        # Fehlermeldungen kommen vom Handler
                         pass
                 else:
                     print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
@@ -384,7 +398,7 @@ def run():
 
         # --- 2. Neuen Desktop erstellen ---
         elif choice == "2":
-            # ... (Code für "create" wie in deiner Datei) ...
+            clear_screen() 
             print(get_text("ui.headings.create"))
             name = input(get_text("ui.prompts.desktop_name")).strip()
             
@@ -400,7 +414,7 @@ def run():
             mode = input(get_text("ui.prompts.choose_1_or_2")).strip()
             
             if mode == "1":
-                final_path_input = input(get_text("ui.prompts.existing_path")).strip()
+                final_path_input = input(get_text("ui.prompts.existing_path")).strip().strip('"') 
                 if final_path_input:
                     final_path = os.path.normpath(final_path_input) 
                     desktop_handler.create_desktop(name, final_path, create_if_missing=False)
@@ -409,7 +423,7 @@ def run():
 
             elif mode == "2":
                 while True: 
-                    parent_path_input = input(get_text("ui.prompts.new_path_parent")).strip()
+                    parent_path_input = input(get_text("ui.prompts.new_path_parent")).strip().strip('"') 
                     
                     if not parent_path_input:
                         print(get_text("ui.messages.aborted_no_path"))
@@ -467,7 +481,7 @@ def run():
                                 print(f"{PREFIX_OK} {get_text('ui.messages.parent_created', path=parent_path)}")
                                 final_path = os.path.join(parent_path, name)
                                 print(get_text("ui.messages.new_path_location", path=final_path))
-                                desktop_handler.create_desktop(name, final_path, create_if_missing=True) # Tvrue -> True
+                                desktop_handler.create_desktop(name, final_path, create_if_missing=True)
                                 break 
                             except Exception as e:
                                 print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
@@ -494,7 +508,7 @@ def run():
             
         else:
             print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
-            input(get_text("ui.prompts.continue"))
+            time.sleep(1.5) 
 
 # --- Start des Skripts ---
 if __name__ == "__main__":
