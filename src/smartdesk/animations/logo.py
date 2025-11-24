@@ -131,12 +131,78 @@ class LogoWindow:
         self.animation_step = 0
         self.animation_running = False
         self.animation_objects = []
+        self.fade_in_complete = False
         
         # Wähle Animation aus Konfiguration
         self.animation_type = cfg.ANIMATION_CONFIG['type']
     
+    def _update_canvas_opacity(self, alpha):
+        """Aktualisiert die Deckkraft aller Canvas-Elemente"""
+        if not self.animation_objects:
+            return
+        
+        # Konvertiere Alpha (0.0-1.0) zu Hex-Opacity für Farben
+        for obj in self.animation_objects:
+            try:
+                # Hole aktuelle Farbe des Objekts
+                item_type = self.animation_canvas.type(obj)
+                
+                if item_type == 'oval' or item_type == 'rectangle':
+                    # Für gefüllte Formen
+                    fill_color = self.animation_canvas.itemcget(obj, 'fill')
+                    if fill_color and fill_color != '':
+                        new_color = self._apply_alpha_to_color(
+                            fill_color, alpha
+                        )
+                        self.animation_canvas.itemconfig(
+                            obj, fill=new_color
+                        )
+                    
+                    # Für Umrandungen
+                    outline_color = self.animation_canvas.itemcget(
+                        obj, 'outline'
+                    )
+                    if outline_color and outline_color != '':
+                        new_color = self._apply_alpha_to_color(
+                            outline_color, alpha
+                        )
+                        self.animation_canvas.itemconfig(
+                            obj, outline=new_color
+                        )
+            except Exception:
+                # Ignoriere Fehler bei einzelnen Objekten
+                pass
+    
+    def _apply_alpha_to_color(self, color, alpha):
+        """Wendet Alpha-Wert auf Hex-Farbe an"""
+        if not color or color == '':
+            return color
+        
+        try:
+            # Entferne '#' falls vorhanden
+            if color.startswith('#'):
+                color = color[1:]
+            
+            # Parse RGB-Werte
+            if len(color) == 6:
+                r = int(color[0:2], 16)
+                g = int(color[2:4], 16)
+                b = int(color[4:6], 16)
+            else:
+                return f'#{color}'
+            
+            # Interpoliere mit Hintergrundfarbe (Schwarz)
+            bg = 0  # Schwarz = 0
+            r = int(bg + (r - bg) * alpha)
+            g = int(bg + (g - bg) * alpha)
+            b = int(bg + (b - bg) * alpha)
+            
+            return f'#{r:02x}{g:02x}{b:02x}'
+        except Exception:
+            return color
+    
     def fade_in(self, duration=None, steps=None):
-        """Sanftes Einblenden"""
+        """Sanftes Einblenden mit Canvas-Synchronisation"""
         if duration is None:
             duration = cfg.FADE_CONFIG['fade_in_duration']
         if steps is None:
@@ -147,11 +213,15 @@ class LogoWindow:
         for i in range(steps + 1):
             alpha = i / steps * cfg.WINDOW_CONFIG['alpha_visible']
             self.root.attributes('-alpha', alpha)
+            
             self.root.update()
             self.root.after(int(delay))
+        
+        # Fade-In abgeschlossen
+        self.fade_in_complete = True
     
     def fade_out(self, duration=None, steps=None):
-        """Sanftes Ausblenden"""
+        """Sanftes Ausblenden mit Canvas-Synchronisation"""
         if duration is None:
             duration = cfg.FADE_CONFIG['fade_out_duration']
         if steps is None:
@@ -162,6 +232,10 @@ class LogoWindow:
         for i in range(steps, -1, -1):
             alpha = i / steps * cfg.WINDOW_CONFIG['alpha_visible']
             self.root.attributes('-alpha', alpha)
+            
+            # Canvas-Elemente mit Fade synchronisieren
+            self._update_canvas_opacity(alpha)
+            
             self.root.update()
             self.root.after(int(delay))
     
@@ -325,6 +399,10 @@ class LogoWindow:
             y2 = center_y + height // 2
             
             self.animation_canvas.coords(bar, x1, y1, x2, y2)
+            # Stelle sicher, dass die Farbe korrekt ist
+            self.animation_canvas.itemconfig(
+                bar, fill=cfg.ANIMATION_CONFIG['primary_color']
+            )
     
     def animate_dots(self):
         """Punkte-Animation updaten"""
@@ -344,6 +422,10 @@ class LogoWindow:
             y2 = base_y + offset + dot_radius
             
             self.animation_canvas.coords(dot, x1, y1, x2, y2)
+            # Stelle sicher, dass die Farbe korrekt ist
+            self.animation_canvas.itemconfig(
+                dot, fill=cfg.ANIMATION_CONFIG['primary_color']
+            )
     
     def start_close_sequence(self):
         """Schließ-Sequenz starten"""
@@ -358,10 +440,7 @@ class LogoWindow:
         self.root.lift()
         self.root.focus_force()
         
-        # Einblenden
-        self.fade_in()
-        
-        # Animation initialisieren
+        # Animation ZUERST initialisieren (vor Fade-In)
         if self.animation_type == 'spinner':
             self.init_spinner_animation()
         elif self.animation_type == 'pulse':
@@ -371,9 +450,12 @@ class LogoWindow:
         elif self.animation_type == 'dots':
             self.init_dots_animation()
         
-        # Lade-Animation starten
+        # Lade-Animation starten (läuft parallel zum Fade-In)
         self.animation_running = True
         self.animate_loading()
+        
+        # Einblenden (Animation läuft bereits)
+        self.fade_in()
         
         # Nach duration automatisch schließen
         self.root.after(int(self.duration), self.start_close_sequence)

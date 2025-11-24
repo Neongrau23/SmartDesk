@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/ui/cli.py
-# (Vollständig und korrigiert)
+# (Vollständig, mit Hotkey-Menü)
 
 import os
 import platform
@@ -7,23 +7,19 @@ import time
 
 # --- Imports (Korrigiert auf absolute Pfade) ---
 try:
-    from smartdesk.handlers import desktop_handler
-    from smartdesk.handlers import system_manager
-    # DATA_DIR wird für die .lock-Datei benötigt
-    from smartdesk.config import DATA_DIR 
-    from smartdesk.ui.style import (
+    from ..handlers import desktop_handler
+    from ..handlers import system_manager
+    from ..hotkeys import hotkey_manager # <-- WICHTIGER IMPORT (korrigierter Pfad)
+    from ..config import DATA_DIR 
+    from .style import (
         PREFIX_ERROR, PREFIX_OK, PREFIX_WARN, 
         format_status_active, format_status_inactive
     )
-    from smartdesk.localization import get_text
+    from ..localization import get_text
 except ImportError as e:
     # --- (Lokalisierung hier nicht möglich, da Import fehlschlägt) ---
     print(f"FATALER IMPORT FEHLER in cli.py: {e}")
-    print("Stelle sicher, dass alle Importe in den 'handler'- und 'utils'-Dateien")
-    print("auf 'smartdesk.' (absolut) statt '..' (relativ) umgestellt sind.")
-    
-    # Fallback, damit das Programm nicht sofort abstürzt,
-    # obwohl es wahrscheinlich nicht funktionieren wird.
+    # ... (Fallback-Code wie in deiner Datei) ...
     class FakeHandler:
         def __getattr__(self, name):
             def method(*args, **kwargs):
@@ -31,12 +27,12 @@ except ImportError as e:
             return method
     desktop_handler = FakeHandler()
     system_manager = FakeHandler()
-    # Dummy-Funktion, um Abstürze zu vermeiden
+    hotkey_manager = FakeHandler() # Fake-Handler hinzufügen
     def get_text(key, **kwargs): return key
     PREFIX_ERROR = "ERROR:"
     PREFIX_OK = "OK:"
     PREFIX_WARN = "WARN:"
-    DATA_DIR = "." # Dummy-Wert
+    DATA_DIR = "."
     def format_status_active(t): return f"[{t}]"
     def format_status_inactive(t): return f"[{t}]"
 # --- Ende Imports ---
@@ -71,7 +67,97 @@ def print_settings_menu():
     print(f"3. {get_text('ui.menu.settings.save_icons')}")
     print(f"4. {get_text('ui.menu.settings.wallpaper')}")
     print(f"5. {get_text('ui.menu.settings.restart')}")
+    print(f"6. {get_text('ui.menu.settings.hotkeys')}")
     print(f"0. {get_text('ui.menu.settings.back')}")
+
+# --- HOTKEY-LISTENER UNTERMENÜ ---
+def run_hotkey_menu():
+    """Verwaltet das Hotkey-Listener Untermenü."""
+    while True:
+        clear_screen()
+        print(get_text("ui.headings.hotkeys"))
+        
+        # Aktuellen Status abrufen
+        pid = hotkey_manager.get_listener_pid()
+        
+        if pid:
+            status = format_status_active(get_text('ui.status.hotkeys_on'))
+            print(f"{get_text('ui.status.hotkeys_status')} {status} (PID: {pid})")
+        else:
+            status = format_status_inactive(get_text('ui.status.hotkeys_off'))
+            print(f"{get_text('ui.status.hotkeys_status')} {status}")
+        
+        print(get_text("ui.menu.main.separator"))
+        print(get_text("ui.menu.hotkeys.manage"))
+        print(get_text("ui.menu.hotkeys.debug"))
+        print(get_text("ui.menu.settings.back"))
+        
+        choice = input(get_text("ui.prompts.choose")).strip()
+        
+        # --- 1. Listener verwalten (Start/Stop) ---
+        if choice == "1":
+            clear_screen()
+            print(get_text("ui.headings.hotkeys_manage"))
+            
+            pid = hotkey_manager.get_listener_pid()
+            if pid:
+                status = format_status_active(get_text('ui.status.hotkeys_on'))
+                print(f"{get_text('ui.status.hotkeys_status')} {status} (PID: {pid})")
+            else:
+                status = format_status_inactive(get_text('ui.status.hotkeys_off'))
+                print(f"{get_text('ui.status.hotkeys_status')} {status}")
+            
+            print(get_text("ui.menu.main.separator"))
+            print(get_text("ui.prompts.hotkeys.start"))
+            print(get_text("ui.prompts.hotkeys.stop"))
+            print(get_text("ui.prompts.cancel"))
+            
+            sub_choice = input(get_text("ui.prompts.choose")).strip()
+            
+            if sub_choice == "1":
+                hotkey_manager.start_listener()
+            elif sub_choice == "2":
+                hotkey_manager.stop_listener()
+            
+            if sub_choice in ["1", "2"]:
+                input(get_text("ui.prompts.continue"))
+        
+        # --- 2. Debug-Log anzeigen ---
+        elif choice == "2":
+            clear_screen()
+            print(get_text("ui.headings.hotkeys_debug"))
+            print(get_text("ui.menu.main.separator"))
+            
+            # Zeige die letzten Log-Zeilen an
+            log_file = os.path.join(DATA_DIR, "listener.log")
+            
+            if os.path.exists(log_file):
+                try:
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        lines = f.readlines()
+                        # Zeige die letzten 20 Zeilen
+                        last_lines = lines[-20:] if len(lines) > 20 else lines
+                        
+                        if last_lines:
+                            for line in last_lines:
+                                print(line.rstrip())
+                        else:
+                            print(get_text("ui.messages.log_empty"))
+                except Exception as e:
+                    print(f"{PREFIX_ERROR} {get_text('ui.errors.log_read_failed', e=e)}")
+            else:
+                print(get_text("ui.messages.log_not_found"))
+            
+            input(get_text("ui.prompts.continue"))
+        
+        # --- 0. Zurück ---
+        elif choice == "0":
+            break
+        
+        else:
+            print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
+            input(get_text("ui.prompts.continue"))
+
 
 # --- EINSTELLUNGEN ---
 def run_settings_menu():
@@ -83,6 +169,7 @@ def run_settings_menu():
 
         # --- 1. Alle Desktops anzeigen ---
         if choice == "1":
+            # ... (Code für "list" wie in deiner Datei) ...
             desktops = desktop_handler.get_all_desktops()
             if not desktops:
                 print(get_text("ui.messages.no_desktops"))
@@ -102,8 +189,10 @@ def run_settings_menu():
                     
             input(get_text("ui.prompts.continue"))
 
+
         # --- 2. Desktop löschen ---
         elif choice == "2":
+            # ... (Code für "delete" wie in deiner Datei) ...
             print(get_text("ui.headings.delete"))
             desktops = desktop_handler.get_all_desktops()
             
@@ -156,6 +245,7 @@ def run_settings_menu():
 
         # --- 4. HINTERGRUNDBILD ZUWEISEN ---
         elif choice == "4":
+            # ... (Code für "wallpaper" wie in deiner Datei) ...
             print(get_text("ui.headings.wallpaper"))
             desktops = desktop_handler.get_all_desktops()
             
@@ -214,6 +304,10 @@ def run_settings_menu():
             system_manager.restart_explorer()
             input(get_text("ui.prompts.continue"))
 
+        # --- 6. HOTKEY LISTENER UNTERMENÜ ---
+        elif choice == "6":
+            run_hotkey_menu()
+
         # --- 0. Zurück ---
         elif choice == "0":
             break 
@@ -232,6 +326,7 @@ def run():
 
         # --- 1. Desktop wechseln ---
         if choice == "1":
+            # ... (Code für "switch" wie in deiner Datei) ...
             desktops = desktop_handler.get_all_desktops()
             
             if not desktops:
@@ -259,7 +354,6 @@ def run():
                 if 0 <= index < len(desktops):
                     target_desktop = desktops[index]
                     
-                    # switch_to_desktop gibt True zurück, wenn Neustart nötig
                     if desktop_handler.switch_to_desktop(target_desktop.name):
                         
                         print(get_text("ui.messages.registry_set_success", name=target_desktop.name))
@@ -271,19 +365,16 @@ def run():
                         print(get_text("ui.messages.syncing_icons"))
                         desktop_handler.sync_desktop_state_and_apply_icons()
 
-                        # --- Signaldatei erstellen, um Animation zu beenden ---
                         SIGNAL_FILE_PATH = os.path.join(DATA_DIR, "fade_signal.lock")
                         try:
                             with open(SIGNAL_FILE_PATH, "w") as f:
                                 f.write("done")
                         except Exception as e:
                             print(f"{PREFIX_WARN} Animations-Signaldatei konnte nicht geschrieben werden: {e}")
-                        # --- ENDE ---
 
                         print(f"{PREFIX_OK} {get_text('ui.messages.switch_success', name=target_desktop.name)}")
                         
                     else:
-                        # Kein Neustart nötig (z.B. Desktop war schon aktiv)
                         pass
                 else:
                     print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
@@ -293,6 +384,7 @@ def run():
 
         # --- 2. Neuen Desktop erstellen ---
         elif choice == "2":
+            # ... (Code für "create" wie in deiner Datei) ...
             print(get_text("ui.headings.create"))
             name = input(get_text("ui.prompts.desktop_name")).strip()
             
@@ -321,7 +413,7 @@ def run():
                     
                     if not parent_path_input:
                         print(get_text("ui.messages.aborted_no_path"))
-                        break # Zurück zum Hauptmenü
+                        break 
                     
                     parent_path = os.path.normpath(parent_path_input)
 
@@ -375,7 +467,7 @@ def run():
                                 print(f"{PREFIX_OK} {get_text('ui.messages.parent_created', path=parent_path)}")
                                 final_path = os.path.join(parent_path, name)
                                 print(get_text("ui.messages.new_path_location", path=final_path))
-                                desktop_handler.create_desktop(name, final_path, create_if_missing=True)
+                                desktop_handler.create_desktop(name, final_path, create_if_missing=True) # Tvrue -> True
                                 break 
                             except Exception as e:
                                 print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")

@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/localization.py
-# (Bereinigt von textbasierten Fehler-Präfixen)
+# (Bereinigt von textbasierten Fehler-Präfixen und aktualisiert)
 
 """
 Zentrale Datei für alle Texte der Benutzeroberfläche (Internationalisierung).
@@ -62,17 +62,20 @@ TEXT = {
                 "list": "Alle Desktops anzeigen",
                 "delete": "Desktop löschen",
                 "save_icons": "Aktuelle Icon-Positionen speichern",
-                "wallpaper": "Hintergrundbild zuweisen", # <-- NEU
-                "restart": "Explorer manuell neu starten", # <-- Nummer geändert
+                "wallpaper": "Hintergrundbild zuweisen",
+                "restart": "Explorer manuell neu starten",
+                "hotkeys": "Hotkey-Listener",
                 "back": "Zurück"
+            },
+            "hotkeys": {
+                "manage": "1. Hotkey-Listener verwalten",
+                "debug": "2. Debug-Log anzeigen"
             }
         },
         "prompts": {
             "choose": "\nBitte wählen: ",
             "continue": "\n--- Drücke Enter, um fortzufahren ---",
             "cancel": "0. Abbrechen",
-            
-            # --- START KORREKTUR: Fehlende Texte wieder eingefügt ---
             "choose_number": "\nNummer eingeben: ",
             "desktop_name": "Name des neuen Desktops: ",
             "folder_mode": "\nWie soll der Ordner gewählt werden?",
@@ -81,12 +84,8 @@ TEXT = {
             "choose_1_or_2": "Auswahl (1/2): ",
             "existing_path": r"Bitte vollen Pfad eingeben (z.B. F:\SmartDesk\Work): ",
             "new_path_parent": r"In welchem Verzeichnis soll der Ordner erstellt werden? (z.B. F:\SmartDesk): ",
-            # --- ENDE KORREKTUR ---
-            
             "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): ",
-            "wallpaper_path": r"Pfad zur Bilddatei (z.B. C:\Bilder\bild.jpg): ", # <-- NEU
-            
-            # --- NEUE TEXTE HINZUGEFÜGT ---
+            "wallpaper_path": r"Pfad zur Bilddatei (z.B. C:\Bilder\bild.jpg): ", 
             "parent_dir_menu": {
                 "not_found": "! Warnung: Das Basis-Verzeichnis '{path}' existiert nicht.",
                 "title": "\nWas möchten Sie tun?",
@@ -97,22 +96,32 @@ TEXT = {
             "path_error_menu": {
                 "title": "1. Anderen Pfad eingeben",
                 "abort": "2. Zurück zum Hauptmenü"
+            },
+            "hotkeys": {
+                "start": "1. Listener starten",
+                "stop": "2. Listener stoppen"
             }
         },
         "status": {
             "active": "AKTIV",
-            "active_short": "Aktiv", # <-- NEU
+            "active_short": "Aktiv",
             "inactive": "     ",
-            "wallpaper": "Bild", # <-- NEU
-            "wallpaper_none": "Kein Bild" # <-- NEU
+            "wallpaper": "Bild",
+            "wallpaper_none": "Kein Bild",
+            "hotkeys_on": "Läuft",
+            "hotkeys_off": "Gestoppt",
+            "hotkeys_status": "Status:"
         },
         "headings": {
             "delete": "\n--- Desktop löschen ---",
             "create": "\n--- Neuen Desktop anlegen ---",
-            "wallpaper": "\n--- Hintergrundbild zuweisen ---", # <-- NEU
+            "wallpaper": "\n--- Hintergrundbild zuweisen ---",
+            "hotkeys": "\n--- Hotkey-Listener ---",
+            "hotkeys_manage": "\n--- Listener verwalten ---",
+            "hotkeys_debug": "\n--- Debug-Log (Letzte 20 Zeilen) ---",
             "which_desktop_delete": "\n--- Welchen Desktop löschen? ---",
             "which_desktop_switch": "\n--- Zu welchem Desktop wechseln? ---",
-            "which_desktop_wallpaper": "\n--- Für welchen Desktop? ---" # <-- NEU
+            "which_desktop_wallpaper": "\n--- Für welchen Desktop? ---"
         },
         "messages": {
             "exit": "Auf Wiedersehen!",
@@ -122,24 +131,25 @@ TEXT = {
             "registry_set_success": "Registry erfolgreich auf '{name}' gesetzt.",
             "restarting_explorer": "Starte Explorer neu, um Änderungen anzuwenden...",
             "waiting_for_explorer": "Explorer wurde neu gestartet. Warte 1 Sekunde auf Initialisierung...",
-            "syncing_icons": "Synchronisiere Status und stelle Icons (und Hintergrundbild) wieder her...", # <-- Geändert
+            "syncing_icons": "Synchronisiere Status und stelle Icons (und Hintergrundbild) wieder her...",
             "switch_success": "Wechsel zu '{name}' abgeschlossen.",
             "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben).",
-            "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt."
+            "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt.",
+            "log_empty": "Log-Datei ist leer.",
+            "log_not_found": "Keine Log-Datei gefunden. Der Listener wurde noch nicht gestartet."
         },
         "errors": {
-            # --- PRÄFIXE ENTFERNT ---
             "invalid_input": "Ungültige Eingabe.",
             "invalid_number": "Bitte eine gültige Zahl eingeben.",
             "name_empty": "Der Name darf nicht leer sein.",
             "base_dir_empty": "Basis-Verzeichnis darf nicht leer sein.",
             "invalid_choice": "Ungültige Auswahl.",
-            "path_not_absolute": "Der Pfad '{path}' muss absolut sein (z.B. C:\\Bilder)." # <-- NEU
+            "path_not_absolute": "Der Pfad '{path}' muss absolut sein (z.B. C:\\Bilder).",
+            "log_read_failed": "Fehler beim Lesen der Log-Datei: {e}"
         }
     },
     "desktop_handler": {
         "error": {
-            # --- PRÄFIXE ENTFERNT ---
             "path_invalid": "Pfad '{path}' ist ungültig oder konnte nicht erstellt werden.",
             "path_not_found_or_not_dir": "Pfad '{path}' existiert nicht oder ist kein Verzeichnis.",
             "name_exists": "Ein Desktop mit dem Namen '{name}' existiert bereits.",
@@ -164,8 +174,8 @@ TEXT = {
             "update": "Desktop '{old_name}' wurde aktualisiert zu '{new_name}'.",
             "delete": "Desktop '{name}' erfolgreich gelöscht",
             "folder_delete": "Ordner '{path}' wurde physisch gelöscht.",
-            "wallpaper_delete": "Zugehöriges Hintergrundbild '{path}' gelöscht.", # <-- NEU
-            "wallpaper_assigned": "Hintergrundbild für '{name}' gespeichert.", # <-- NEU
+            "wallpaper_delete": "Zugehöriges Hintergrundbild '{path}' gelöscht.", 
+            "wallpaper_assigned": "Hintergrundbild für '{name}' gespeichert.", 
             "db_update": "Datenbank (Icon-Speicherung) aktualisiert.",
             "save_icons": "Icon-Positionen für '{name}' erfolgreich gespeichert.",
             "recreating_folder": "Ordner erfolgreich erstellt. Wechsel wird fortgesetzt.",
@@ -190,19 +200,18 @@ TEXT = {
             "recreating_folder": "Erstelle Ordner neu: {path}...",
             "aborting_switch": "Wechsel wird abgebrochen.",
             "removing_config": "Entferne '{name}' aus der Konfiguration...",
-            "setting_wallpaper": "Setze Hintergrundbild...", # <-- NEU
-            "old_wallpaper_removed": "Altes Hintergrundbild entfernt.", # <-- NEU
-            "setting_wallpaper_now": "Desktop ist aktiv. Hintergrundbild wird sofort gesetzt." # <-- NEU
+            "setting_wallpaper": "Setze Hintergrundbild...", 
+            "old_wallpaper_removed": "Altes Hintergrundbild entfernt.", 
+            "setting_wallpaper_now": "Desktop ist aktiv. Hintergrundbild wird sofort gesetzt." 
         },
         "warn": {
-            # --- PRÄFIXE ENTFERNT ---
             "target_path_exists": "Zielpfad '{path}' existiert bereits. Versuche Inhalt zu integrieren...",
             "sync_failed": "Konnte Status nicht mit Registry synchronisieren: {e}",
             "no_active_desktop": "Es wurde kein als 'aktiv' markierter Desktop gefunden. Überspringe Speichern der Icons.",
             "path_not_found": "Der Pfad für Desktop '{name}' existiert nicht mehr:",
             "sync_path_not_registered": "Möglicherweise ist der Registry-Pfad in der desktops.json nicht registriert.",
             "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad\nin SmartDesk nicht registriert.",
-            "wallpaper_delete": "Altes Hintergrundbild konnte nicht gelöscht werden: {e}" # <-- NEU
+            "wallpaper_delete": "Altes Hintergrundbild konnte nicht gelöscht werden: {e}" 
         },
         "prompts": {
             "delete_confirm": "Desktop '{name}' wirklich löschen? (y/n): ",
@@ -213,7 +222,6 @@ TEXT = {
             "your_choice": "Ihre Wahl: "
         }
     },
-    # --- NEUER ABSCHNITT ---
     "wallpaper_manager": {
         "error": {
             "path_not_found": "Pfad zum Hintergrundbild existiert nicht: {path}",
@@ -227,10 +235,8 @@ TEXT = {
             "copy": "Hintergrundbild erfolgreich nach '{path}' kopiert."
         }
     },
-    # --- ENDE NEUER ABSCHNITT ---
     "icon_manager": {
         "error": {
-            # --- PRÄFIXE ENTFERNT ---
             "fatal_commctrl": "FATAL: 'commctrl' nicht gefunden. pywin32 ist nicht korrekt installiert.",
             "shelldll_not_found": "SHELLDLL_DefView-Fenster nicht gefunden.",
             "listview_not_found": "SysListView32 (FolderView) nicht gefunden.",
@@ -245,7 +251,6 @@ TEXT = {
             "restore_complete": "-> Wiederherstellung abgeschlossen. Erfolgreich: {restored}, Fehlgeschlagen: {failed}"
         },
         "warn": {
-            # --- PRÄFIXE ENTFERNT ---
             "no_icons_on_desktop": "Aktueller Desktop hat 0 Icons. Breche Wiederherstellung ab.",
             "index_not_found": "Icon-Index {index} ('{name}') existiert nicht mehr (Max: {max}). Überspringe."
         },
@@ -257,11 +262,19 @@ TEXT = {
         "info": {
             "restarting": "[SYSTEM] Starte Windows Explorer neu...",
             "restarted": "[SYSTEM] Explorer neu gestartet."
+        },
+        "warning": {
+            "explorer_not_running": "[SYSTEM] Explorer läuft nicht. Starte neu...",
+            "kill_failed": "[SYSTEM] Warnung: Explorer konnte nicht beendet werden.",
+            "explorer_timeout": "[SYSTEM] Warnung: Timeout beim Warten auf Explorer-Beendigung."
+        },
+        "error": {
+            "restart_failed": "[SYSTEM] FEHLER: Explorer konnte nicht neu gestartet werden.",
+            "restart_exception": "[SYSTEM] FEHLER beim Neustart: {error}"
         }
     },
     "main": {
         "error": {
-            # --- PRÄFIXE ENTFERNT ---
             "import": "Import Fehler: {e}",
             "import_hint_1": "Stelle sicher, dass du das Skript aus dem Projekt-Root ausführst",
             "import_hint_2": "oder dass das Paket korrekt installiert ist.",
@@ -270,16 +283,16 @@ TEXT = {
             "unknown_command": "Unbekannter Befehl: {command}"
         },
         "warn": {
-            # --- PRÄFIXE ENTFERNT ---
             "handler_load_failed": "{handler} konnte nicht geladen werden."
         },
         "info": {
             "starting_interactive": "Starte interaktives Menü...",
+            "starting_listener": "Starte Hotkey-Listener...", # <-- HINZUGEFÜGT
             "switching_to": "Versuche, zu '{name}' zu wechseln...",
             "restarting_explorer": "Starte Explorer neu...",
             "waiting_explorer": "Warte auf Explorer-Initialisierung...",
             "list_header": "\nVerfügbare Desktops:",
-            "available_commands": "Verfügbare Befehle: delete, switch, list",
+            "available_commands": "Verfügbare Befehle: delete, switch, list, start-listener", # <-- AKTUALISIERT
             "hint_interactive": "Oder starte ohne Argumente für das interaktive Menü."
         },
         "success": {
@@ -292,7 +305,6 @@ TEXT = {
     },
     "storage": {
         "error": {
-            # --- PRÄFIXE ENTFERNT ---
             "create_dir": "Konnte Datenverzeichnis nicht erstellen: {e}",
             "save": "Konnte Desktops nicht speichern: {e}",
             "load": "Konnte Desktops nicht laden: {e}"
@@ -300,14 +312,26 @@ TEXT = {
     },
     "path_validator": {
         "error": {
-            # --- PRÄFIXE ENTFERNT ---
             "create_dir": "Fehler beim Erstellen des Verzeichnisses {path}: {e}"
         }
     },
     "registry": {
         "error": {
-            # --- PRÄFIXE ENTFERNT ---
             "update": "Registry Fehler bei {key_path}: {e}"
+        }
+    },
+    "hotkey_manager": {
+        "info": {
+            "started": "Hotkey-Listener gestartet (PID: {pid})",
+            "stopped": "Hotkey-Listener wurde gestoppt."
+        },
+        "warn": {
+            "already_running": "Listener läuft bereits (PID: {pid})",
+            "not_running": "Listener läuft nicht."
+        },
+        "error": {
+            "start_failed": "Fehler beim Starten des Listeners: {e}",
+            "stop_failed": "Fehler beim Stoppen des Listeners: {e}"
         }
     }
 }

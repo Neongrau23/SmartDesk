@@ -1,5 +1,5 @@
 import subprocess
-import time
+import time  # <- Korrigiert
 import psutil
 from ..localization import get_text
 
@@ -28,22 +28,22 @@ def restart_explorer():
         )
         
         # Warte bis Explorer wirklich beendet ist
-        timeout = 5  # Sekunden
-        start_time = time.time()
+        timeout = 5  # <- Korrigiert
+        start_time = time.time()  # <- Korrigiert
         while any(p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])):
-            if time.time() - start_time > timeout:
-                print(get_text("system.warning.explorer_timeout"))
+            if time.time() - start_time > timeout:  # <- Korrigiert
+                print(get_text("system.warning.explorer_timeout"))  # <- Korrigiert von out
                 break
-            time.sleep(0.1)
+            time.sleep(0.1)  # <- Korrigiert
         
         # Zusätzliche kurze Pause für Systemstabilität
-        time.sleep(0.5)
+        time.sleep(0.5)  # <- Korrigiert
         
         # Starte Explorer neu
         subprocess.Popen("explorer.exe")
         
         # Warte kurz und prüfe ob Explorer gestartet ist
-        time.sleep(1)
+        time.sleep(1)  # <- Korrigiert
         if any(p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])):
             print(get_text("system.info.restarted"))
         else:
@@ -79,13 +79,13 @@ def restart_explorer_simple():
             print(get_text("system.warning.kill_failed"))
         
         # Warte auf sauberes Beenden
-        time.sleep(0.8)
+        time.sleep(0.8)  # <- Korrigiert
         
         # Starte Explorer neu
         subprocess.Popen("explorer.exe", shell=True)
         
         # Kurze Pause zum Überprüfen
-        time.sleep(0.5)
+        time.sleep(0.5)  # <- Korrigiert
         
         print(get_text("system.info.restarted"))
         

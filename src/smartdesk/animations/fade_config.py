@@ -2,7 +2,7 @@
 class FadeConfig:    
     # Fade-Einstellungen für Desktop-Switch Animation
     FADE_IN_DURATION = 0.1     # Dauer des Einblendens in Sekunden
-    FADE_OUT_DURATION = 0.3     # Dauer des Ausblendens in Sekunden
+    FADE_OUT_DURATION = 0.1     # Dauer des Ausblendens in Sekunden
     VISIBLE_DURATION = 2.5      # Sichtbar während Explorer-Neustart (~3 Sekunden)
     FADE_STEPS = 100             # Anzahl der Schritte für sanftes Fade
     

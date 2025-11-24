@@ -1,8 +1,9 @@
 import sys
 import os
-
+import time # Importiere time hier, falls es an anderer Stelle benötigt wird
 
 # ist dieser Pfad-Hack für lokale Tests.
+# Im finalen Paket wird das durch setup.py geregelt
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # --- NEUER IMPORT für Lokalisierung ---
@@ -21,8 +22,10 @@ try:
     from smartdesk.handlers import desktop_handler
     from smartdesk.handlers import system_manager 
     from smartdesk.ui.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN 
+    from smartdesk.hotkeys import listener as hotkey_listener # <-- NEUER IMPORT
 except ImportError as e:
     try:
+        # Fallback für andere Import-Strukturen (weniger wahrscheinlich)
         from ui import cli
         from handlers import desktop_handler
         from handlers import system_manager
@@ -90,8 +93,7 @@ if __name__ == "__main__":
                     print(get_text("main.info.restarting_explorer"))
                     system_manager.restart_explorer()
                     print(get_text("main.info.waiting_explorer"))
-                    import time
-                    time.sleep(3) 
+                    time.sleep(3) # Wartezeit für Explorer
                     
                     desktop_handler.sync_desktop_state_and_apply_icons()
                     print(f"{PREFIX_OK} {get_text('main.success.switch', name=name)}")
@@ -110,15 +112,28 @@ if __name__ == "__main__":
                     status = f"[{get_text('ui.status.active')}]" if d.is_active else f"[{get_text('ui.status.inactive')}]"
                     print(f"{status} {d.name} -> {d.path}")
 
+        # --- BEFEHL: start-listener ---  <-- NEUER BLOCK
+        elif command == "start-listener":
+            # Dieser Befehl wird vom hotkey_manager als separater Prozess aufgerufen
+            # Die PID-Datei wird vom Manager geschrieben
+            import os
+            from smartdesk.config import DATA_DIR
+            
+            # Schreibe die eigene PID in die Datei (überschreibt die vom Elternprozess)
+            pid_file = os.path.join(DATA_DIR, "listener.pid")
+            with open(pid_file, 'w') as f:
+                f.write(str(os.getpid()))
+            
+            # --- LOKALISIERT ---
+            print(get_text("main.info.starting_listener"))
+            print(f"Listener-PID: {os.getpid()}")
+            
+            # Starte den blockierenden Listener
+            hotkey_listener.start_listener()
+
         # --- UNBEKANNTER BEFEHL ---
         else:
             # --- LOKALISIERT ---
-            print(get_text("main.error.unknown_command", command=command))
+            print(f"{PREFIX_ERROR} {get_text('main.error.unknown_command', command=command)}")
             print(get_text("main.info.available_commands"))
             print(get_text("main.info.hint_interactive"))
-
-    if desktop_handler.switch_to_desktop(name):
-        print(get_text("main.info.restarting_explorer"))
-        system_manager.restart_explorer()
-        # ... Rest bleibt gleich
-            

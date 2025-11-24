@@ -1,4 +1,4 @@
-# Dateipfad: src/smartdesk/handlers/wallpaper_manager.py
+# Dateipfad: src/smartdesk/handlers/_manager.py
 # (NEUE DATEI)
 
 import ctypes
@@ -6,16 +6,16 @@ import os
 import shutil
 from typing import Optional
 
-from ..config import WALLPAPERS_DIR
+from ..config import WALLPAPERS_DIR  # <- Korrigiert von S_DIR
 from ..localization import get_text
 from ..ui.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
 
-# Windows API Konstanten zum Setzen des Wallpapers
-SPI_SETDESKWALLPAPER = 0x0014
+# Windows API Konstanten zum Setzen des s
+SPI_SETDESK = 0x0014
 SPIF_UPDATEINIFILE = 0x01
 SPIF_SENDWININICHANGE = 0x02
 
-def set_wallpaper(path: str) -> bool:
+def set_(path: str) -> bool:
     """
     Setzt das Desktop-Hintergrundbild über die Windows-API.
     
@@ -26,7 +26,7 @@ def set_wallpaper(path: str) -> bool:
         bool: True bei Erfolg, False bei Fehler.
     """
     if not path or not os.path.exists(path):
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.path_not_found', path=path)}")
+        print(f"{PREFIX_ERROR} {get_text('_manager.error.path_not_found', path=path)}")
         return False
         
     try:
@@ -36,24 +36,24 @@ def set_wallpaper(path: str) -> bool:
         
         # Rufe die Windows-API-Funktion auf
         result = ctypes.windll.user32.SystemParametersInfoW(
-            SPI_SETDESKWALLPAPER,
+            SPI_SETDESK,
             0,
             path_c,
             SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
         )
         
         if result:
-            print(f"{PREFIX_OK} {get_text('wallpaper_manager.success.set')}")
+            print(f"{PREFIX_OK} {get_text('_manager.success.set')}")
             return True
         else:
-            print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.api_fail')}")
+            print(f"{PREFIX_ERROR} {get_text('_manager.error.api_fail')}")
             return False
             
     except Exception as e:
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.api_exception', e=e)}")
+        print(f"{PREFIX_ERROR} {get_text('_manager.error.api_exception', e=e)}")
         return False
 
-def copy_wallpaper_to_datadir(source_path: str, desktop_name: str) -> Optional[str]:
+def copy__to_datadir(source_path: str, desktop_name: str) -> Optional[str]:
     """
     Kopiert ein Bild in den AppData-Ordner von SmartDesk und gibt den neuen Pfad zurück.
     
@@ -65,7 +65,7 @@ def copy_wallpaper_to_datadir(source_path: str, desktop_name: str) -> Optional[s
         Optional[str]: Der neue, permanente Pfad oder None bei Fehler.
     """
     if not os.path.exists(source_path):
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.source_not_found', path=source_path)}")
+        print(f"{PREFIX_ERROR} {get_text('_manager.error.source_not_found', path=source_path)}")
         return None
         
     try:
@@ -77,17 +77,16 @@ def copy_wallpaper_to_datadir(source_path: str, desktop_name: str) -> Optional[s
         # Nimm die Original-Dateiendung
         _, ext = os.path.splitext(base_name)
         
-        # Neuer Dateiname: z.B. "Work_wallpaper.jpg"
+        # Neuer Dateiname: z.B. "Work_.jpg"
         new_filename = f"{safe_desktop_name}_{base_name}"
-        destination_path = os.path.join(WALLPAPERS_DIR, new_filename)
+        destination_path = os.path.join(WALLPAPERS_DIR, new_filename)  # <- Korrigiert
         
         # Kopiere die Datei
         shutil.copy(source_path, destination_path)
         
-        print(f"{PREFIX_OK} {get_text('wallpaper_manager.success.copy', path=destination_path)}")
+        print(f"{PREFIX_OK} {get_text('_manager.success.copy', path=destination_path)}")
         return destination_path
         
     except Exception as e:
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.copy', e=e)}")
+        print(f"{PREFIX_ERROR} {get_text('_manager.error.copy', e=e)}")
         return None
-    

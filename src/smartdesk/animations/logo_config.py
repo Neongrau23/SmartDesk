@@ -48,7 +48,7 @@ LOGO_CONFIG = {
     
     # Schriftart und Größe
     'font_family': 'Courier New',
-    'font_size': 12,
+    'font_size': 16,
     'font_weight': 'bold',
     
     # Farben
@@ -66,11 +66,11 @@ LOGO_CONFIG = {
 
 STATUS_CONFIG = {
     # Text
-    'text': "Bitte warten...",
+    'text': "Einen Moment...",
     
     # Schriftart und Größe
     'font_family': 'Segoe UI',
-    'font_size': 10,
+    'font_size': 12,
     'font_weight': 'normal',
     
     # Farben
@@ -93,7 +93,7 @@ CANVAS_CONFIG = {
     'height': 40,
     
     # Farben
-    'background_color': '#000000',
+    'background_color': "#000000",
     
     # Abstand zum Status-Text
     'padding_top': 50,
@@ -173,7 +173,7 @@ PULSE_CONFIG = {
 
 WAVE_CONFIG = {
     # Anzahl der Balken
-    'num_bars': 5,
+    'num_bars': 10,
     
     # Abstand zwischen Balken
     'spacing': 12,
@@ -189,7 +189,7 @@ WAVE_CONFIG = {
     'phase_shift': 5,
     
     # Vertikale Position (Y-Koordinate)
-    'center_y': 20,
+    'center_y': 10,
 }
 
 
