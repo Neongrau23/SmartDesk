@@ -68,4 +68,3 @@ class Desktop:
             is_active=data.get("is_active", False),
             icon_positionen=icons
         )
-    

@@ -1,5 +1,7 @@
 import os
-from ..localization import get_text # <-- NEUER IMPORT
+# --- NEUE IMPORTS ---
+from ..ui.style import PREFIX_ERROR
+from ..localization import get_text
 
 def ensure_directory_exists(path: str) -> bool:
     """
@@ -14,7 +16,6 @@ def ensure_directory_exists(path: str) -> bool:
             os.makedirs(path)
         return True
     except OSError as e:
-        # --- LOKALISIERT ---
-        print(get_text("path_validator.error.create_dir", path=path, e=e))
+        # --- LOKALISIERT & GEFÄRBT ---
+        print(f"{PREFIX_ERROR} {get_text('path_validator.error.create_dir', path=path, e=e)}")
         return False
-    

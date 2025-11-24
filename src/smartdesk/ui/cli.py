@@ -4,6 +4,7 @@
 import os
 import platform
 import time 
+import threading
 
 # --- Imports (ANGEPASST) ---
 try:
@@ -136,11 +137,11 @@ def run_settings_menu():
                     desktop_handler.delete_desktop(target_desktop.name, delete_folder)
                     
                 else:
-                    # --- LOKALISIERT ---
-                    print(get_text("ui.errors.invalid_number"))
+                    # --- LOKALISIERT & GEFÄRBT ---
+                    print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
             except ValueError:
-                # --- LOKALISIERT ---
-                print(get_text("ui.errors.invalid_number"))
+                # --- LOKALISIERT & GEFÄRBT ---
+                print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
             # --- LOKALISIERT ---
             input(get_text("ui.prompts.continue"))
 
@@ -149,9 +150,11 @@ def run_settings_menu():
             # --- LOKALISIERT (Handler gibt eigene Meldungen aus) ---
             print(get_text("desktop_handler.info.saving_icons", name="...")) # Platzhalter, Handler weiß es besser
             if desktop_handler.save_current_desktop_icons():
-                print(f"{PREFIX_OK} {get_text('desktop_handler.success.save_icons', name='...')}") # Platzhalter
+                # Erfolgsmeldung kommt jetzt vom Handler
+                pass
             else:
-                print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.save_icons', e='...')}") # Platzhalter
+                # Fehlermeldung kommt jetzt vom Handler
+                pass
             # --- LOKALISIERT ---
             input(get_text("ui.prompts.continue"))
 
@@ -166,8 +169,8 @@ def run_settings_menu():
             break 
         
         else:
-            # --- LOKALISIERT ---
-            print(get_text("ui.errors.invalid_input"))
+            # --- LOKALISIERT & GEFÄRBT ---
+            print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
             input(get_text("ui.prompts.continue"))
 
 # --- run() FUNKTION (ANGEPASST) ---
@@ -229,11 +232,11 @@ def run():
                     else:
                         pass
                 else:
-                    # --- LOKALISIERT ---
-                    print(get_text("ui.errors.invalid_number"))
+                    # --- LOKALISIERT & GEFÄRBT ---
+                    print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
             except ValueError:
-                # --- LOKALISIERT ---
-                print(get_text("ui.errors.invalid_number"))
+                # --- LOKALISIERT & GEFÄRBT ---
+                print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
             # --- LOKALISIERT ---
             input(get_text("ui.prompts.continue"))
 
@@ -244,6 +247,7 @@ def run():
             name = input(get_text("ui.prompts.desktop_name")).strip()
             
             if not name:
+                # --- LOKALISIERT & GEFÄRBT ---
                 print(f"{PREFIX_ERROR} {get_text('ui.errors.name_empty')}")
                 input(get_text("ui.prompts.continue"))
                 continue
@@ -269,9 +273,9 @@ def run():
                     parent_path = input(get_text("ui.prompts.new_path_parent")).strip()
                     
                     if not parent_path:
+                        # --- LOKALISIERT & GEFÄRBT ---
                         print(f"{PREFIX_ERROR} {get_text('ui.errors.base_dir_empty')}")
                         # --- START ERSATZ FÜR 'input(continue)' ---
-                        print(get_text("ui.menu.main.separator"))
                         print(get_text("ui.prompts.path_error_menu.title")) # 1. Anderen Pfad eingeben
                         print(get_text("ui.prompts.path_error_menu.abort")) # 2. Zurück zum Hauptmenü
                         sub_choice = input(get_text("ui.prompts.choose")).strip()
@@ -281,17 +285,30 @@ def run():
                             continue # (Wahl 1 or ungültig) -> Zurück zur parent_path-Abfrage
                         # --- ENDE ERSATZ ---
 
-                    # --- START NEUE PRÜFUNG (DER FIX) ---
+                    # --- START NEUE (VERBESSERTE) PRÜFUNG ---
+                    
+                    # 1. Prüfen, ob der Pfad absolut ist (muss mit Laufwerksbuchstabe beginnen)
+                    if not os.path.isabs(parent_path):
+                        # 'dl' ist nicht absolut -> Fehler
+                        print(f"{PREFIX_ERROR} {get_text('ui.errors.path_not_absolute', path=parent_path)}")
+                        print(get_text("ui.prompts.path_error_menu.title"))
+                        print(get_text("ui.prompts.path_error_menu.abort"))
+                        sub_choice = input(get_text("ui.prompts.choose")).strip()
+                        if sub_choice == "2":
+                            break # Verlässt die while-Schleife
+                        else:
+                            continue # Zurück zur parent_path-Abfrage
+
+                    # 2. Prüfen, ob das Laufwerk existiert
                     try:
                         # Zerlegt den Pfad in Laufwerk (z.B. 'K:') und Rest ('/test')
-                        # os.path.abspath stellt sicher, dass auch relative Pfade ein Laufwerk bekommen
-                        abs_path = os.path.abspath(parent_path)
-                        drive, _ = os.path.splitdrive(abs_path)
+                        drive, _ = os.path.splitdrive(parent_path)
                         
                         # Prüft, ob das Laufwerk existiert (nur wenn es ein Laufwerk gibt)
                         if drive and not os.path.exists(drive):
                             # Wenn das Laufwerk ungültig ist (K: existiert nicht)
                             # Wir nutzen die "path_invalid" Meldung, da der Pfad nicht erstellt werden KANN.
+                            # --- LOKALISIERT & GEFÄRBT ---
                             print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
                             # --- START ERSATZ FÜR 'input(continue)' ---
                             print(get_text("ui.prompts.path_error_menu.title"))
@@ -305,6 +322,7 @@ def run():
                     
                     except Exception:
                         # Fängt ungültige Pfad-Syntax ab (z.B. C::/test)
+                        # --- LOKALISIERT & GEFÄRBT ---
                         print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
                         # --- START ERSATZ FÜR 'input(continue)' ---
                         print(get_text("ui.prompts.path_error_menu.title"))
@@ -315,7 +333,7 @@ def run():
                         else:
                             continue # Zurück zur parent_path-Abfrage
                         # --- ENDE ERSATZ ---
-                    # --- ENDE NEUE PRÜFUNG ---
+                    # --- ENDE NEUE (VERBESSERTE) PRÜFUNG ---
 
                     # Fall 1: Pfad existiert, alles super
                     # (Wir verwenden den ursprünglichen parent_path, nicht den abs_path)
@@ -347,6 +365,7 @@ def run():
                                 break # Verlässt die while-Schleife
 
                             except Exception as e:
+                                # --- LOKALISIERT & GEFÄRBT ---
                                 print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
                                 input(get_text("ui.prompts.continue"))
                                 continue # Zurück zur parent_path-Abfrage
@@ -362,8 +381,8 @@ def run():
                 # --- ENDE ÄNDERUNG ---
 
             else:
-                # --- LOKALISIERT ---
-                print(get_text("ui.errors.invalid_choice"))
+                # --- LOKALISIERT & GEFÄRBT ---
+                print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_choice')}")
             
             # Der 'if final_path:' Block von vorher ist nun oben integriert.
             # --- ENDE ÄNDERUNG ---
@@ -382,8 +401,8 @@ def run():
             break
             
         else:
-            # --- LOKALISIERT ---
-            print(get_text("ui.errors.invalid_input"))
+            # --- LOKALISIERT & GEFÄRBT ---
+            print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
             input(get_text("ui.prompts.continue"))
 
 # --- Start des Skripts (unverändert) ---

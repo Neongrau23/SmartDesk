@@ -1,6 +1,7 @@
 import sys
 import os
 
+
 # ist dieser Pfad-Hack für lokale Tests.
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -115,4 +116,9 @@ if __name__ == "__main__":
             print(get_text("main.error.unknown_command", command=command))
             print(get_text("main.info.available_commands"))
             print(get_text("main.info.hint_interactive"))
+
+    if desktop_handler.switch_to_desktop(name):
+        print(get_text("main.info.restarting_explorer"))
+        system_manager.restart_explorer()
+        # ... Rest bleibt gleich
             
