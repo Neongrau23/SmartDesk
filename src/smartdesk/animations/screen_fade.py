@@ -1,7 +1,27 @@
-# Desktop-Switch Fade-Animation für SmartDesk
+# -*- coding: utf-8 -*-
+"""
+Desktop-Switch Fade-Animation für SmartDesk
+Startet Logo-Fenster als separaten Prozess
+"""
 import tkinter as tk
 import time
+import subprocess
+import os
+import sys
 from fade_config import FadeConfig
+
+# win32api wird benötigt, um die volle Größe über MEHRERE Monitore zu ermitteln
+try:
+    import win32api
+    HAS_WIN32API = True
+except ImportError:
+    print("=" * 50)
+    print("FEHLER: 'pywin32' wird benötigt, um mehrere Monitore zu erkennen.")
+    print("Bitte installieren: pip install pywin32")
+    print("Fallback auf primären Monitor...")
+    print("=" * 50)
+    HAS_WIN32API = False
+
 
 class MultiMonitorFade:
     def __init__(self, config=None):
@@ -14,7 +34,10 @@ class MultiMonitorFade:
         self.config = config or FadeConfig()
         
         self.root = tk.Tk()
-        self.root.attributes('-fullscreen', True)
+        self.root.title("SmartDesk Desktop Switch")
+        
+        # Entfernt alle Fensterdekorationen (Titelleiste, Ränder)
+        self.root.overrideredirect(True)
         
         if self.config.TOPMOST:
             self.root.attributes('-topmost', True)
@@ -27,8 +50,15 @@ class MultiMonitorFade:
         
         # ESC zum Beenden
         if self.config.ALLOW_ESC_EXIT:
-            self.root.bind('<Escape>', lambda e: self.root.quit())
+            self.root.bind('<Escape>', lambda e: self.cleanup_and_exit())
         
+        # Variablen für die Gesamtgröße
+        self.virtual_width = 0
+        self.virtual_height = 0
+        
+        # Logo-Prozess
+        self.logo_process = None
+            
         # Gesamten Bildschirmbereich über alle Monitore ermitteln
         self.setup_fullscreen()
         
@@ -40,53 +70,106 @@ class MultiMonitorFade:
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
         
-        # Schwarzes Rechteck
+        # Schwarzes Rechteck als Overlay
         self.rect = self.canvas.create_rectangle(
             0, 0, 
-            self.root.winfo_screenwidth(), 
-            self.root.winfo_screenheight(),
+            self.virtual_width,
+            self.virtual_height,
             fill=self.config.BACKGROUND_COLOR, 
             outline=''
         )
-        
-        # SmartDesk Logo hinzufügen
-        if self.config.SHOW_LOGO:
-            self.add_logo()
-        
+                
     def setup_fullscreen(self):
         """Fenster über alle Monitore strecken"""
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
         
-        if self.config.DEBUG:
-            print(f"Erkannte Bildschirmgröße: {screen_width}x{screen_height}")
-        
-        self.root.geometry(f'{screen_width}x{screen_height}+0+0')
+        if HAS_WIN32API:
+            # Metriken für den "virtuellen Desktop" (alle Monitore)
+            SM_XVIRTUALSCREEN = 76
+            SM_YVIRTUALSCREEN = 77
+            SM_CXVIRTUALSCREEN = 78
+            SM_CYVIRTUALSCREEN = 79
+            
+            # Ermittle die Koordinaten der oberen linken Ecke des virtuellen Desktops
+            x = win32api.GetSystemMetrics(SM_XVIRTUALSCREEN)
+            y = win32api.GetSystemMetrics(SM_YVIRTUALSCREEN)
+            
+            # Ermittle die Gesamtbreite und -höhe aller Monitore
+            self.virtual_width = win32api.GetSystemMetrics(SM_CXVIRTUALSCREEN)
+            self.virtual_height = win32api.GetSystemMetrics(SM_CYVIRTUALSCREEN)
+            
+            # Erstelle den Geometrie-String: 'BreitexHöhe+X+Y'
+            geometry = f'{self.virtual_width}x{self.virtual_height}+{x}+{y}'
+            
+            if self.config.DEBUG:
+                print(f"Erkannter virtueller Desktop: {geometry}")
+                print(f"Position: ({x}, {y})")
+                print(f"Größe: {self.virtual_width}x{self.virtual_height}")
+                
+        else:
+            # FALLBACK (Alte Methode, nur primärer Monitor)
+            self.virtual_width = self.root.winfo_screenwidth()
+            self.virtual_height = self.root.winfo_screenheight()
+            geometry = f'{self.virtual_width}x{self.virtual_height}+0+0'
+            
+            if self.config.DEBUG:
+                print(f"Erkannte Bildschirmgröße (Fallback): {self.virtual_width}x{self.virtual_height}")
+
+        # Setze die Fenstergeometrie
+        self.root.geometry(geometry)
     
-    def add_logo(self):
-        """SmartDesk ASCII-Logo in der Mitte des Bildschirms hinzufügen"""
-        logo = r"""______          _    _                         _         _   _   _            _                   _ _       _         
-|  _  \        | |  | |                       (_)       | | | | | |          | |                 (_) |     | |        
-| | | |___  ___| | _| |_ ___  _ __   __      ___ _ __ __| | | | | | ___  _ __| |__   ___ _ __ ___ _| |_ ___| |_       
-| | | / _ \/ __| |/ / __/ _ \| '_ \  \ \ /\ / / | '__/ _` | | | | |/ _ \| '__| '_ \ / _ \ '__/ _ \ | __/ _ \ __|      
-| |/ /  __/\__ \   <| || (_) | |_) |  \ V  V /| | | | (_| | \ \_/ / (_) | |  | |_) |  __/ | |  __/ | ||  __/ |_ _ _ _ 
-|___/ \___||___/_|\_\\__\___/| .__/    \_/\_/ |_|_|  \__,_|  \___/ \___/|_|  |_.__/ \___|_|  \___|_|\__\___|\__(_|_|_)
-                             | |                                                                                      
-                             |_|                                                                                      """
+    def start_logo(self):
+        """Logo-Fenster als separaten Prozess starten"""
+        if not self.config.SHOW_LOGO:
+            return
         
-        # Text in der Mitte des Canvas platzieren
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        
-        self.logo_text = self.canvas.create_text(
-            screen_width // 2,
-            screen_height // 2,
-            text=logo,
-            fill=self.config.TEXT_COLOR,
-            font=('Courier New', 14, 'bold'),
-            justify='center'
-        )
-        
+        try:
+            # Pfad zur logo.py ermitteln
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            logo_script = os.path.join(script_dir, 'logo.py')
+            
+            if not os.path.exists(logo_script):
+                if self.config.DEBUG:
+                    print(f"WARNUNG: Logo-Script nicht gefunden: {logo_script}")
+                return
+            
+            # Logo-Prozess starten (mit Dauer als Parameter)
+            # DETACHED_PROCESS sorgt dafür, dass das Logo-Fenster unabhängig läuft
+            if sys.platform == 'win32':
+                # Windows: Verwende CREATE_NO_WINDOW Flag
+                CREATE_NO_WINDOW = 0x08000000
+                self.logo_process = subprocess.Popen(
+                    [sys.executable, logo_script, str(self.config.VISIBLE_DURATION)],
+                    creationflags=CREATE_NO_WINDOW,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            else:
+                # Linux/Mac
+                self.logo_process = subprocess.Popen(
+                    [sys.executable, logo_script, str(self.config.VISIBLE_DURATION)],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+            
+            if self.config.DEBUG:
+                print(f"Logo-Prozess gestartet (PID: {self.logo_process.pid})")
+                
+        except Exception as e:
+            if self.config.DEBUG:
+                print(f"Fehler beim Starten des Logo-Fensters: {e}")
+    
+    def stop_logo(self):
+        """Logo-Prozess beenden (falls noch aktiv)"""
+        if self.logo_process and self.logo_process.poll() is None:
+            try:
+                self.logo_process.terminate()
+                self.logo_process.wait(timeout=1)
+                if self.config.DEBUG:
+                    print("Logo-Prozess beendet")
+            except Exception as e:
+                if self.config.DEBUG:
+                    print(f"Fehler beim Beenden des Logo-Prozesses: {e}")
+    
     def fade_in(self, duration=None, steps=None):
         """Sanftes Einblenden"""
         duration = duration or self.config.FADE_IN_DURATION
@@ -124,29 +207,55 @@ class MultiMonitorFade:
     
     def execute_fade(self):
         """Fade-Sequenz ausführen"""
-        if self.config.DEBUG:
-            print("Blende Bildschirm ein...")
+        try:
+            if self.config.DEBUG:
+                print("Blende Bildschirm ein...")
+            
+            # Schnell einblenden
+            self.fade_in()
+            
+            # Logo-Prozess starten (läuft parallel)
+            if self.config.SHOW_LOGO:
+                self.start_logo()
+                time.sleep(0.3)  # Kurz warten, damit Logo-Fenster erscheint
+            
+            if self.config.DEBUG:
+                print(f"Bildschirm verdeckt für {self.config.VISIBLE_DURATION} Sekunden...")
+            
+            # Sichtbar bleiben während Desktop wechselt
+            time.sleep(self.config.VISIBLE_DURATION)
+            
+            # Logo-Prozess beenden (falls noch aktiv)
+            if self.config.SHOW_LOGO:
+                self.stop_logo()
+            
+            if self.config.DEBUG:
+                print("Blende Bildschirm aus...")
+            
+            # Ausblenden
+            self.fade_out()
+            
+            if self.config.DEBUG:
+                print("Desktop-Switch abgeschlossen!")
+            
+        except Exception as e:
+            if self.config.DEBUG:
+                print(f"Fehler während Fade-Animation: {e}")
+                import traceback
+                traceback.print_exc()
+        finally:
+            self.cleanup_and_exit()
+    
+    def cleanup_and_exit(self):
+        """Sauberes Beenden"""
+        # Logo-Prozess beenden
+        self.stop_logo()
         
-        # Schnell einblenden
-        self.fade_in()
-        
-        if self.config.DEBUG:
-            print(f"Bildschirm verdeckt für {self.config.VISIBLE_DURATION} Sekunden (Explorer-Neustart läuft)...")
-        
-        # Sichtbar bleiben während Desktop wechselt
-        time.sleep(self.config.VISIBLE_DURATION)
-        
-        if self.config.DEBUG:
-            print("Blende Bildschirm aus...")
-        
-        # Ausblenden
-        self.fade_out()
-        
-        if self.config.DEBUG:
-            print("Desktop-Switch abgeschlossen!")
-        
-        # Fenster schließen
-        self.root.quit()
+        try:
+            self.root.quit()
+            self.root.destroy()
+        except:
+            pass
 
 
 if __name__ == "__main__":
@@ -160,8 +269,13 @@ if __name__ == "__main__":
         
         print("=" * 40)
     
-    fade = MultiMonitorFade()
-    fade.run()
+    try:
+        fade = MultiMonitorFade()
+        fade.run()
+    except Exception as e:
+        print(f"FEHLER: {e}")
+        import traceback
+        traceback.print_exc()
     
     if FadeConfig.DEBUG:
         print("\nSwitch-Animation abgeschlossen!")

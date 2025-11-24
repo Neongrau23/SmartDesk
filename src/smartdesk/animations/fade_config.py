@@ -7,7 +7,7 @@ class FadeConfig:
     FADE_STEPS = 100             # Anzahl der Schritte für sanftes Fade
     
     # Anzeigeeinstellungen
-    BACKGROUND_COLOR = 'black'  # Hintergrundfarbe
+    BACKGROUND_COLOR = 'Black'  # Hintergrundfarbe
     TEXT_COLOR = 'white'        # Textfarbe für ASCII-Art
     SHOW_LOGO = True            # SmartDesk Logo anzeigen
     HIDE_CURSOR = True          # Mauszeiger verstecken
@@ -17,5 +17,5 @@ class FadeConfig:
     INITIAL_DELAY = 0         # Verzögerung vor Start in Millisekunden
     
     # Debug-Modus
-    DEBUG = True                # Debug-Ausgaben aktivieren
+    DEBUG = True               # Debug-Ausgaben deaktiviert (Production)
     ALLOW_ESC_EXIT = True       # ESC-Taste zum Beenden erlauben

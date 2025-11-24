@@ -217,10 +217,12 @@ def get_all_desktops() -> List[Desktop]:
 
     return desktops
 
-# --- FUNKTION switch_to_desktop STARK AKTUALISIERT (BUGFIX & LOKALISIERUNG & ANIMATION) ---
+# --- FUNKTION switch_to_desktop (REIHENFOLGE GEÄNDERT) ---
 def switch_to_desktop(desktop_name: str) -> bool:
     """
     Bereitet den Desktop-Wechsel vor.
+    Gibt True zurück, wenn ein Explorer-Neustart NÖTIG ist.
+    Gibt False zurück, wenn KEIN Neustart nötig ist (oder Fehler).
     """
     desktops = get_all_desktops()
     
@@ -230,23 +232,8 @@ def switch_to_desktop(desktop_name: str) -> bool:
         print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.switch_not_found', name=desktop_name)}")
         return False
     
-    # ===== ANIMATION SOFORT STARTEN =====
-    try:
-        animation_script = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 
-            'animations', 
-            'screen_fade.py'
-        )
-        subprocess.Popen(
-            [sys.executable, animation_script],
-            creationflags=subprocess.CREATE_NO_WINDOW
-        )
-    except (OSError, ValueError) as e:
-        print(f"{PREFIX_WARN} Animation konnte nicht gestartet werden: {e}")
-    # ===== ANIMATION ENDE =====
-
-    target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
-
+    # ===== START ÄNDERUNG: Prüfung auf Aktivität VOR der Animation =====
+    
     # Prüfe, ob Desktop bereits aktiv ist
     # (nach Registry-Sync durch get_all_desktops())
     if target_desktop.is_active:
@@ -257,7 +244,36 @@ def switch_to_desktop(desktop_name: str) -> bool:
                 name=desktop_name
             )
         )
-        return True
+        # Geben False zurück, damit cli.py keinen Neustart durchführt.
+        return False
+    # ===== ENDE ÄNDERUNG =====
+
+
+    # ===== ANIMATION STARTEN (Jetzt erst, da wir wissen, dass gewechselt wird) =====
+    try:
+        # Pfad relativ zur desktop_handler.py -> animations/screen_fade.py
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        animation_script = os.path.join(
+            base_dir,
+            'animations', 
+            'screen_fade.py'
+        )
+        
+        # Prüfen, ob das Skript existiert
+        if not os.path.exists(animation_script):
+             print(f"{PREFIX_WARN} Animationsskript nicht gefunden unter: {animation_script}")
+        else:
+            subprocess.Popen(
+                [sys.executable, animation_script],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+                stdout=subprocess.DEVNULL, # Verstecke Ausgaben
+                stderr=subprocess.DEVNULL  # Verstecke Fehler
+            )
+    except (OSError, ValueError, FileNotFoundError) as e:
+        print(f"{PREFIX_WARN} Animation konnte nicht gestartet werden: {e}")
+    # ===== ANIMATION ENDE =====
+
+    target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
 
     # --- START LOKALISIERUNG BUGFIX ---
     if not os.path.exists(target_path):
@@ -400,6 +416,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
 
     # --- LOKALISIERT ---
     print(get_text("desktop_handler.info.registry_success"))
+    # Geben True zurück, da ein Neustart erforderlich ist
     return True
 
 
