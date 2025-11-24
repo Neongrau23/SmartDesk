@@ -220,7 +220,7 @@ def run():
                         system_manager.restart_explorer()
                         
                         print(get_text("ui.messages.waiting_for_explorer"))
-                        time.sleep(3) 
+                        time.sleep(1) 
 
                         print(get_text("ui.messages.syncing_icons"))
                         desktop_handler.sync_desktop_state_and_apply_icons()

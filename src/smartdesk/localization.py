@@ -97,7 +97,7 @@ TEXT = {
             "new_path_location": "Der neue Desktop wird hier erstellt: {path}",
             "registry_set_success": "Registry erfolgreich auf '{name}' gesetzt.",
             "restarting_explorer": "Starte Explorer neu, um Änderungen anzuwenden...",
-            "waiting_for_explorer": "Explorer wurde neu gestartet. Warte 3 Sekunden auf Initialisierung...",
+            "waiting_for_explorer": "Explorer wurde neu gestartet. Warte 1 Sekunde auf Initialisierung...",
             "syncing_icons": "Synchronisiere Status und stelle Icons wieder her...",
             "switch_success": "Wechsel zu '{name}' abgeschlossen.",
             "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben)."
