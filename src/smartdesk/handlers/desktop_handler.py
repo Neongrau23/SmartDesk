@@ -5,6 +5,7 @@ import winreg
 import os
 import shutil
 import sys
+import time
 import subprocess
 from typing import List, Optional
 
@@ -331,7 +332,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
             'animations', 
             'screen_fade.py'
         )
-        
+                
         # Prüfen, ob das Skript existiert
         if not os.path.exists(animation_script):
              print(f"{PREFIX_WARN} Animationsskript nicht gefunden unter: {animation_script}")
@@ -342,10 +343,11 @@ def switch_to_desktop(desktop_name: str) -> bool:
                 stdout=subprocess.DEVNULL, # Verstecke Ausgaben
                 stderr=subprocess.DEVNULL  # Verstecke Fehler
             )
+            time.sleep(0.5)
     except (OSError, ValueError, FileNotFoundError) as e:
         print(f"{PREFIX_WARN} Animation konnte nicht gestartet werden: {e}")
     # ===== ENDE ÄNDERUNG =====
-
+    
     # ===== Eigentlicher Wechselprozess =====
 
     active_desktop = next((d for d in desktops if d.is_active), None)

@@ -267,14 +267,12 @@ def run():
                         system_manager.restart_explorer()
                         
                         print(get_text("ui.messages.waiting_for_explorer"))
-                        time.sleep(1) 
 
                         print(get_text("ui.messages.syncing_icons"))
                         desktop_handler.sync_desktop_state_and_apply_icons()
 
                         # --- Signaldatei erstellen, um Animation zu beenden ---
                         SIGNAL_FILE_PATH = os.path.join(DATA_DIR, "fade_signal.lock")
-                        time.sleep(1)
                         try:
                             with open(SIGNAL_FILE_PATH, "w") as f:
                                 f.write("done")
