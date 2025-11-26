@@ -138,7 +138,7 @@ Nach der Installation ist der Befehl `smartdesk` global verfügbar.
 Starten Sie SmartDesk ohne Argumente für das interaktive Menü:
 
 ```powershell
-python -m smartdesk.main
+python src\smartdesk\main.py
 ```
 
 Oder nach der Installation:
@@ -225,7 +225,7 @@ Die Aktionen werden in `src/smartdesk/hotkeys/actions.pyw` definiert.
 #### Starten
 
 ```powershell
-smartdesk start-tray
+python src/smartdesk/main.py start-tray
 ```
 
 Das Icon erscheint in der Taskleiste und zeigt den Status des Hotkey-Listeners:
