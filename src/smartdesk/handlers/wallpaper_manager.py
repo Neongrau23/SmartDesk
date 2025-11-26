@@ -91,3 +91,7 @@ def copy_wallpaper_to_datadir(source_path: str, desktop_name: str) -> Optional[s
     except Exception as e:
         print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.copy', e=e)}")
         return None
+
+
+# Alias für Kompatibilität
+assign_wallpaper = set_wallpaper

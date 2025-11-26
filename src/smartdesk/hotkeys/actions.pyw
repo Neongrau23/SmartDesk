@@ -96,15 +96,12 @@ def _save_icons():
 # BEARBEITE DIESE, UM DIE AKTIONEN ZU ÄNDERN.
 
 def aktion_alt_1():
-    # Alt+1 soll zum ERSTEN Desktop wechseln (Index 0)
     _switch_to_desktop_by_index(0)
 
 def aktion_alt_2():
-    # Alt+2 soll zum ZWEITEN Desktop wechseln (Index 1)
     _switch_to_desktop_by_index(1)
     
 def aktion_alt_3():
-    # Alt+3 soll zum DRITTEN Desktop wechseln (Index 2)
     _switch_to_desktop_by_index(2)
     
 def aktion_alt_4():
@@ -123,5 +120,4 @@ def aktion_alt_8():
     _switch_to_desktop_by_index(7)
 
 def aktion_alt_9():
-    # Alt+9 soll als Beispiel die Icons speichern
     _save_icons()

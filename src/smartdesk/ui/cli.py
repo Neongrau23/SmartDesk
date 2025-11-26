@@ -9,7 +9,8 @@ import time
 try:
     from ..handlers import desktop_handler
     from ..handlers import system_manager
-    from ..hotkeys import hotkey_manager 
+    from ..hotkeys import hotkey_manager
+    from ..handlers import tray_manager
     from ..config import DATA_DIR # <-- WIRD BEREITS IMPORTIERT (Perfekt!)
     from .style import (
         PREFIX_ERROR, PREFIX_OK, PREFIX_WARN, 
@@ -28,7 +29,8 @@ except ImportError as e:
             return method
     desktop_handler = FakeHandler()
     system_manager = FakeHandler()
-    hotkey_manager = FakeHandler() 
+    hotkey_manager = FakeHandler()
+    tray_manager = FakeHandler()
     def get_text(key, **kwargs): return key
     PREFIX_ERROR = "ERROR:"
     PREFIX_OK = "OK:"
@@ -70,6 +72,7 @@ def print_settings_menu():
     print(f"4. {get_text('ui.menu.settings.wallpaper')}")
     print(f"5. {get_text('ui.menu.settings.restart')}")
     print(f"6. {get_text('ui.menu.settings.hotkeys')}")
+    print(f"7. {get_text('ui.menu.settings.tray')}")
     print(f"0. {get_text('ui.menu.settings.back')}")
 
 # --- HOTKEY-LISTENER UNTERMENÜ ---
@@ -320,6 +323,10 @@ def run_settings_menu():
         elif choice == "6":
             run_hotkey_menu()
 
+        # --- 7. TRAY ICON UNTERMENÜ ---
+        elif choice == "7":
+            run_tray_menu()
+
         # --- 0. Zurück ---
         elif choice == "0":
             break 
@@ -327,6 +334,170 @@ def run_settings_menu():
         else:
             print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
             time.sleep(1.5) 
+
+# --- TRAY ICON UNTERMENÜ ---
+def run_tray_menu():
+    """Verwaltet das Tray-Icon Untermenü."""
+    while True:
+        clear_screen()
+        print(get_text("ui.headings.tray"))
+        
+        # Aktuellen Status abrufen
+        is_running, pid = tray_manager.get_tray_status()
+        
+        if is_running:
+            status = format_status_active(get_text('ui.status.tray_on'))
+            print(f"{get_text('ui.status.tray_status')} {status} (PID: {pid})")
+        else:
+            status = format_status_inactive(get_text('ui.status.tray_off'))
+            print(f"{get_text('ui.status.tray_status')} {status}")
+        
+        print(get_text("ui.menu.main.separator"))
+        print(get_text("ui.menu.tray.manage"))
+        print(f"0. {get_text('ui.menu.settings.back')}")
+        
+        choice = input(get_text("ui.prompts.choose")).strip()
+        
+        # --- 1. Tray verwalten (Start/Stop) ---
+        if choice == "1":
+            clear_screen()
+            print(get_text("ui.headings.tray_manage"))
+            
+            is_running, pid = tray_manager.get_tray_status()
+            if is_running:
+                status = format_status_active(get_text('ui.status.tray_on'))
+                print(f"{get_text('ui.status.tray_status')} {status} (PID: {pid})")
+            else:
+                status = format_status_inactive(get_text('ui.status.tray_off'))
+                print(f"{get_text('ui.status.tray_status')} {status}")
+            
+            print(get_text("ui.menu.main.separator"))
+            print(get_text("ui.prompts.tray.start"))
+            print(get_text("ui.prompts.tray.stop"))
+            print(get_text("ui.prompts.cancel"))
+            
+            sub_choice = input(get_text("ui.prompts.choose")).strip()
+            
+            if sub_choice == "1":
+                tray_manager.start_tray()
+            elif sub_choice == "2":
+                tray_manager.stop_tray()
+            
+            if sub_choice in ["1", "2"]:
+                input(get_text("ui.prompts.continue"))
+        
+        # --- 0. Zurück ---
+        elif choice == "0":
+            break
+        
+        else:
+            print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
+            time.sleep(1.5)
+
+
+# --- NEUE FUNKTION START ---
+def run_create_desktop_menu():
+    """Führt direkt den Dialog zum Erstellen eines neuen Desktops aus."""
+    clear_screen() 
+    print(get_text("ui.headings.create"))
+    name = input(get_text("ui.prompts.desktop_name")).strip()
+    
+    if not name:
+        print(f"{PREFIX_ERROR} {get_text('ui.errors.name_empty')}")
+        input(get_text("ui.prompts.continue"))
+        return # Wichtig: Beenden, wenn Name leer ist
+
+    print(get_text("ui.prompts.folder_mode"))
+    print(get_text("ui.prompts.folder_mode_1"))
+    print(get_text("ui.prompts.folder_mode_2"))
+    
+    mode = input(get_text("ui.prompts.choose_1_or_2")).strip()
+    
+    if mode == "1":
+        final_path_input = input(get_text("ui.prompts.existing_path")).strip().strip('"') 
+        if final_path_input:
+            final_path = os.path.normpath(final_path_input) 
+            desktop_handler.create_desktop(name, final_path, create_if_missing=False)
+        else:
+            print(get_text("ui.messages.aborted_no_path"))
+
+    elif mode == "2":
+        while True: 
+            parent_path_input = input(get_text("ui.prompts.new_path_parent")).strip().strip('"') 
+            
+            if not parent_path_input:
+                print(get_text("ui.messages.aborted_no_path"))
+                break 
+            
+            parent_path = os.path.normpath(parent_path_input)
+
+            if not os.path.isabs(parent_path):
+                print(f"{PREFIX_ERROR} {get_text('ui.errors.path_not_absolute', path=parent_path)}")
+                print(get_text("ui.prompts.path_error_menu.title"))
+                print(get_text("ui.prompts.path_error_menu.abort"))
+                sub_choice = input(get_text("ui.prompts.choose")).strip()
+                if sub_choice == "2":
+                    break 
+                else:
+                    continue 
+            try:
+                drive, _ = os.path.splitdrive(parent_path)
+                if drive and not os.path.exists(drive):
+                    print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
+                    print(get_text("ui.prompts.path_error_menu.title"))
+                    print(get_text("ui.prompts.path_error_menu.abort"))
+                    sub_choice = input(get_text("ui.prompts.choose")).strip()
+                    if sub_choice == "2":
+                        break 
+                    else:
+                        continue 
+            except Exception:
+                print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
+                print(get_text("ui.prompts.path_error_menu.title"))
+                print(get_text("ui.prompts.path_error_menu.abort"))
+                sub_choice = input(get_text("ui.prompts.choose")).strip()
+                if sub_choice == "2":
+                    break 
+                else:
+                    continue 
+
+            if os.path.exists(parent_path) and os.path.isdir(parent_path):
+                final_path = os.path.join(parent_path, name)
+                print(get_text("ui.messages.new_path_location", path=final_path))
+                desktop_handler.create_desktop(name, final_path, create_if_missing=True)
+                break 
+            else:
+                print(f"{PREFIX_WARN} {get_text('ui.prompts.parent_dir_menu.not_found', path=parent_path)}")
+                print(get_text("ui.prompts.parent_dir_menu.title"))
+                print(get_text("ui.prompts.parent_dir_menu.create", path=parent_path))
+                print(get_text("ui.prompts.parent_dir_menu.reenter"))
+                print(get_text("ui.prompts.parent_dir_menu.abort"))
+                
+                sub_choice = input(get_text("ui.prompts.choose")).strip()
+
+                if sub_choice == "1":
+                    try:
+                        os.makedirs(parent_path)
+                        print(f"{PREFIX_OK} {get_text('ui.messages.parent_created', path=parent_path)}")
+                        final_path = os.path.join(parent_path, name)
+                        print(get_text("ui.messages.new_path_location", path=final_path))
+                        desktop_handler.create_desktop(name, final_path, create_if_missing=True)
+                        break 
+                    except Exception as e:
+                        print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
+                        input(get_text("ui.prompts.continue"))
+                        continue 
+                elif sub_choice == "2":
+                    continue 
+                else: 
+                    print(get_text("ui.messages.aborted_no_path"))
+                    break 
+    else:
+        print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_choice')}")
+        
+    input(get_text("ui.prompts.continue"))
+# --- NEUE FUNKTION ENDE ---
+
 
 # --- run() FUNKTION ---
 def run():
@@ -398,104 +569,7 @@ def run():
 
         # --- 2. Neuen Desktop erstellen ---
         elif choice == "2":
-            clear_screen() 
-            print(get_text("ui.headings.create"))
-            name = input(get_text("ui.prompts.desktop_name")).strip()
-            
-            if not name:
-                print(f"{PREFIX_ERROR} {get_text('ui.errors.name_empty')}")
-                input(get_text("ui.prompts.continue"))
-                continue
-
-            print(get_text("ui.prompts.folder_mode"))
-            print(get_text("ui.prompts.folder_mode_1"))
-            print(get_text("ui.prompts.folder_mode_2"))
-            
-            mode = input(get_text("ui.prompts.choose_1_or_2")).strip()
-            
-            if mode == "1":
-                final_path_input = input(get_text("ui.prompts.existing_path")).strip().strip('"') 
-                if final_path_input:
-                    final_path = os.path.normpath(final_path_input) 
-                    desktop_handler.create_desktop(name, final_path, create_if_missing=False)
-                else:
-                    print(get_text("ui.messages.aborted_no_path"))
-
-            elif mode == "2":
-                while True: 
-                    parent_path_input = input(get_text("ui.prompts.new_path_parent")).strip().strip('"') 
-                    
-                    if not parent_path_input:
-                        print(get_text("ui.messages.aborted_no_path"))
-                        break 
-                    
-                    parent_path = os.path.normpath(parent_path_input)
-
-                    if not os.path.isabs(parent_path):
-                        print(f"{PREFIX_ERROR} {get_text('ui.errors.path_not_absolute', path=parent_path)}")
-                        print(get_text("ui.prompts.path_error_menu.title"))
-                        print(get_text("ui.prompts.path_error_menu.abort"))
-                        sub_choice = input(get_text("ui.prompts.choose")).strip()
-                        if sub_choice == "2":
-                            break 
-                        else:
-                            continue 
-                    try:
-                        drive, _ = os.path.splitdrive(parent_path)
-                        if drive and not os.path.exists(drive):
-                            print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
-                            print(get_text("ui.prompts.path_error_menu.title"))
-                            print(get_text("ui.prompts.path_error_menu.abort"))
-                            sub_choice = input(get_text("ui.prompts.choose")).strip()
-                            if sub_choice == "2":
-                                break 
-                            else:
-                                continue 
-                    except Exception:
-                        print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
-                        print(get_text("ui.prompts.path_error_menu.title"))
-                        print(get_text("ui.prompts.path_error_menu.abort"))
-                        sub_choice = input(get_text("ui.prompts.choose")).strip()
-                        if sub_choice == "2":
-                            break 
-                        else:
-                            continue 
-
-                    if os.path.exists(parent_path) and os.path.isdir(parent_path):
-                        final_path = os.path.join(parent_path, name)
-                        print(get_text("ui.messages.new_path_location", path=final_path))
-                        desktop_handler.create_desktop(name, final_path, create_if_missing=True)
-                        break 
-                    else:
-                        print(f"{PREFIX_WARN} {get_text('ui.prompts.parent_dir_menu.not_found', path=parent_path)}")
-                        print(get_text("ui.prompts.parent_dir_menu.title"))
-                        print(get_text("ui.prompts.parent_dir_menu.create", path=parent_path))
-                        print(get_text("ui.prompts.parent_dir_menu.reenter"))
-                        print(get_text("ui.prompts.parent_dir_menu.abort"))
-                        
-                        sub_choice = input(get_text("ui.prompts.choose")).strip()
-
-                        if sub_choice == "1":
-                            try:
-                                os.makedirs(parent_path)
-                                print(f"{PREFIX_OK} {get_text('ui.messages.parent_created', path=parent_path)}")
-                                final_path = os.path.join(parent_path, name)
-                                print(get_text("ui.messages.new_path_location", path=final_path))
-                                desktop_handler.create_desktop(name, final_path, create_if_missing=True)
-                                break 
-                            except Exception as e:
-                                print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=parent_path)}")
-                                input(get_text("ui.prompts.continue"))
-                                continue 
-                        elif sub_choice == "2":
-                            continue 
-                        else: 
-                            print(get_text("ui.messages.aborted_no_path"))
-                            break 
-            else:
-                print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_choice')}")
-                
-            input(get_text("ui.prompts.continue"))
+            run_create_desktop_menu() # <-- GEÄNDERT: Ruft die neue Funktion auf
         
         # --- 3. Einstellungen ---
         elif choice == "3":

@@ -1,4 +1,5 @@
 import winreg
+import psutil  # pip install psutil
 # --- NEUE IMPORTS ---
 from ..ui.style import PREFIX_ERROR
 from ..localization import get_text
@@ -28,3 +29,41 @@ def get_registry_value(key_path: str, value_name: str) -> str:
             return value
     except WindowsError:
         return ""
+
+def save_tray_pid(pid):
+    """Speichert die PID des Tray-Icon-Prozesses in der Registry"""
+    try:
+        key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\SmartDesk")
+        winreg.SetValueEx(key, "TrayPID", 0, winreg.REG_DWORD, pid)
+        winreg.CloseKey(key)
+    except Exception as e:
+        print(f"[DEBUG] Fehler beim Speichern der Tray-PID: {e}")
+
+def get_tray_pid():
+    """Liest die gespeicherte PID des Tray-Icon-Prozesses"""
+    try:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SmartDesk")
+        pid, _ = winreg.QueryValueEx(key, "TrayPID")
+        winreg.CloseKey(key)
+        return pid
+    except FileNotFoundError:
+        return None
+    except Exception as e:
+        print(f"[DEBUG] Fehler beim Lesen der Tray-PID: {e}")
+        return None
+
+def is_process_running(pid):
+    """Prüft, ob ein Prozess mit der gegebenen PID läuft"""
+    try:
+        return psutil.pid_exists(pid) and psutil.Process(pid).is_running()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return False
+
+def cleanup_tray_pid():
+    """Entfernt die gespeicherte Tray-PID (beim Beenden aufrufen)"""
+    try:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SmartDesk", 0, winreg.KEY_SET_VALUE)
+        winreg.DeleteValue(key, "TrayPID")
+        winreg.CloseKey(key)
+    except Exception:
+        pass  # PID existiert nicht oder konnte nicht gelöscht werden

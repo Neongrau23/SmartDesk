@@ -10,6 +10,19 @@ from datetime import datetime
 
 # --- NEUER IMPORT ---
 try:
+    # Importiere die get_text Funktion aus dem übergeordneten localization-Modul
+    from ..localization import get_text # <--- NEU
+except ImportError:
+    # Fallback, falls das Skript eigenständig oder falsch importiert wird
+    print("[FALLBACK] Konnte 'get_text' nicht importieren. Verwende Roh-Strings.")
+    def get_text(key, **kwargs):
+        text = key.split('.')[-1].replace('_', ' ').capitalize()
+        if kwargs:
+            text += ": " + str(kwargs)
+        return f"[i18n: {text}]"
+
+# --- AKTIONEN IMPORT ---
+try:
     from .actions import (
         aktion_alt_1,
         aktion_alt_2,
@@ -22,18 +35,19 @@ try:
         aktion_alt_9
     )
 except ImportError as e:
-    print(f"FEHLER: Konnte .actions nicht laden: {e}")
-    print("Stelle sicher, dass actions.py im 'hotkeys'-Ordner liegt.")
+    print(get_text("hotkey_listener.error.actions_load", e=e))
+    print(get_text("hotkey_listener.error.actions_hint"))
+    
     # Fallback, damit das Skript nicht abstürzt
-    def aktion_alt_1(): print("FEHLER: Aktion 1 nicht geladen")
-    def aktion_alt_2(): print("FEHLER: Aktion 2 nicht geladen")
-    def aktion_alt_3(): print("FEHLER: Aktion 3 nicht geladen")
-    def aktion_alt_4(): print("FEHLER: Aktion 4 nicht geladen")
-    def aktion_alt_5(): print("FEHLER: Aktion 5 nicht geladen")
-    def aktion_alt_6(): print("FEHLER: Aktion 6 nicht geladen")
-    def aktion_alt_7(): print("FEHLER: Aktion 7 nicht geladen")
-    def aktion_alt_8(): print("FEHLER: Aktion 8 nicht geladen")
-    def aktion_alt_9(): print("FEHLER: Aktion 9 nicht geladen")
+    def aktion_alt_1(): print(get_text("hotkey_listener.error.action_fallback", n=1))
+    def aktion_alt_2(): print(get_text("hotkey_listener.error.action_fallback", n=2))
+    def aktion_alt_3(): print(get_text("hotkey_listener.error.action_fallback", n=3))
+    def aktion_alt_4(): print(get_text("hotkey_listener.error.action_fallback", n=4))
+    def aktion_alt_5(): print(get_text("hotkey_listener.error.action_fallback", n=5))
+    def aktion_alt_6(): print(get_text("hotkey_listener.error.action_fallback", n=6))
+    def aktion_alt_7(): print(get_text("hotkey_listener.error.action_fallback", n=7))
+    def aktion_alt_8(): print(get_text("hotkey_listener.error.action_fallback", n=8))
+    def aktion_alt_9(): print(get_text("hotkey_listener.error.action_fallback", n=9))
 
 
 # --- 2. Zustand und Tastenspeicher ---
@@ -46,7 +60,6 @@ _log_func = None
 
 
 # --- 3. Listener-Funktionen (Das Kernstück) ---
-# (Dieser Teil bleibt unverändert)
 
 def on_press(key):
     global wait_state
@@ -65,47 +78,47 @@ def on_press(key):
         if alt_gehalten:
             if key_char == '1':
                 if _log_func:
-                    _log_func("Hotkey Alt+1 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=1))
                 aktion_alt_1()
                 wait_state = "IDLE"
             elif key_char == '2':
                 if _log_func:
-                    _log_func("Hotkey Alt+2 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=2))
                 aktion_alt_2()
                 wait_state = "IDLE"
             elif key_char == '3':
                 if _log_func:
-                    _log_func("Hotkey Alt+3 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=3))
                 aktion_alt_3()
                 wait_state = "IDLE"
             elif key_char == '4':
                 if _log_func:
-                    _log_func("Hotkey Alt+4 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=4))
                 aktion_alt_4()
                 wait_state = "IDLE"
             elif key_char == '5':
                 if _log_func:
-                    _log_func("Hotkey Alt+5 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=5))
                 aktion_alt_5()
                 wait_state = "IDLE"
             elif key_char == '6':
                 if _log_func:
-                    _log_func("Hotkey Alt+6 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=6))
                 aktion_alt_6()
                 wait_state = "IDLE"
             elif key_char == '7':
                 if _log_func:
-                    _log_func("Hotkey Alt+7 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=7))
                 aktion_alt_7()
                 wait_state = "IDLE"
             elif key_char == '8':
                 if _log_func:
-                    _log_func("Hotkey Alt+8 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=8))
                 aktion_alt_8()
                 wait_state = "IDLE"
             elif key_char == '9':
                 if _log_func:
-                    _log_func("Hotkey Alt+9 ausgeführt")
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=9))
                 aktion_alt_9()
                 wait_state = "IDLE"
             
@@ -113,7 +126,7 @@ def on_press(key):
                 pass
             
             else:
-                print("-> Abgebrochen. (Alt + ungültige Taste gedrückt)")
+                print(get_text("hotkey_listener.info.abort_invalid_key"))
                 wait_state = "IDLE"
 
         elif is_modifier:
@@ -121,7 +134,7 @@ def on_press(key):
         
         else:
             if _log_func:
-                _log_func("Abgebrochen: Ungültige Taste ohne Alt gedrückt")
+                _log_func(get_text("hotkey_listener.log.abort_no_alt"))
             wait_state = "IDLE"
     
     current_keys.add(key)
@@ -139,7 +152,7 @@ def on_release(key):
                 other_alt_held = True
                 
             if not other_alt_held:
-                print("-> Abgebrochen. (Alt losgelassen)")
+                print(get_text("hotkey_listener.info.abort_alt_released"))
                 wait_state = "IDLE"
 
     strg_gehalten = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys
@@ -153,10 +166,10 @@ def on_release(key):
 
     if (trigger_1 or trigger_2) and wait_state == "IDLE":
         wait_state = "WAITING_FOR_ALT_NUM"
-        msg = "\nStrg+Shift erkannt. Warte auf Alt + (1-9)..."
+        msg = get_text("hotkey_listener.info.wait_for_alt_num")
         print(msg)
         if _log_func:
-            _log_func("Strg+Shift erkannt, warte auf Alt + (1-9)")
+            _log_func(get_text("hotkey_listener.log.wait_for_alt_num"))
         
     try:
         current_keys.remove(key)
@@ -164,7 +177,6 @@ def on_release(key):
         pass 
 
 # --- 4. Starte den Listener ---
-# (Dieser Teil bleibt unverändert)
 
 def start_listener():
     import os
@@ -194,11 +206,11 @@ def start_listener():
         except Exception:
             pass  # Fehler beim Loggen ignorieren
     
-    print("Hotkey-Listener wird gestartet...")
-    log_message("Hotkey-Listener gestartet")
-    print("Drücke 'Strg+Shift' (eine der Tasten loslassen) und dann Alt + (1-9).")
-    print("Drücke 'Strg+C' im Terminal, um das Skript zu beenden.")
-    log_message("Warte auf Hotkey-Eingaben...")
+    print(get_text("hotkey_listener.info.starting"))
+    log_message(get_text("hotkey_listener.log.started"))
+    print(get_text("hotkey_listener.info.instructions"))
+    print(get_text("hotkey_listener.info.instructions_stop"))
+    log_message(get_text("hotkey_listener.log.waiting"))
     
     # Cleanup-Funktion für PID-Datei
     def cleanup_pid_file():
@@ -207,11 +219,11 @@ def start_listener():
             pid_file = os.path.join(DATA_DIR, "listener.pid")
             if os.path.exists(pid_file):
                 os.remove(pid_file)
-                print("PID-Datei bereinigt.")
-                log_message("PID-Datei bereinigt")
+                print(get_text("hotkey_listener.info.pid_cleaned"))
+                log_message(get_text("hotkey_listener.log.pid_cleaned"))
         except Exception as e:
-            print(f"Warnung: PID-Datei konnte nicht bereinigt werden: {e}")
-            log_message(f"Warnung: PID-Datei-Cleanup fehlgeschlagen: {e}")
+            print(get_text("hotkey_listener.warn.pid_clean_failed", e=e))
+            log_message(get_text("hotkey_listener.log.pid_clean_failed", e=e))
     
     # Setze die globale Log-Funktion
     global _log_func
@@ -221,17 +233,17 @@ def start_listener():
         try:
             listener.join()
         except KeyboardInterrupt:
-            print("\nListener durch Benutzer (Strg+C) gestoppt.")
-            log_message("Listener durch Benutzer gestoppt (Strg+C)")
+            print(get_text("hotkey_listener.info.stopped_user"))
+            log_message(get_text("hotkey_listener.log.stopped_user"))
             cleanup_pid_file()
             sys.exit(0)
         except Exception as e:
-            print(f"Ein Fehler ist aufgetreten: {e}")
-            log_message(f"Fehler aufgetreten: {e}")
+            print(get_text("hotkey_listener.error.generic", e=e))
+            log_message(get_text("hotkey_listener.log.error_generic", e=e))
             cleanup_pid_file()
         finally:
-            print("Listener wird beendet.")
-            log_message("Listener beendet")
+            print(get_text("hotkey_listener.info.stopping"))
+            log_message(get_text("hotkey_listener.log.stopped"))
             cleanup_pid_file()
 
 def run_listener():
@@ -245,6 +257,10 @@ def run_listener():
     
     log_file = os.path.join(DATA_DIR, "listener.log")
     
+    # HINWEIS: Die folgenden log.write-Aufrufe werden NICHT internationalisiert.
+    # Dies sind System-Logs auf niedriger Ebene (wie Tracebacks), die für 
+    # die Entwickler-Fehlersuche gedacht sind. Die "log_message"-Aufrufe 
+    # (die internationalisiert sind) werden dem Benutzer im UI-Debug-Fenster angezeigt.
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
             log.write(f"\n{'='*50}\n")
@@ -273,9 +289,7 @@ def run_listener():
             log.write(f"[{datetime.now()}] === LISTENER ENDE ===\n")
 
 # --- 5. Skript ausführen ---
-# Dieser Teil ist wichtig, falls du die Datei direkt mit
-# python -m smartdesk.hotkeys.listener
-# ausführen möchtest.
+# (Dieser Teil bleibt unverändert)
 if __name__ == "__main__":
     # Direkt den Listener starten
     start_listener()

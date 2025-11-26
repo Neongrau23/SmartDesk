@@ -1,6 +1,36 @@
 import sys
 import os
 import time # Importiere time hier, falls es an anderer Stelle benötigt wird
+import subprocess # <--- NEU: Wird benötigt, um das Tray-Icon zu starten
+
+# --- VENV AUTO-AKTIVIERUNG ---
+def activate_venv_if_needed():
+    """Aktiviert automatisch die venv, falls vorhanden und noch nicht aktiv."""
+    # Prüfe, ob wir bereits in einer venv sind
+    if hasattr(sys, 'real_prefix') or (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix):
+        return  # Bereits in venv
+    
+    # Finde das Projekt-Root (2 Ebenen über main.py: main.py -> smartdesk -> src -> root)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    src_dir = os.path.dirname(script_dir)
+    project_root = os.path.dirname(src_dir)
+    
+    # Suche nach .venv im Projekt-Root
+    venv_path = os.path.join(project_root, '.venv')
+    
+    if os.path.exists(venv_path):
+        # Finde den Python-Interpreter in der venv
+        if sys.platform == 'win32':
+            venv_python = os.path.join(venv_path, 'Scripts', 'python.exe')
+        else:
+            venv_python = os.path.join(venv_path, 'bin', 'python')
+        
+        if os.path.exists(venv_python):
+            # Starte das Skript neu mit dem venv-Python
+            os.execv(venv_python, [venv_python] + sys.argv)
+
+# Aktiviere venv, bevor irgendetwas anderes passiert
+activate_venv_if_needed()
 
 # ist dieser Pfad-Hack für lokale Tests.
 # Im finalen Paket wird das durch setup.py geregelt
@@ -14,7 +44,11 @@ except ImportError:
     print("CRITICAL: localization.py nicht gefunden.")
     # Dummy-Funktion, damit der Rest nicht abstürzt
     def get_text(key, **kwargs):
-        return key
+        # Einfaches Ersetzen für die Dummy-Funktion
+        text = key
+        for k, v in kwargs.items():
+            text = text.replace(f"{{{k}}}", str(v))
+        return text
 
 # Importiere UI Module
 try:
@@ -22,7 +56,7 @@ try:
     from smartdesk.handlers import desktop_handler
     from smartdesk.handlers import system_manager 
     from smartdesk.ui.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN 
-    from smartdesk.hotkeys import listener as hotkey_listener # <-- NEUER IMPORT
+    from smartdesk.hotkeys import listener as hotkey_listener 
 except ImportError as e:
     try:
         # Fallback für andere Import-Strukturen (weniger wahrscheinlich)
@@ -112,7 +146,13 @@ if __name__ == "__main__":
                     status = f"[{get_text('ui.status.active')}]" if d.is_active else f"[{get_text('ui.status.inactive')}]"
                     print(f"{status} {d.name} -> {d.path}")
 
-        # --- BEFEHL: start-listener ---  <-- NEUER BLOCK
+        # --- NEU: BEFEHL: create ---
+        elif command == "create":
+            print(get_text("main.info.starting_create_menu"))
+            cli.run_create_desktop_menu()
+        # --- ENDE NEU ---
+
+        # --- BEFEHL: start-listener ---
         elif command == "start-listener":
             # Dieser Befehl wird vom hotkey_manager als separater Prozess aufgerufen
             # Die PID-Datei wird vom Manager geschrieben
@@ -130,6 +170,53 @@ if __name__ == "__main__":
             
             # Starte den blockierenden Listener
             hotkey_listener.start_listener()
+
+        # --- BEFEHL: start-tray ---
+        elif command == "start-tray":
+            """
+            Startet das Tray-Icon in einem separaten, fensterlosen Prozess.
+            """
+            print(get_text("main.info.starting_tray"))
+            try:
+                # 0. Prüfe, ob Tray-Icon bereits läuft
+                from smartdesk.utils.registry_operations import is_process_running, get_tray_pid
+                
+                existing_pid = get_tray_pid()
+                if existing_pid and is_process_running(existing_pid):
+                    print(f"{PREFIX_WARN} {get_text('main.warn.tray_already_running', pid=existing_pid)}")
+                    sys.exit(0)
+                
+                # 1. Finde die relevanten Pfade
+                smartdesk_dir = os.path.dirname(os.path.abspath(__file__))
+                src_dir = os.path.dirname(smartdesk_dir)
+                project_root = os.path.dirname(src_dir)
+
+                # 2. Baue den Pfad zu tray_icon.py (jetzt in handlers)
+                tray_icon_path = os.path.join(smartdesk_dir, 'handlers', 'tray_icon.py')
+                
+                if not os.path.exists(tray_icon_path):
+                    print(f"{PREFIX_ERROR} {get_text('main.error.tray_not_found', path=tray_icon_path)}")
+                    sys.exit(1)
+
+                # 3. Finde den 'pythonw.exe' Interpreter (windowless)
+                pythonw_executable = sys.executable.replace("python.exe", "pythonw.exe")
+                
+                # 4. Starte das Tray-Icon als neuen, unabhängigen Prozess
+                process = subprocess.Popen(
+                    [pythonw_executable, tray_icon_path],
+                    cwd=project_root,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0
+                )
+                
+                # 5. Speichere die PID
+                from smartdesk.utils.registry_operations import save_tray_pid
+                save_tray_pid(process.pid)
+                
+                print(f"{PREFIX_OK} {get_text('main.success.tray_started')}")
+                
+            except Exception as e:
+                print(f"{PREFIX_ERROR} {get_text('main.error.tray_failed', e=e)}")
+
 
         # --- UNBEKANNTER BEFEHL ---
         else:
