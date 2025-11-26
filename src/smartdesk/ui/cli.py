@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/ui/cli.py
-# (Vollständig, mit Hotkey-Menü)
+# (Vollständig, mit Hotkey-Menü UND GUI-Integration)
 
 import os
 import platform
@@ -11,7 +11,10 @@ try:
     from ..handlers import system_manager
     from ..hotkeys import hotkey_manager
     from ..handlers import tray_manager
-    from ..config import DATA_DIR # <-- WIRD BEREITS IMPORTIERT (Perfekt!)
+    # --- NEUER IMPORT FÜR DIE GUI ---
+    from .ui_manager import launch_create_desktop_dialog
+    # --- ENDE NEUER IMPORT ---
+    from ..config import DATA_DIR
     from .style import (
         PREFIX_ERROR, PREFIX_OK, PREFIX_WARN, 
         format_status_active, format_status_inactive
@@ -39,6 +42,10 @@ except ImportError as e:
     DATA_DIR = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk')
     def format_status_active(t): return f"[{t}]"
     def format_status_inactive(t): return f"[{t}]"
+    # Fallback für GUI-Funktion
+    def launch_create_desktop_dialog():
+        print("FEHLER: GUI-Manager (ui_manager.py) konnte nicht geladen werden.")
+        return None
 # --- Ende Imports ---
 
 
@@ -190,10 +197,9 @@ def run_settings_menu():
                         status = format_status_inactive(get_text("ui.status.inactive"))
                     
                     wallpaper_info = ""
-                    # (HINWEIS: Deine desktop.py hat kein 'wallpaper_path', 
-                    #  dieser Code wird fehlschlagen, wenn desktop.py nicht angepasst wird)
-                    # if d.wallpaper_path: 
-                    #     wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
+                    # Prüft jetzt, ob das Attribut existiert UND einen Wert hat
+                    if hasattr(d, 'wallpaper_path') and d.wallpaper_path: 
+                        wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
                     
                     print(f"{status} {d.name} -> {d.path}{wallpaper_info}")
                     
@@ -235,11 +241,15 @@ def run_settings_menu():
                         print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.delete_active', name=target_desktop.name)}")
                         input(get_text("ui.prompts.continue"))
                         continue
-
+                    
+                    # --- KORRIGIERT: Abfrage für Ordnerlöschung aktiviert ---
+                    # 1. Zuerst fragen, ob der Ordner gelöscht werden soll
                     delete_folder_confirm = input(get_text("ui.prompts.delete_folder_confirm", path=target_desktop.path)).strip().lower()
                     delete_folder = (delete_folder_confirm == 'y')
                     
-                    desktop_handler.delete_desktop(target_desktop.name, delete_folder)
+                    # 2. Dann die delete-Funktion aufrufen (diese fragt 'y/n' für den *Eintrag*)
+                    desktop_handler.delete_desktop(target_desktop.name, delete_folder=delete_folder)
+                    # --- ENDE KORREKTUR ---
                     
                 else:
                     print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
@@ -271,12 +281,9 @@ def run_settings_menu():
                 if d.is_active:
                     status = format_status_active(get_text("ui.status.active_short"))
                 
-                # (HINWEIS: Benötigt 'wallpaper_path' in desktop.py)
                 wallpaper_info = f" ({get_text('ui.status.wallpaper_none')})"
-                # if d.wallpaper_path:
-                #     wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
-                # else:
-                #     wallpaper_info = f" ({get_text('ui.status.wallpaper_none')})"
+                if hasattr(d, 'wallpaper_path') and d.wallpaper_path:
+                    wallpaper_info = f" ({get_text('ui.status.wallpaper')}: {os.path.basename(d.wallpaper_path)})"
 
                 print(f"{i}. {status} {d.name}{wallpaper_info}")
             
@@ -304,9 +311,7 @@ def run_settings_menu():
                 
                 source_path = source_path.strip('"')
                 
-                # (HINWEIS: Benötigt 'desktop_handler.assign_wallpaper')
-                # desktop_handler.assign_wallpaper(target_desktop.name, source_path)
-                print(f"{PREFIX_WARN} Funktion 'assign_wallpaper' ist noch nicht implementiert.")
+                desktop_handler.assign_wallpaper(target_desktop.name, source_path)
                 
             except ValueError:
                 print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
@@ -395,7 +400,8 @@ def run_tray_menu():
             time.sleep(1.5)
 
 
-# --- NEUE FUNKTION START ---
+# --- FUNKTION 1: Die (alte) TEXTBASIERTE Erstellung ---
+# (Wird von `main.py create` ODER dem interaktiven Menü aufgerufen)
 def run_create_desktop_menu():
     """Führt direkt den Dialog zum Erstellen eines neuen Desktops aus."""
     clear_screen() 
@@ -496,10 +502,50 @@ def run_create_desktop_menu():
         print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_choice')}")
         
     input(get_text("ui.prompts.continue"))
-# --- NEUE FUNKTION ENDE ---
 
 
-# --- run() FUNKTION ---
+# --- FUNKTION 2: Die (neue) GRAFISCHE Erstellung ---
+# (Wird von `main.py create-gui` aufgerufen)
+def run_create_desktop_gui():
+    """Führt den GUI-Dialog zum Erstellen eines neuen Desktops aus."""
+    
+    # Ruft die blockierende GUI-Funktion auf
+    result_data = launch_create_desktop_dialog()
+    
+    # Prüfen, ob der Benutzer "Abbrechen" geklickt hat (result_data ist None)
+    if result_data is None:
+        # --- KORRIGIERT: Keine Konsolenausgabe, wenn GUI still beendet wird ---
+        # print(get_text("ui.messages.aborted_by_user"))
+        # input(get_text("ui.prompts.continue"))
+        return
+
+    # Daten aus dem Ergebnis extrahieren
+    name = result_data["name"]
+    path = result_data["path"]
+    create_if_missing = result_data["create_if_missing"]
+
+    # --- KORRIGIERT: Keine Konsolenausgabe, wenn GUI still beendet wird ---
+    # print(get_text("ui.messages.processing_gui_input"))
+    
+    # Die eigentliche Logik an den Handler übergeben
+    # Der Handler (desktop_handler) ist bereits lokalisiert und gibt Feedback
+    # (Diese Ausgaben werden in main.py unterdrückt)
+    success = desktop_handler.create_desktop(
+        name,
+        path,
+        create_if_missing
+    )
+    
+    if not success:
+        # --- KORRIGIERT: Keine Konsolenausgabe, wenn GUI still beendet wird ---
+        # print(f"{PREFIX_ERROR} {get_text('ui.errors.gui_create_failed')}")
+        pass
+
+    # --- KORRIGIERT: Keine Konsolenausgabe, wenn GUI still beendet wird ---
+    # input(get_text("ui.prompts.continue"))
+
+
+# --- run() FUNKTION (Hauptschleife) ---
 def run():
     """Verwaltet die Schleife für das Hauptmenü."""
     while True:
@@ -569,7 +615,8 @@ def run():
 
         # --- 2. Neuen Desktop erstellen ---
         elif choice == "2":
-            run_create_desktop_menu() # <-- GEÄNDERT: Ruft die neue Funktion auf
+            # --- GEÄNDERT: Ruft jetzt direkt die TEXT-Version auf ---
+            run_create_desktop_menu() 
         
         # --- 3. Einstellungen ---
         elif choice == "3":

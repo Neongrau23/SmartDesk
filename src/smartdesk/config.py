@@ -9,17 +9,14 @@ VALUE_NAME = "Desktop"
 APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'SmartDesk')
 DATA_DIR = APPDATA_DIR
 DESKTOPS_FILE = os.path.join(DATA_DIR, "desktops.json")
-# --- NEU ---
 WALLPAPERS_DIR = os.path.join(DATA_DIR, "wallpapers")
 
 # Ordner erstellen, falls nicht vorhanden
 os.makedirs(DATA_DIR, exist_ok=True)
-# --- NEU ---
 os.makedirs(WALLPAPERS_DIR, exist_ok=True)
 
 # Alternativ: Projekt-Root für Entwicklung/Portable Version
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEV_DATA_DIR = os.path.join(BASE_DIR, "data")
 DEV_DESKTOPS_FILE = os.path.join(DEV_DATA_DIR, "desktops.json")
-# --- NEU ---
 DEV_WALLPAPERS_DIR = os.path.join(DEV_DATA_DIR, "wallpapers")

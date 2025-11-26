@@ -1,5 +1,5 @@
 # Dateipfad: src/smartdesk/localization.py
-# (Vollständig, mit Hotkey-Texten UND Tray-Icon-Texten)
+# (Vollständig, mit Hotkey-Texten UND Tray-Icon-Texten UND GUI-Texten)
 
 """
 Zentrale Datei für alle Texte der Benutzeroberfläche (Internationalisierung).
@@ -23,6 +23,7 @@ TEXT = {
                 "settings": "Einstellungen",
                 "exit": "Beenden"
             },
+            # --- UNTERMENÜ ENTFERNT ---
             "settings": {
                 "header": "        --- Einstellungen ---        ",
                 "list": "Alle Desktops anzeigen",
@@ -59,7 +60,7 @@ TEXT = {
             "new_path_parent": r"In welchem Verzeichnis soll der Ordner erstellt werden? (z.B. F:\SmartDesk): ",
             
             "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): ",
-            "wallpaper_path": "Pfad zum Hintergrundbild (leer = abbrechen): ", # <-- Fehlte
+            "wallpaper_path": "Pfad zum Hintergrundbild (leer = abbrechen): ",
             
             # --- NEUER ABSCHNITT FÜR HOTKEY-MENÜ ---
             "hotkeys": {
@@ -88,9 +89,9 @@ TEXT = {
         "status": {
             "active": "AKTIV",
             "inactive": "      ",
-            "active_short": "Aktiv", # <-- Fehlte
-            "wallpaper": "Hintergrund", # <-- Fehlte
-            "wallpaper_none": "Kein Hintergrundbild", # <-- Fehlte
+            "active_short": "Aktiv",
+            "wallpaper": "Hintergrund",
+            "wallpaper_none": "Kein Hintergrundbild",
 
             # --- NEUE TEXTE FÜR HOTKEY-STATUS ---
             "hotkeys_status": "Status:",
@@ -105,10 +106,11 @@ TEXT = {
         "headings": {
             "delete": "\n--- Desktop löschen ---",
             "create": "\n--- Neuen Desktop anlegen ---",
-            "wallpaper": "\n--- Hintergrundbild zuweisen ---", # <-- Fehlte
+            # --- ÜBERSCHRIFT ENTFERNT ---
+            "wallpaper": "\n--- Hintergrundbild zuweisen ---",
             "which_desktop_delete": "\n--- Welchen Desktop löschen? ---",
             "which_desktop_switch": "\n--- Zu welchem Desktop wechseln? ---",
-            "which_desktop_wallpaper": "\n--- Welchem Desktop ein Hintergrundbild zuweisen? ---", # <-- Fehlte
+            "which_desktop_wallpaper": "\n--- Welchem Desktop ein Hintergrundbild zuweisen? ---",
 
             # --- NEUE TEXTE FÜR HOTKEY-MENÜ ---
             "hotkeys": "\n--- Hotkey-Listener ---",
@@ -131,10 +133,15 @@ TEXT = {
             "switch_success": "Wechsel zu '{name}' abgeschlossen.",
             "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben).",
             "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt.",
+            
+            # --- NEUE TEXTE FÜR GUI-INTEGRATION ---
+            "aborted_by_user": "Vorgang vom Benutzer abgebrochen.",
+            "processing_gui_input": "Verarbeite Eingaben aus der GUI...",
 
             # --- NEUE TEXTE FÜR HOTKEY-MENÜ ---
             "log_empty": "(Log-Datei ist leer)",
-            "log_not_found": "(Log-Datei nicht gefunden)"
+            "log_not_found": "(Log-Datei nicht gefunden)",
+            "path_was": "Pfad war" # Hilfstext
         },
         "errors": {
             "invalid_input": "Ungültige Eingabe.",
@@ -142,10 +149,32 @@ TEXT = {
             "name_empty": "Der Name darf nicht leer sein.",
             "base_dir_empty": "Basis-Verzeichnis darf nicht leer sein.",
             "invalid_choice": "Ungültige Auswahl.",
-            "path_not_absolute": "Der Pfad '{path}' ist kein absoluter Pfad.", # <-- Fehlte
+            "path_not_absolute": "Der Pfad '{path}' ist kein absoluter Pfad.",
+            
+            # --- NEUER TEXT FÜR GUI-INTEGRATION ---
+            "gui_create_failed": "Der Desktop konnte nicht erstellt werden. (Siehe Fehler oben)",
             
             # --- NEUER TEXT FÜR HOTKEY-MENÜ ---
             "log_read_failed": "Log-Datei konnte nicht gelesen werden: {e}"
+        }
+    },
+    
+    # --- NEUER ABSCHNITT FÜR DIE TKINTER GUI ---
+    "gui": {
+        "create": {
+            "title": "SmartDesk - Desktop erstellen",
+            "label_name": "Name",
+            "label_path": "Pfad",
+            "radio_existing": "Vorhanden",
+            "radio_new": "Neu erstellen",
+            "button_create": "Erstellen",
+            "button_cancel": "Abbrechen",
+            "button_browse": "...",
+            "browse_title": "Ordner auswählen",
+            "error_title": "Fehler",
+            "error_no_name": "Bitte geben Sie einen Desktop-Namen ein!",
+            "error_no_path": "Bitte geben Sie einen Pfad an!",
+            "error_path_not_absolute": "Der Pfad ist nicht absolut: {path}"
         }
     },
     
@@ -155,49 +184,75 @@ TEXT = {
             "path_invalid": "Pfad '{path}' ist ungültig oder konnte nicht erstellt werden.",
             "path_not_found_or_not_dir": "Pfad '{path}' existiert nicht oder ist kein Verzeichnis.",
             "name_exists": "Desktop '{name}' existiert bereits.",
-            "desktop_not_found": "Desktop '{name}' nicht gefunden.",
+            "desktop_not_found": "Desktop '{name}' nicht gefunden.", # <-- Name geändert (war 'not_found')
+            "not_found": "Desktop '{name}' nicht gefunden.", # <-- Behalte 'not_found' für update_desktop
+            "not_found_delete": "Desktop '{name}' nicht gefunden.", # <-- Eindeutiger Schlüssel
+            "new_name_exists": "Der neue Name '{name}' existiert bereits.", # <-- Name geändert (war 'new_name_exists')
+            "folder_move": "Ordner konnte nicht verschoben werden: {e}",
+            "new_path_create": "Neuer Pfad '{path}' konnte nicht erstellt werden.",
             "delete_active": "Der aktive Desktop '{name}' kann nicht gelöscht werden. Wechseln Sie zuerst zu einem anderen Desktop.",
-            "switch_no_desktops": "Keine Desktops verfügbar.",
+            "delete_critical": "FEHLER: Der zu löschende Pfad '{path}' ist immer noch in der Registry als aktiv eingetragen.",
+            "delete_denied": "Löschen aus Sicherheitsgründen verweigert.",
+            "folder_delete": "Ordner konnte nicht gelöscht werden: {e}",
+            "switch_no_desktops": "Keine Desktops verfügbar.", # <-- Veraltet?
             "switch_not_found": "Desktop '{name}' wurde nicht gefunden.",
             "registry_update_failed": "Registry-Update fehlgeschlagen.",
-            "save_icons_failed": "Fehler beim Speichern der Icon-Positionen: {e}",
+            "recreating_folder": "Fehler beim erneuten Erstellen des Ordners.",
+            "removing_config": "Fehler beim Entfernen der Konfiguration: {e}",
+            "sync_no_active": "Synchronisierungsfehler: Kein Desktop ist als aktiv markiert.",
+            "save_icons": "Fehler beim Speichern der Icon-Positionen: {e}",
             "save_icons_no_active": "Fehler: Kein aktiver Desktop gefunden.",
-            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad\nin SmartDesk nicht registriert.",
-            "wallpaper_assign_failed": "Fehler beim Zuweisen des Hintergrundbilds."
+            "wallpaper_assign_failed": "Fehler beim Zuweisen des Hintergrundbilds." # <-- Veraltet?
         },
         "success": {
             "create": "Desktop '{name}' erfolgreich angelegt.",
+            "update": "Desktop '{old_name}' erfolgreich zu '{new_name}' aktualisiert.",
+            "folder_delete": "Zugehöriger Ordner '{path}' wurde gelöscht.",
+            "wallpaper_delete": "Zugehöriges Hintergrundbild '{path}' wurde gelöscht.",
             "delete": "Desktop '{name}' wurde gelöscht.",
-            "switch": "Zu Desktop '{name}' gewechselt.",
-            "icons_saved": "Icon-Positionen für '{name}' gespeichert ({count} Icons).",
+            "recreating_folder": "Ordner erfolgreich neu erstellt.",
             "removing_config": "Desktop '{name}' wurde entfernt.",
-            "wallpaper_assigned": "Hintergrundbild erfolgreich zugewiesen."
+            "db_update": "Datenbank-Update erfolgreich.",
+            "save_icons": "Icon-Positionen für '{name}' gespeichert.", # <-- Angepasst
+            "wallpaper_assigned": "Hintergrundbild erfolgreich {name} zugewiesen." # <-- Name geändert
         },
         "info": {
+            "delete_aborted": "Löschvorgang abgebrochen.",
+            "folder_not_found": "Ordner '{path}' nicht gefunden (wird ignoriert).",
             "folder_moved": "Ordner physisch verschoben von '{old_path}' nach '{new_path}'.",
-            "reading_icons": "Lese Icon-Positionen für '{name}'...",
-            "icons_read": "{count} Icon-Positionen eingelesen.",
-            "no_saved_icons": "Keine gespeicherten Icon-Positionen für '{name}' gefunden.",
-            "restoring_icons": "Stelle {count} Icons wieder her...",
-            "restore_complete": "{restored} Icons wiederhergestellt, {failed} fehlgeschlagen.",
+            "already_active": "Desktop '{name}' ist bereits aktiv.",
+            "path_is": "-> Eingetragener Pfad: {path}",
+            "recreating_folder": "Erstelle Ordner '{path}' neu...",
             "removing_config": "Entferne '{name}' aus der Konfiguration...",
-            "deleting_folder": "Lösche Ordner '{path}'...",
-            "folder_deleted": "Ordner '{path}' wurde gelöscht.",
-            "marking_active": "Markiere '{name}' als aktiv...",
-            "updating_registry": "Aktualisiere Windows Registry...",
-            "copying_wallpaper": "Kopiere Hintergrundbild nach AppData...",
-            "setting_wallpaper": "Setze Hintergrundbild..."
+            "aborting_switch": "Wechselvorgang abgebrochen.",
+            "saving_icons": "Speichere Icon-Positionen für '{name}'...",
+            "switching_registry": "Wechsle Registry zu '{name}' ({path})...",
+            "registry_success": "Registry erfolgreich aktualisiert.",
+            "sync_after_restart": "Synchronisiere Status nach Explorer-Neustart...",
+            "sync_path_found": "Aktiver Pfad gefunden: {path}",
+            "sync_desktop_active": "Aktiver Desktop: '{name}'",
+            "setting_wallpaper": "Setze Hintergrundbild...",
+            "sync_restoring_icons": "Stelle Icon-Positionen für '{name}' wieder her...",
+            "sync_icons_done": "Icon-Wiederherstellung abgeschlossen.",
+            "reading_icons": "Lese Icon-Positionen für '{name}'...",
+            "old_wallpaper_removed": "Altes Hintergrundbild entfernt.",
+            "setting_wallpaper_now": "Desktop ist aktiv. Setze Hintergrundbild sofort."
         },
         "warn": {
-            "target_path_exists": "Zielpfad '{path}' existiert bereits. Versuche Inhalt zu integrieren...",
-            "folder_merge_failed": "Warnung: Manche Dateien konnten nicht verschoben werden.",
-            "delete_folder_failed": "Warnung: Ordner '{path}' konnte nicht gelöscht werden: {e}",
-            "already_active": "Desktop '{name}' ist bereits aktiv.",
-            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad\nin SmartDesk nicht registriert."
+            "sync_failed": "Warnung: Registry-Synchronisierung fehlgeschlagen: {e}",
+            "target_path_exists": "Warnung: Zielpfad '{path}' existiert bereits.",
+            "wallpaper_delete": "Warnung: Altes Hintergrundbild konnte nicht gelöscht werden: {e}",
+            "path_not_found": "Ziel-Pfad für '{name}' nicht gefunden!",
+            "no_active_desktop": "Warnung: Kein Desktop war als aktiv markiert. Speichere keine Icons.",
+            "sync_path_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
+            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert."
         },
         "prompts": {
             "delete_confirm": "Desktop '{name}' wirklich löschen? (y/n): ",
-            "delete_folder": "Soll der Ordner auch physisch gelöscht werden? (y/n): ",
+            "path_not_found_title": "Was möchten Sie tun?",
+            "path_recreate": "1. Den Ordner neu erstellen und fortfahren.",
+            "path_remove": "2. Den (ungültigen) Desktop-Eintrag entfernen.",
+            "path_abort": "0. (oder Jede andere Taste) Vorgang abbrechen.",
             "your_choice": "Ihre Wahl: "
         }
     },
@@ -210,7 +265,16 @@ TEXT = {
         "debug": { "item_count": "[IconManager DEBUG] Anzahl Items: {count}" }
     },
     "system": {
-        "info": { "restarting": "[SYSTEM] Starte Windows Explorer neu...", "restarted": "[SYSTEM] Explorer neu gestartet." }
+        "info": { "restarting": "[SYSTEM] Starte Windows Explorer neu...", "restarted": "[SYSTEM] Explorer neu gestartet." },
+        "warning": { # <-- Hinzugefügt
+            "explorer_not_running": "Explorer läuft nicht, starte ihn...",
+            "explorer_timeout": "Explorer konnte nicht beendet werden (Timeout).",
+            "kill_failed": "taskkill war nicht erfolgreich (ignoriert).",
+        },
+        "error": { # <-- Hinzugefügt
+            "restart_failed": "Explorer konnte nicht neu gestartet werden.",
+            "restart_exception": "Fehler bei Explorer-Neustart: {error}"
+        }
     },
     "main": {
         "error": { 
@@ -225,7 +289,8 @@ TEXT = {
             "tray_failed": "Fehler beim Starten des Tray-Icons: {e}"
         },
         "warn": { 
-            "handler_load_failed": "{handler} konnte nicht geladen werden." 
+            "handler_load_failed": "{handler} konnte nicht geladen werden.",
+            "tray_already_running": "Tray-Icon läuft bereits (PID: {pid})." # <-- Hinzugefügt
         },
         "info": { 
             "starting_interactive": "Starte interaktives Menü...", 
@@ -235,6 +300,9 @@ TEXT = {
             "list_header": "\nVerfügbare Desktops:", 
             "available_commands": "Verfügbare Befehle: delete, switch, list", 
             "hint_interactive": "Oder starte ohne Argumente...",
+            "starting_create_menu": "Starte Menü zum Erstellen (Text)...", # <-- Text angepasst
+            "starting_create_gui": "Starte grafische Oberfläche (GUI)...", # <-- NEU
+            "starting_listener": "Starte Listener...", # <-- Hinzugefügt
             # --- HINZUGEFÜGT ---
             "starting_tray": "Starte das SmartDesk Tray-Icon..."
         },

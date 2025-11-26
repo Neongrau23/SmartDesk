@@ -56,7 +56,12 @@ try:
     from smartdesk.handlers import desktop_handler
     from smartdesk.handlers import system_manager 
     from smartdesk.ui.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN 
-    from smartdesk.hotkeys import listener as hotkey_listener 
+    from smartdesk.hotkeys import listener as hotkey_listener
+    # --- NEUE IMPORTS FÜR DIE STILLE GUI ---
+    from smartdesk.ui import ui_manager
+    from contextlib import redirect_stdout, redirect_stderr
+    import io
+    # --- ENDE NEUE IMPORTS ---
 except ImportError as e:
     try:
         # Fallback für andere Import-Strukturen (weniger wahrscheinlich)
@@ -146,11 +151,47 @@ if __name__ == "__main__":
                     status = f"[{get_text('ui.status.active')}]" if d.is_active else f"[{get_text('ui.status.inactive')}]"
                     print(f"{status} {d.name} -> {d.path}")
 
-        # --- NEU: BEFEHL: create ---
+        # --- BEFEHL: create (Text-Version) ---
         elif command == "create":
             print(get_text("main.info.starting_create_menu"))
             cli.run_create_desktop_menu()
-        # --- ENDE NEU ---
+        
+        # --- KORRIGIERT: BEFEHL: create-gui (Von Tray Icon aufgerufen) ---
+        elif command == "create-gui":
+            # (Diese Sektion gibt absichtlich nichts aus, da sie still im Hintergrund läuft)
+            
+            # 1. Starte den GUI-Dialog
+            result_data = ui_manager.launch_create_desktop_dialog()
+            
+            # 2. Prüfen, ob der Benutzer "Abbrechen" geklickt hat
+            if result_data is None:
+                pass # Einfach still beenden
+            else:
+                # 3. Daten extrahieren
+                name = result_data["name"]
+                path = result_data["path"]
+                create_if_missing = result_data["create_if_missing"]
+                
+                # 4. Den Desktop-Handler "still" aufrufen (ohne Konsolenausgabe)
+                # Wir leiten stdout/stderr um, damit `desktop_handler.create_desktop`
+                # kein Terminal aufpoppen lässt.
+                
+                f_stdout = io.StringIO()
+                f_stderr = io.StringIO()
+                
+                with redirect_stdout(f_stdout), redirect_stderr(f_stderr):
+                    try:
+                        # Diese Funktion macht `print()`-Ausgaben,
+                        # die wir hier unterdrücken.
+                        desktop_handler.create_desktop(
+                            name,
+                            path,
+                            create_if_missing
+                        )
+                    except Exception:
+                        # Fehler werden still ignoriert, wenn sie von der GUI kommen
+                        pass 
+        # --- ENDE KORREKTUR ---
 
         # --- BEFEHL: start-listener ---
         elif command == "start-listener":

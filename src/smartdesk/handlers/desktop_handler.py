@@ -36,11 +36,9 @@ def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool
     
     # --- START ÄNDERUNG: Pfad-Logik basierend auf Modus ---
     if create_if_missing:
-        # Modus 2: "Einen neuen Ordner erstellen"
-        # Nutzt die bisherige Logik: Erstellen, wenn nicht vorhanden.
+        # Modus 2: Der 'path' ist bereits der FINALE Pfad (von gui_create.py)
+        # FEHLER: ensure_directory_exists erstellt den Ordner
         if not ensure_directory_exists(path):
-            # --- LOKALISIERT & GEFÄRBT ---
-            print(f"{PREFIX_ERROR} {get_text('desktop_handler.error.path_invalid', path=path)}")
             return False
     else:
         # Modus 1: "Einen existierenden Ordner verwenden"

@@ -128,17 +128,30 @@ def update_icon(icon):
 
 
 def create_desktop(icon, item):
-    print("[DEBUG] 'Desktop Erstellen' geklickt.")
+    """
+    KORRIGIERT: Startet die GUI-Version ('create-gui') ohne Konsole.
+    """
+    print("[DEBUG] 'Desktop Erstellen' geklickt (GUI-Version).")
     try:
-        smartdesk_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # Finde den 'pythonw.exe' (windowless) Interpreter
+        pythonw_executable = sys.executable
+        if "python.exe" in pythonw_executable.lower():
+             pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
+             
+        # Finde die main.py (wie in open_smart_desk)
+        # (Geht davon aus, dass tray_icon.py in .../src/smartdesk/handlers/ liegt)
+        handlers_dir = os.path.dirname(os.path.abspath(__file__))
+        smartdesk_dir = os.path.dirname(handlers_dir)
         main_py = os.path.join(smartdesk_dir, 'main.py')
         
+        print(f"[DEBUG] Starte: {pythonw_executable} {main_py} create-gui")
+        
         subprocess.Popen(
-            ['powershell', '-NoExit', '-Command', f'python "{main_py}" create'],
-            creationflags=subprocess.CREATE_NEW_CONSOLE
+            [pythonw_executable, main_py, "create-gui"],
+            creationflags=subprocess.CREATE_NO_WINDOW # Versteckt das Fenster
         )
     except Exception as e:
-        print(f"[DEBUG] FEHLER beim Erstellen: {e}")
+        print(f"[DEBUG] FEHLER beim Erstellen der GUI: {e}")
 
 
 def set_active(icon, item):
@@ -156,14 +169,26 @@ def on_primary_click(icon, item):
 
 
 def open_smart_desk(icon, item):
+    """
+    Startet das Haupt-CLI-Menü in einer NEUEN Konsole.
+    """
     print("[DEBUG] 'SmartDesk Öffnen' geklickt")
     try:
-        smartdesk_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # (Geht davon aus, dass tray_icon.py in .../src/smartdesk/handlers/ liegt)
+        handlers_dir = os.path.dirname(os.path.abspath(__file__))
+        smartdesk_dir = os.path.dirname(handlers_dir)
         main_py = os.path.join(smartdesk_dir, 'main.py')
         
+        # Finde den normalen 'python.exe' Interpreter
+        python_executable = sys.executable
+        if "pythonw.exe" in python_executable.lower():
+            python_executable = python_executable.replace("pythonw.exe", "python.exe")
+            
+        print(f"[DEBUG] Starte: {python_executable} {main_py} in neuer Konsole")
+
         subprocess.Popen(
-            ['powershell', '-NoExit', '-Command', f'python "{main_py}"'],
-            creationflags=subprocess.CREATE_NEW_CONSOLE
+            [python_executable, main_py], # Ohne Argumente, um das Menü zu starten
+            creationflags=subprocess.CREATE_NEW_CONSOLE # Öffnet eine neue Konsole
         )
     except Exception as e:
         print(f"[DEBUG] FEHLER beim Öffnen: {e}")

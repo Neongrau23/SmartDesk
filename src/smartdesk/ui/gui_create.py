@@ -111,12 +111,12 @@ class DesktopCreatorGUI:
                                    relief=tk.FLAT, bd=0)
         self.name_entry.pack(fill=tk.X, ipady=8, pady=(0, 15))
         
-        # Pfad Label
-        pfad_label = tk.Label(main_frame, text=get_text("ui.prompts.existing_path").replace(":", ""),
+        # Pfad Label - dynamisch je nach Modus
+        self.pfad_label = tk.Label(main_frame, text="Pfad zum vorhandenen Ordner:",
                               font=('Segoe UI', 9),
                               bg=self.bg_dark, fg=self.fg_label,
                               anchor='w')
-        pfad_label.pack(fill=tk.X, pady=(0, 5))
+        self.pfad_label.pack(fill=tk.X, pady=(0, 5))
         
         # Pfad Input Container
         pfad_container = tk.Frame(main_frame, bg=self.bg_dark)
@@ -145,6 +145,7 @@ class DesktopCreatorGUI:
         radio_frame.pack(side=tk.LEFT)
         
         self.mode_var = tk.StringVar(value="1")
+        self.mode_var.trace_add("write", self.on_mode_change)
         
         rb1 = tk.Radiobutton(radio_frame, text=get_text("ui.prompts.folder_mode_1").split(". ")[1],
                              variable=self.mode_var, value="1", font=('Segoe UI', 9),
@@ -202,6 +203,15 @@ class DesktopCreatorGUI:
                 win32gui.SetWindowRgn(hwnd, hrgn, True)
             except Exception as e:
                 print(f"[GUI_CREATE] Fehler beim Anwenden der abgerundeten Ecken: {e}")
+    
+    def on_mode_change(self, *args):
+        """Wird aufgerufen, wenn der Modus geändert wird."""
+        if self.mode_var.get() == "1":
+            # Vorhanden: Pfad zum existierenden Ordner
+            self.pfad_label.config(text="Pfad zum vorhandenen Ordner:")
+        else:
+            # Neu erstellen: Pfad wo der neue Ordner erstellt werden soll
+            self.pfad_label.config(text="Übergeordneter Pfad (Ordner wird hier erstellt):")
 
     def animate_slide_in_from_right(self):
         if not self.is_animating:
@@ -222,7 +232,14 @@ class DesktopCreatorGUI:
             self.root.after(delay_ms, self.animate_slide_in_from_right)
 
     def browse_folder(self):
-        folder = filedialog.askdirectory(title=get_text("ui.prompts.existing_path"))
+        # Ändert den Titel je nach Modus
+        if self.mode_var.get() == "2":
+            title = get_text("gui.create.browse_title_parent", "Übergeordneten Ordner auswählen")
+        else:
+            title = get_text("gui.create.browse_title_existing", "Vorhandenen Ordner auswählen")
+            
+        folder = filedialog.askdirectory(title=title)
+        
         if folder:
             self.path_entry.delete(0, tk.END)
             self.path_entry.insert(0, folder)
@@ -253,36 +270,35 @@ class DesktopCreatorGUI:
         # Modus "Neu erstellen" = True, "Vorhanden" = False
         create_if_missing = (mode == "2")
         
-        # --- Aufruf des Handlers ---
-        try:
-            # Der Handler gibt True/False zurück und druckt seine eigenen Konsolenfehler
-            if mode == "2":
-                # Bei "Neu erstellen" wird der Name an den Pfad angehängt
-                final_path = os.path.join(path, name)
-                print(f"[GUI_CREATE] Erstelle neuen Ordner: {final_path}")
-            else:
-                # Bei "Vorhanden" wird der Pfad direkt verwendet
-                final_path = path
-                print(f"[GUI_CREATE] Verwende vorhandenen Ordner: {final_path}")
-
-            success = desktop_handler.create_desktop(
-                name, 
-                final_path, 
-                create_if_missing=create_if_missing
-            )
-            
-            if success:
-                messagebox.showinfo(get_text("desktop_handler.success.create", name=name),
-                                    f"{get_text('ui.messages.new_path_location', path=final_path)}")
-                self.root.quit() # Fenster bei Erfolg schließen
-            else:
-                # Fehlermeldung wurde bereits vom Handler in die Konsole geschrieben.
-                # Wir zeigen eine allgemeine GUI-Meldung.
-                messagebox.showerror(get_text("ui.errors.invalid_input"), 
-                                     get_text("desktop_handler.error.name_exists", name=name))
+        # --- KORREKTUR: Bei Modus 2 den finalen Pfad erstellen ---
+        if create_if_missing:
+            # Bei "Neu erstellen": Hänge den Namen an den übergeordneten Pfad
+            final_path = os.path.join(path, name)
+        else:
+            # Bei "Vorhanden": Der Pfad ist bereits der finale Ordner
+            final_path = path
+    
+        success = desktop_handler.create_desktop(
+            name, 
+            final_path,  # <-- Jetzt korrekt: finaler Pfad
+            create_if_missing=create_if_missing
+        )
         
-        except Exception as e:
-            messagebox.showerror("Fehler", f"Ein unerwarteter Fehler ist aufgetreten: {str(e)}")
+        if success:
+            messagebox.showinfo(
+                get_text("desktop_handler.success.create", name=name),
+                f"{get_text('ui.messages.new_path_location', path=final_path)}"
+            )
+            self.root.quit()
+        else:
+            messagebox.showerror(
+                get_text("ui.errors.invalid_input", "Fehler"), 
+                "Desktop konnte nicht erstellt werden.\n\nMögliche Gründe:\n"
+                "- Der Name ist bereits vergeben.\n"
+                "- Der Pfad ist ungültig.\n"
+                "- Der Ordner existiert nicht (im 'Vorhanden'-Modus).\n"
+                "- Fehlende Berechtigungen."
+            )
 
 
 def show_create_desktop_window():
