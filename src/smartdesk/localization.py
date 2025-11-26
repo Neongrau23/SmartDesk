@@ -330,14 +330,16 @@ TEXT = {
             "read_pid": "Fehler beim Lesen der PID-Datei: {e}",
             "python_not_found": "Python-Ausführungsdatei (.venv) nicht gefunden: {path}",
             "start_failed": "Fehler beim Starten des Listeners: {e}",
-            "stop_failed": "Unerwarteter Fehler beim Stoppen des Listeners: {e}"
+            "stop_failed": "Unerwarteter Fehler beim Stoppen des Listeners: {e}",
+            "access_denied": "Keine Berechtigung, Prozess {pid} zu beenden."
         },
         "warn": {
             "already_running": "Listener läuft bereits.",
             "not_running": "Listener läuft anscheinend nicht.",
             "pid_write_failed": "PID-Datei konnte nicht geschrieben werden: {e}",
             "process_not_found": "Prozess {pid} wurde nicht gefunden (lief evtl. schon nicht mehr).",
-            "pid_clean_failed": "PID-Datei konnte nicht gelöscht werden: {e}"
+            "pid_clean_failed": "PID-Datei konnte nicht gelöscht werden: {e}",
+            "force_kill": "Prozess {pid} reagiert nicht, erzwinge Beendigung..."
         },
         "info": {
             "starting": "Starte Hotkey-Listener im Hintergrund...",

@@ -127,40 +127,60 @@ def stop_listener():
     print(f"{PREFIX_OK} {get_text('hotkey_manager.info.stopping', pid=pid)}")
     
     try:
-        # 1. Prozess beenden (Windows-spezifisch)
-        if os.name == 'nt':
-            # Versteckt das taskkill-Fenster
-            kill_flags = subprocess.CREATE_NO_WINDOW
-            
-            # --- KORREKTUR: Das "/T" Flag wurde entfernt ---
-            result = subprocess.run(
-                ["taskkill", "/F", "/PID", str(pid)], # <-- "/T" ENTFERNT
-                check=True,
-                capture_output=True,
-                text=True,
-                creationflags=kill_flags 
-            )
+        import psutil
         
-        # 2. Prozess beenden (Linux/macOS)
-        else:
-            os.kill(pid, 15) # 15 = signal.SIGTERM
-            print(f"{PREFIX_OK} {get_text('hotkey_manager.info.signal_sent', pid=pid)}")
-
-        print(f"{PREFIX_OK} {get_text('hotkey_manager.info.stop_success', pid=pid)}")
-
-    except (subprocess.CalledProcessError, ProcessLookupError):
-        # CalledProcessError: taskkill konnte den Prozess nicht finden
-        # ProcessLookupError: os.kill konnte den Prozess nicht finden
-        print(f"{PREFIX_WARN} {get_text('hotkey_manager.warn.process_not_found', pid=pid)}")
+        # 1. Prüfe, ob der Prozess existiert
+        if not psutil.pid_exists(pid):
+            msg = get_text('hotkey_manager.warn.process_not_found', pid=pid)
+            print(f"{PREFIX_WARN} {msg}")
+            return
+        
+        # 2. Versuche, das Prozess-Objekt zu erhalten
+        try:
+            process = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            msg = get_text('hotkey_manager.warn.process_not_found', pid=pid)
+            print(f"{PREFIX_WARN} {msg}")
+            return
+        
+        # 3. Prüfe, ob der Prozess wirklich läuft
+        if not process.is_running():
+            msg = get_text('hotkey_manager.warn.process_not_found', pid=pid)
+            print(f"{PREFIX_WARN} {msg}")
+            return
+        
+        # 4. Beende den Prozess sanft
+        process.terminate()
+        
+        # 5. Warte kurz, ob der Prozess sich selbst beendet
+        try:
+            process.wait(timeout=3)
+            msg = get_text('hotkey_manager.info.stop_success', pid=pid)
+            print(f"{PREFIX_OK} {msg}")
+        except psutil.TimeoutExpired:
+            # Falls der Prozess nicht terminiert, erzwinge das Beenden
+            msg = get_text('hotkey_manager.warn.force_kill', pid=pid)
+            print(f"{PREFIX_WARN} {msg}")
+            process.kill()
+            process.wait(timeout=3)
+            msg = get_text('hotkey_manager.info.stop_success', pid=pid)
+            print(f"{PREFIX_OK} {msg}")
+    
+    except psutil.AccessDenied:
+        msg = get_text('hotkey_manager.error.access_denied', pid=pid)
+        print(f"{PREFIX_ERROR} {msg}")
     
     except Exception as e:
-        print(f"{PREFIX_ERROR} {get_text('hotkey_manager.error.stop_failed', e=e)}")
+        msg = get_text('hotkey_manager.error.stop_failed', e=e)
+        print(f"{PREFIX_ERROR} {msg}")
         
     finally:
-        # 3. PID-Datei aufräumen, auch wenn der Prozess nicht gefunden wurde
+        # 6. PID-Datei aufräumen
         if os.path.exists(PID_FILE):
             try:
                 os.remove(PID_FILE)
-                print(f"{PREFIX_OK} {get_text('hotkey_manager.info.pid_cleaned')}")
+                msg = get_text('hotkey_manager.info.pid_cleaned')
+                print(f"{PREFIX_OK} {msg}")
             except OSError as e:
-                print(f"{PREFIX_WARN} {get_text('hotkey_manager.warn.pid_clean_failed', e=e)}")
+                msg = get_text('hotkey_manager.warn.pid_clean_failed', e=e)
+                print(f"{PREFIX_WARN} {msg}")
