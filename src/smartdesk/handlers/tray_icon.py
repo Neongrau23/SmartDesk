@@ -87,8 +87,8 @@ class StatusMonitor:
         return self.active_icon if self.is_active else self.idle_icon
 
 
-ACTIVE_ICON = r"C:\Users\leonp\AppData\Roaming\SmartDesk\ico\activ_icon.png"
-IDLE_ICON = r"C:\Users\leonp\AppData\Roaming\SmartDesk\ico\idle_icon.png"
+ACTIVE_ICON = r"./src/smartdesk/icons/activ_icon.png"
+IDLE_ICON = r"./src/smartdesk/icons/idle_icon.png"
 
 status = StatusMonitor(ACTIVE_ICON, IDLE_ICON)
 
