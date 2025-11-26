@@ -3,7 +3,8 @@
 
 import os
 import platform
-import time 
+import time
+import subprocess
 
 # --- Imports (Korrigiert auf absolute Pfade) ---
 try:
@@ -80,6 +81,7 @@ def print_settings_menu():
     print(f"5. {get_text('ui.menu.settings.restart')}")
     print(f"6. {get_text('ui.menu.settings.hotkeys')}")
     print(f"7. {get_text('ui.menu.settings.tray')}")
+    print(f"8. {get_text('ui.menu.settings.restore_registry')}")
     print(f"0. {get_text('ui.menu.settings.back')}")
 
 # --- HOTKEY-LISTENER UNTERMENÜ ---
@@ -172,6 +174,36 @@ def run_hotkey_menu():
             print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_input')}")
             # Kurze Pause, damit die Fehlermeldung gelesen werden kann
             time.sleep(1.5)
+
+
+# --- REGISTRY RESTORE ---
+def run_restore_registry():
+    """Führt das Skript scripts/restore.bat aus, um Registry-Pfade wiederherzustellen."""
+    clear_screen()
+    print(get_text("ui.headings.restore_registry"))
+
+    if platform.system() != "Windows":
+        # Nur unter Windows sinnvoll
+        print(f"{PREFIX_ERROR} {get_text('ui.errors.not_windows') if callable(get_text) else 'Nur unter Windows verfügbar.'}")
+        input(get_text("ui.prompts.continue"))
+        return
+
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'scripts', 'restore.bat'))
+
+    if not os.path.exists(script_path):
+        print(f"{PREFIX_ERROR} {get_text('ui.errors.path_not_found', path=script_path) if callable(get_text) else 'Datei nicht gefunden:'} {script_path}")
+        input(get_text("ui.prompts.continue"))
+        return
+
+    print(get_text('ui.messages.running_restore') if callable(get_text) else 'Starte Wiederherstellung...')
+    try:
+        # Ausführung im gleichen Terminal; Batch enthält pause.
+        subprocess.call(['cmd', '/c', script_path])
+        print(get_text('ui.messages.restore_finished') if callable(get_text) else 'Wiederherstellung beendet.')
+    except Exception as e:
+        print(f"{PREFIX_ERROR} {get_text('ui.errors.restore_failed', e=e) if callable(get_text) else 'Fehler beim Ausführen:'} {e}")
+
+    input(get_text("ui.prompts.continue"))
 
 
 # --- EINSTELLUNGEN ---
@@ -331,6 +363,10 @@ def run_settings_menu():
         # --- 7. TRAY ICON UNTERMENÜ ---
         elif choice == "7":
             run_tray_menu()
+
+        # --- 8. Registry-Pfade wiederherstellen ---
+        elif choice == "8":
+            run_restore_registry()
 
         # --- 0. Zurück ---
         elif choice == "0":

@@ -33,6 +33,7 @@ TEXT = {
                 "restart": "Explorer manuell neu starten",
                 "hotkeys": "Hotkey-Listener verwalten",
                 "tray": "Tray-Icon verwalten",
+                "restore_registry": "Registry-Pfade wiederherstellen",
                 "back": "Zurück"
             },
             # --- NEUER ABSCHNITT FÜR HOTKEY-MENÜ ---
@@ -120,6 +121,7 @@ TEXT = {
             # --- NEUE TEXTE FÜR TRAY-MENÜ ---
             "tray": "\n--- Tray-Icon ---",
             "tray_manage": "\n--- Tray-Icon verwalten ---"
+            ,"restore_registry": "\n--- Registry Wiederherstellung ---"
         },
         "messages": {
             "exit": "Auf Wiedersehen!",
@@ -142,6 +144,8 @@ TEXT = {
             "log_empty": "(Log-Datei ist leer)",
             "log_not_found": "(Log-Datei nicht gefunden)",
             "path_was": "Pfad war" # Hilfstext
+            ,"running_restore": "Starte Wiederherstellung der Registry-Pfade..."
+            ,"restore_finished": "Wiederherstellung abgeschlossen."
         },
         "errors": {
             "invalid_input": "Ungültige Eingabe.",
@@ -150,6 +154,9 @@ TEXT = {
             "base_dir_empty": "Basis-Verzeichnis darf nicht leer sein.",
             "invalid_choice": "Ungültige Auswahl.",
             "path_not_absolute": "Der Pfad '{path}' ist kein absoluter Pfad.",
+            "path_not_found": "Pfad nicht gefunden: {path}",
+            "not_windows": "Diese Funktion ist nur unter Windows verfügbar.",
+            "restore_failed": "Fehler bei der Wiederherstellung: {e}",
             
             # --- NEUER TEXT FÜR GUI-INTEGRATION ---
             "gui_create_failed": "Der Desktop konnte nicht erstellt werden. (Siehe Fehler oben)",
