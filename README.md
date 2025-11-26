@@ -1,6 +1,6 @@
 # SmartDesk
 
-Ein fortschrittliches Desktop-Management-Tool für Windows, das mehrere Desktop-Umgebungen mit individuellen Icon-Layouts, Hintergrundbildern und Hotkeys verwaltet.
+Ein  Desktop-Management-Tool für Windows, das mehrere Desktop-Umgebungen mit individuellen Icon-Layouts, Hintergrundbildern und Hotkeys verwaltet.
 
 ```
   ___                _   ___         _   
