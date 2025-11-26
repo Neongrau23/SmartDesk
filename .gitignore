@@ -39,3 +39,14 @@ Thumbs.db
 # Project specific
 data/
 *.log
+.coverage
+
+# Zusätzlich 
+.env                  # Umgebungsvariablen/Secrets
+.env.local
+*.sqlite3             # Lokale Datenbanken
+.mypy_cache/          # Type-Checker Cache
+.pytest_cache/        # Pytest Cache (fehlt!)
+.ruff_cache/          # Linter Cache
+htmlcov/              # Coverage HTML Reports
+*.bak                 # Backup-Dateien
