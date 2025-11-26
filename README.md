@@ -105,7 +105,7 @@ Pillow>=10.0.0       # Bildverarbeitung
 
 ```powershell
 git clone https://github.com/Neongrau23/SmartDesk.CLI.git
-cd SmartDeskTerminal
+cd SmartDesk:CLI
 ```
 
 ### 2. Virtuelle Umgebung erstellen
