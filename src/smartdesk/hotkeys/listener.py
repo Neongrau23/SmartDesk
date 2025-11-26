@@ -293,3 +293,10 @@ def run_listener():
 if __name__ == "__main__":
     # Direkt den Listener starten
     start_listener()
+
+    # Füge das src-Verzeichnis zum Python-Path hinzu
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    smartdesk_dir = os.path.dirname(script_dir)
+    src_dir = os.path.dirname(smartdesk_dir)
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
