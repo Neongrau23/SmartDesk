@@ -478,18 +478,6 @@ TEXT = {
 }
 ```
 
-## 🤝 Beitragen
-
-Beiträge sind willkommen! Bitte erstellen Sie einen Pull Request oder öffnen Sie ein Issue.
-
-### Entwicklungs-Roadmap
-
-- [ ] Automatische Backup-Funktion
-- [ ] Cloud-Synchronisation der Konfiguration
-- [ ] Mehrere Hotkey-Profile
-- [ ] Import/Export von Desktop-Konfigurationen
-- [ ] Windows-Taskplaner-Integration
-- [ ] Portable-Version (ohne Installation)
 
 ## 📄 Lizenz
 
@@ -519,18 +507,4 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## 🙏 Danksagungen
-
-- **pynput**: Für die robuste Hotkey-Erkennung
-- **pystray**: Für die einfache System-Tray-Integration
-- **psutil**: Für zuverlässige Prozessverwaltung
-- **pywin32**: Für Windows-API-Zugriff
-
-## 📞 Support
-
-Bei Fragen oder Problemen öffnen Sie bitte ein Issue auf GitHub:
-https://github.com/Neongrau23/SmartDesk.CLI/issues
-
----
-
-**Entwickelt mit ❤️ von Neongrau23**
+**Entwickelt mit 🐍 von Neongrau23**
