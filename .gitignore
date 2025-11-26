@@ -50,3 +50,7 @@ data/
 .ruff_cache/          # Linter Cache
 htmlcov/              # Coverage HTML Reports
 *.bak                 # Backup-Dateien
+
+# Zusätzlich für dieses Projekt
+*.egg-info/           # Bereits vorhanden, aber prüfen ob aktiv
+.pytest_cache/        # Cache-Ordner entfernen
