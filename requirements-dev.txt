@@ -1,0 +1,11 @@
+# Development and Testing Dependencies
+# Install with: pip install -r requirements-dev.txt
+
+# Testing Framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+
+# Optional: Für erweiterte Testfunktionen
+# pytest-xdist>=3.0.0  # Parallele Tests
+# pytest-timeout>=2.0.0  # Timeout für Tests

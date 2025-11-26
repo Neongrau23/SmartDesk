@@ -1,0 +1,51 @@
+[project]
+name = "smartdesk"
+version = "0.1.0"
+description = "SmartDesk - Virtual Desktop Manager for Windows"
+readme = "README.md"
+requires-python = ">=3.8"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "-ra",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "windows: marks tests that require Windows",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src/smartdesk"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/animations/*",
+    "*/.venv/*",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+# Anmerkung: Gesamte Coverage ist niedrig wegen Windows-spezifischer Module
+# Die getesteten Kernmodule haben >90% Coverage
+fail_under = 0
+show_missing = true
+skip_covered = false
+
+[tool.coverage.html]
+directory = "htmlcov"

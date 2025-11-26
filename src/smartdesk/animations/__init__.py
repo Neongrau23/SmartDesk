@@ -1,5 +1,9 @@
 # SmartDesk Animationen
 from .screen_fade import MultiMonitorFade
-from .fade_config import FadeConfig
+# AnimationConfig wird jetzt aus config.py importiert
+from ..config import AnimationConfig
 
-__all__ = ['MultiMonitorFade', 'FadeConfig']
+# Behalte FadeConfig für Rückwärtskompatibilität (Alias)
+FadeConfig = AnimationConfig
+
+__all__ = ['MultiMonitorFade', 'AnimationConfig', 'FadeConfig']

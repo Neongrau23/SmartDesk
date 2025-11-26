@@ -10,24 +10,30 @@ import subprocess
 import os
 import sys
 
-# Importiere die Konfiguration (fade_config.py muss im selben Ordner liegen)
+# Importiere die zentrale Konfiguration aus config.py
 try:
-    from fade_config import FadeConfig
+    from ..config import AnimationConfig as FadeConfig
 except ImportError:
-    print("FATALER FEHLER: fade_config.py nicht gefunden.")
-    # Fallback-Klasse, damit das Skript nicht sofort abstürzt
-    class FadeConfig:
-        FADE_IN_DURATION = 0.2
-        FADE_OUT_DURATION = 0.3
-        VISIBLE_DURATION = 3.5 # Nur als Fallback
-        FADE_STEPS = 100
-        BACKGROUND_COLOR = 'Black'
-        SHOW_LOGO = True
-        HIDE_CURSOR = True
-        TOPMOST = True
-        INITIAL_DELAY = 0
-        DEBUG = True
-        ALLOW_ESC_EXIT = True
+    print("WARNUNG: Konnte zentrale Konfiguration nicht laden.")
+    print("Versuche lokalen Fallback...")
+    try:
+        from fade_config import FadeConfig
+    except ImportError:
+        print("FATALER FEHLER: Keine Konfiguration gefunden.")
+        # Fallback-Klasse, damit das Skript nicht sofort abstürzt
+
+        class FadeConfig:
+            FADE_IN_DURATION = 0.2
+            FADE_OUT_DURATION = 0.3
+            VISIBLE_DURATION = 3.5
+            FADE_STEPS = 100
+            BACKGROUND_COLOR = 'Black'
+            SHOW_LOGO = True
+            HIDE_CURSOR = True
+            TOPMOST = True
+            INITIAL_DELAY = 0
+            DEBUG = True
+            ALLOW_ESC_EXIT = True
 
 # win32api wird benötigt, um die volle Größe über MEHRERE Monitore zu ermitteln
 try:
