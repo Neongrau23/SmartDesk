@@ -70,12 +70,10 @@ class DesktopCreatorGUI:
         self.root.resizable(False, False)
         self.root.overrideredirect(True)
         
-        # --- Farben & Transparenz-Hack für abgerundete Ecken ---
+        # --- Farben (KEIN Transparenz-Hack mehr) ---
         self.bg_dark = "#2b2b2b"
-        self.transparent_color = "#010101" # Eine Farbe, die (hoffentlich) nicht verwendet wird
         
-        self.root.configure(bg=self.transparent_color)
-        self.root.attributes("-transparentcolor", self.transparent_color)
+        self.root.configure(bg=self.bg_dark)
         # --- Ende Transparenz-Hack ---
         
         self.bg_input = "#3c3c3c"
@@ -88,45 +86,45 @@ class DesktopCreatorGUI:
         
         # Hauptframe (dieser bekommt die ECHTE Hintergrundfarbe)
         main_frame = tk.Frame(root, bg=self.bg_dark)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
         
         # Titel
-        title = tk.Label(main_frame, text=get_text("ui.headings.create"), 
+        title = tk.Label(main_frame, text="SmartDesk - Desktop erstellen",
                          font=('Segoe UI', 11),
                          bg=self.bg_dark, fg=self.fg_primary,
                          anchor='w')
-        title.pack(fill=tk.X, pady=(0, 20))
+        title.pack(fill=tk.X, pady=(0, 15))
         
         # Name Label
-        name_label = tk.Label(main_frame, text=get_text("ui.prompts.desktop_name").replace(":", ""),
+        name_label = tk.Label(main_frame, text="Name",
                               font=('Segoe UI', 9),
                               bg=self.bg_dark, fg=self.fg_label,
                               anchor='w')
-        name_label.pack(fill=tk.X, pady=(0, 5))
+        name_label.pack(fill=tk.X, pady=(0, 3))
         
         # Name Input
         self.name_entry = tk.Entry(main_frame, font=('Segoe UI', 10),
                                    bg=self.bg_input, fg=self.fg_primary,
                                    insertbackground=self.fg_primary,
                                    relief=tk.FLAT, bd=0)
-        self.name_entry.pack(fill=tk.X, ipady=8, pady=(0, 15))
+        self.name_entry.pack(fill=tk.X, ipady=6, pady=(0, 10))
         
         # Pfad Label - dynamisch je nach Modus
         self.pfad_label = tk.Label(main_frame, text="Pfad zum vorhandenen Ordner:",
                               font=('Segoe UI', 9),
                               bg=self.bg_dark, fg=self.fg_label,
                               anchor='w')
-        self.pfad_label.pack(fill=tk.X, pady=(0, 5))
+        self.pfad_label.pack(fill=tk.X, pady=(0, 3))
         
         # Pfad Input Container
         pfad_container = tk.Frame(main_frame, bg=self.bg_dark)
-        pfad_container.pack(fill=tk.X, pady=(0, 20))
+        pfad_container.pack(fill=tk.X, pady=(0, 15))
         
         self.path_entry = tk.Entry(pfad_container, font=('Segoe UI', 10),
                                    bg=self.bg_input, fg=self.fg_primary,
                                    insertbackground=self.fg_primary,
                                    relief=tk.FLAT, bd=0)
-        self.path_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, ipady=8)
+        self.path_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, ipady=6)
         
         browse_btn = tk.Button(pfad_container, text="...", font=('Segoe UI', 10),
                                bg=self.bg_input, fg=self.fg_primary,
@@ -134,7 +132,7 @@ class DesktopCreatorGUI:
                                activeforeground=self.fg_primary,
                                relief=tk.FLAT, bd=0, width=4,
                                cursor="hand2", command=self.browse_folder)
-        browse_btn.pack(side=tk.LEFT, padx=(5, 0), ipady=8)
+        browse_btn.pack(side=tk.LEFT, padx=(5, 0), ipady=6)
         
         # Bottom Container
         bottom = tk.Frame(main_frame, bg=self.bg_dark)
@@ -147,15 +145,15 @@ class DesktopCreatorGUI:
         self.mode_var = tk.StringVar(value="1")
         self.mode_var.trace_add("write", self.on_mode_change)
         
-        rb1 = tk.Radiobutton(radio_frame, text=get_text("ui.prompts.folder_mode_1").split(". ")[1],
+        rb1 = tk.Radiobutton(radio_frame, text="Vorhanden",
                              variable=self.mode_var, value="1", font=('Segoe UI', 9),
                              bg=self.bg_dark, fg=self.fg_primary,
                              selectcolor=self.bg_input, activebackground=self.bg_dark,
                              activeforeground=self.fg_primary,
                              relief=tk.FLAT, cursor="hand2")
-        rb1.pack(side=tk.LEFT, padx=(0, 10))
+        rb1.pack(side=tk.LEFT, padx=(0, 5))
         
-        rb2 = tk.Radiobutton(radio_frame, text=get_text("ui.prompts.folder_mode_2").split(". ")[1],
+        rb2 = tk.Radiobutton(radio_frame, text="Neu erstellen",
                              variable=self.mode_var, value="2", font=('Segoe UI', 9),
                              bg=self.bg_dark, fg=self.fg_primary,
                              selectcolor=self.bg_input, activebackground=self.bg_dark,
@@ -167,40 +165,47 @@ class DesktopCreatorGUI:
         button_frame = tk.Frame(bottom, bg=self.bg_dark)
         button_frame.pack(side=tk.RIGHT)
         
-        create_btn = tk.Button(button_frame, text=get_text("ui.menu.main.create").split(" ")[0],
+        create_btn = tk.Button(button_frame, text="Erstellen",
                                font=('Segoe UI', 9), bg=self.accent, fg="#ffffff",
                                activebackground=self.accent_hover,
                                activeforeground="#ffffff", relief=tk.FLAT, bd=0,
-                               padx=20, pady=6, cursor="hand2",
+                               padx=15, pady=5, cursor="hand2",
                                command=self.create_desktop)
         create_btn.pack(side=tk.LEFT, padx=(0, 5))
         
-        cancel_btn = tk.Button(button_frame, text=get_text("ui.prompts.cancel").split(". ")[1],
+        cancel_btn = tk.Button(button_frame, text="Abbrechen",
                                font=('Segoe UI', 9), bg=self.button_bg, fg=self.fg_primary,
                                activebackground=self.button_hover,
                                activeforeground=self.fg_primary, relief=tk.FLAT, bd=0,
-                               padx=20, pady=6, cursor="hand2",
-                               command=self.root.quit)
+                               padx=15, pady=5, cursor="hand2",
+                               command=self.close_window)
         cancel_btn.pack(side=tk.LEFT)
+        
+        # Flag für Schließ-Animation
+        self.is_closing = False
         
         # Fenster anzeigen und Animation starten
         self.root.deiconify()
         self.animate_slide_in_from_right()
         
         # Abgerundete Ecken anwenden
-        self.root.after(50, self.apply_rounded_corners)
+        self.root.after(0, self.apply_rounded_corners)
     
     def apply_rounded_corners(self):
         """Wendet abgerundete Ecken an (nur Windows)."""
         if win32gui:
             try:
                 hwnd = self.root.winfo_id()
-                radius = 20 # Radius der Ecken
-                
-                # Erstelle eine abgerundete Region
-                hrgn = win32gui.CreateRoundRectRgn(0, 0, self.window_width, self.window_height, radius, radius)
-                # Wende die Region auf das Fenster an
+                radius = 20
+                # WICHTIG: +1 bei width und height für korrekte Darstellung aller Ecken
+                hrgn = win32gui.CreateRoundRectRgn(
+                    0, 0,
+                    self.window_width + 1,
+                    self.window_height + 1,
+                    radius, radius
+                )
                 win32gui.SetWindowRgn(hwnd, hrgn, True)
+                print("[GUI_CREATE] Abgerundete Ecken erfolgreich angewendet")
             except Exception as e:
                 print(f"[GUI_CREATE] Fehler beim Anwenden der abgerundeten Ecken: {e}")
     
@@ -212,6 +217,33 @@ class DesktopCreatorGUI:
         else:
             # Neu erstellen: Pfad wo der neue Ordner erstellt werden soll
             self.pfad_label.config(text="Übergeordneter Pfad (Ordner wird hier erstellt):")
+    
+    def close_window(self):
+        """Schließt das Fenster mit Slide-Out-Animation."""
+        self.is_closing = True
+        self.animate_slide_out_to_right()
+    
+    def animate_slide_out_to_right(self):
+        """Animiert das Fenster nach rechts aus dem Bildschirm."""
+        if not self.is_closing:
+            return
+        
+        screen_width = self.root.winfo_screenwidth()
+        delay_ms = 10
+        move_fraction = 0.2
+        
+        if self.current_x >= screen_width:
+            # Animation fertig, jetzt wirklich schließen
+            self.root.quit()
+        else:
+            distance_to_go = screen_width - self.current_x
+            step = max(2, distance_to_go * move_fraction)
+            self.current_x += step
+            self.root.geometry(
+                f"{self.window_width}x{self.window_height}"
+                f"+{int(self.current_x)}+{self.y_pos}"
+            )
+            self.root.after(delay_ms, self.animate_slide_out_to_right)
 
     def animate_slide_in_from_right(self):
         if not self.is_animating:

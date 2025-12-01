@@ -33,6 +33,7 @@ import pystray
 from PIL import Image
 import threading
 import time
+import psutil
 from smartdesk.hotkeys import hotkey_manager
 import subprocess
 
@@ -41,10 +42,13 @@ try:
     # Stellt sicher, dass der Pfad benutzerunabhängig ist
     PID_FILE_DIR = os.path.join(os.environ['APPDATA'], 'SmartDesk')
     PID_FILE_PATH = os.path.join(PID_FILE_DIR, 'listener.pid')
+    CONTROL_PANEL_PID_PATH = os.path.join(PID_FILE_DIR, 'control_panel.pid')
     print(f"[DEBUG] Überwache PID-Datei: {PID_FILE_PATH}")
+    print(f"[DEBUG] Control Panel PID: {CONTROL_PANEL_PID_PATH}")
 except Exception as e:
     print(f"[DEBUG] FEHLER: Konnte APPDATA-Pfad nicht finden: {e}")
     PID_FILE_PATH = None
+    CONTROL_PANEL_PID_PATH = None
 
 
 def load_icon(filepath):
@@ -164,8 +168,84 @@ def set_inactiv(icon, item):
     hotkey_manager.stop_listener()
 
 
+def is_control_panel_running():
+    """Prüft ob das Control Panel läuft anhand der PID-Datei."""
+    if not CONTROL_PANEL_PID_PATH:
+        return False
+    try:
+        if os.path.exists(CONTROL_PANEL_PID_PATH):
+            with open(CONTROL_PANEL_PID_PATH, 'r') as f:
+                pid = int(f.read().strip())
+            # Prüfe ob der Prozess noch läuft
+            if psutil.pid_exists(pid):
+                proc = psutil.Process(pid)
+                if proc.is_running() and proc.status() != psutil.STATUS_ZOMBIE:
+                    return True
+            # PID-Datei existiert aber Prozess nicht mehr
+            os.remove(CONTROL_PANEL_PID_PATH)
+    except Exception as e:
+        print(f"[DEBUG] Fehler beim Prüfen der Control Panel PID: {e}")
+    return False
+
+
+def close_control_panel():
+    """Sendet ein Schließ-Signal an das Control Panel."""
+    if not CONTROL_PANEL_PID_PATH:
+        return False
+    try:
+        if os.path.exists(CONTROL_PANEL_PID_PATH):
+            # Signal-Datei erstellen, die das Control Panel überwacht
+            signal_file = CONTROL_PANEL_PID_PATH + '.close'
+            with open(signal_file, 'w') as f:
+                f.write('close')
+            print("[DEBUG] Schließ-Signal an Control Panel gesendet")
+            return True
+    except Exception as e:
+        print(f"[DEBUG] Fehler beim Senden des Schließ-Signals: {e}")
+    return False
+
+
 def on_primary_click(icon, item):
-    print("[DEBUG] Primär-Klick erkannt.")
+    """Toggle: Öffnet oder schließt das Control Panel."""
+    print("[DEBUG] Primär-Klick erkannt...")
+    
+    # Wenn Control Panel läuft -> schließen
+    if is_control_panel_running():
+        print("[DEBUG] Control Panel läuft - schließe es...")
+        close_control_panel()
+        return
+    
+    # Sonst -> öffnen
+    print("[DEBUG] Öffne Control Panel...")
+    try:
+        # Finde den 'pythonw.exe' (windowless) Interpreter
+        pythonw_executable = sys.executable
+        if "python.exe" in pythonw_executable.lower():
+            pythonw_executable = pythonw_executable.replace(
+                "python.exe", "pythonw.exe"
+            )
+        
+        # Finde control_panel.py
+        handlers_dir = os.path.dirname(os.path.abspath(__file__))
+        smartdesk_dir = os.path.dirname(handlers_dir)
+        control_panel_py = os.path.join(smartdesk_dir, 'ui', 'control_panel.py')
+        
+        print(f"[DEBUG] Starte: {pythonw_executable} {control_panel_py}")
+        
+        proc = subprocess.Popen(
+            [pythonw_executable, control_panel_py],
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+        
+        # PID speichern
+        if CONTROL_PANEL_PID_PATH:
+            os.makedirs(PID_FILE_DIR, exist_ok=True)
+            with open(CONTROL_PANEL_PID_PATH, 'w') as f:
+                f.write(str(proc.pid))
+            print(f"[DEBUG] Control Panel PID gespeichert: {proc.pid}")
+            
+    except Exception as e:
+        print(f"[DEBUG] FEHLER beim Öffnen des Control Panels: {e}")
 
 
 def open_smart_desk(icon, item):
