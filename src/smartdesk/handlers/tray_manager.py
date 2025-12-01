@@ -5,6 +5,9 @@ import sys
 import subprocess
 import time
 
+# Zeit in Sekunden, die nach dem Start gewartet wird, bevor der Prozess validiert wird
+TRAY_START_VALIDATION_DELAY = 0.5
+
 
 def start_tray():
     """Startet das Tray-Icon in einem separaten, fensterlosen Prozess."""
@@ -54,7 +57,7 @@ def start_tray():
         save_tray_pid(process.pid)
         
         # 6. Validierung nach dem Start (kurze Verzögerung, dann prüfen)
-        time.sleep(0.5)
+        time.sleep(TRAY_START_VALIDATION_DELAY)
         if not is_process_running(process.pid):
             print(f"{PREFIX_ERROR} {get_text('main.error.tray_failed', e='Prozess wurde nach Start beendet')}")
             cleanup_tray_pid()
