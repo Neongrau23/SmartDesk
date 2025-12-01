@@ -19,6 +19,17 @@ from typing import List, Dict, Any
 # Projekt-Root zum Path hinzufügen für Imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
+# Mock winreg before any imports that depend on it (for non-Windows platforms)
+if 'winreg' not in sys.modules:
+    mock_winreg = MagicMock()
+    mock_winreg.HKEY_CURRENT_USER = 0x80000001
+    mock_winreg.KEY_READ = 0x20019
+    mock_winreg.KEY_SET_VALUE = 0x0002
+    mock_winreg.REG_SZ = 1
+    mock_winreg.REG_EXPAND_SZ = 2
+    mock_winreg.REG_DWORD = 4
+    sys.modules['winreg'] = mock_winreg
+
 from smartdesk.models.desktop import Desktop, IconPosition
 
 
