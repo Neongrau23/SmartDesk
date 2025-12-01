@@ -38,7 +38,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # --- NEUER IMPORT für Lokalisierung ---
 try:
-    from smartdesk.localization import get_text
+    from smartdesk.shared.localization import get_text
 except ImportError:
     # Fallback, falls Pfad-Hack nicht funktioniert
     print("CRITICAL: localization.py nicht gefunden.")
@@ -52,22 +52,22 @@ except ImportError:
 
 # Importiere UI Module
 try:
-    from smartdesk.ui import cli
-    from smartdesk.handlers import desktop_handler
-    from smartdesk.handlers import system_manager 
-    from smartdesk.ui.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN 
+    from smartdesk.interfaces.cli import cli
+    from smartdesk.core.services import desktop_service as desktop_handler
+    from smartdesk.core.services import system_service as system_manager
+    from smartdesk.shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
     from smartdesk.hotkeys import listener as hotkey_listener
     # --- NEUE IMPORTS FÜR DIE STILLE GUI ---
-    from smartdesk.ui import ui_manager
+    from smartdesk.interfaces.gui import ui_manager
     from contextlib import redirect_stdout, redirect_stderr
     import io
     # --- ENDE NEUE IMPORTS ---
 except ImportError as e:
     try:
         # Fallback für andere Import-Strukturen (weniger wahrscheinlich)
-        from ui import cli
-        from handlers import desktop_handler
-        from handlers import system_manager
+        from interfaces.cli import cli
+        from core.services import desktop_service as desktop_handler
+        from core.services import system_service as system_manager
     except ImportError:
         # --- LOKALISIERT ---
         print(get_text("main.error.import", e=e))
@@ -198,7 +198,7 @@ if __name__ == "__main__":
             # Dieser Befehl wird vom hotkey_manager als separater Prozess aufgerufen
             # Die PID-Datei wird vom Manager geschrieben
             import os
-            from smartdesk.config import DATA_DIR
+            from smartdesk.shared.config import DATA_DIR
             
             # Schreibe die eigene PID in die Datei (überschreibt die vom Elternprozess)
             pid_file = os.path.join(DATA_DIR, "listener.pid")
@@ -220,7 +220,7 @@ if __name__ == "__main__":
             print(get_text("main.info.starting_tray"))
             try:
                 # 0. Prüfe, ob Tray-Icon bereits läuft
-                from smartdesk.utils.registry_operations import is_process_running, get_tray_pid
+                from smartdesk.core.utils.registry_operations import is_process_running, get_tray_pid
                 
                 existing_pid = get_tray_pid()
                 if existing_pid and is_process_running(existing_pid):
@@ -232,8 +232,8 @@ if __name__ == "__main__":
                 src_dir = os.path.dirname(smartdesk_dir)
                 project_root = os.path.dirname(src_dir)
 
-                # 2. Baue den Pfad zu tray_icon.py (jetzt in handlers)
-                tray_icon_path = os.path.join(smartdesk_dir, 'handlers', 'tray_icon.py')
+                # 2. Baue den Pfad zu tray_icon.py (jetzt in interfaces/tray)
+                tray_icon_path = os.path.join(smartdesk_dir, 'interfaces', 'tray', 'tray_icon.py')
                 
                 if not os.path.exists(tray_icon_path):
                     print(f"{PREFIX_ERROR} {get_text('main.error.tray_not_found', path=tray_icon_path)}")
@@ -250,7 +250,7 @@ if __name__ == "__main__":
                 )
                 
                 # 5. Speichere die PID
-                from smartdesk.utils.registry_operations import save_tray_pid
+                from smartdesk.core.utils.registry_operations import save_tray_pid
                 save_tray_pid(process.pid)
                 
                 print(f"{PREFIX_OK} {get_text('main.success.tray_started')}")

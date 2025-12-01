@@ -5,11 +5,9 @@ from typing import Optional
 
 # Interne Importe
 try:
-    # --- GEÄNDERT ---
-    # Wir brauchen jetzt DATA_DIR (für die Logs) und BASE_DIR (für das venv)
-    from ..config import BASE_DIR, DATA_DIR
-    from ..localization import get_text
-    from ..ui.style import PREFIX_OK, PREFIX_WARN, PREFIX_ERROR
+    from ..shared.config import BASE_DIR, DATA_DIR
+    from ..shared.localization import get_text
+    from ..shared.style import PREFIX_OK, PREFIX_WARN, PREFIX_ERROR
 except ImportError:
     # Fallback für den Fall, dass das Skript isoliert getestet wird
     print("FEHLER: hotkey_manager.py konnte Pakete nicht importieren.")

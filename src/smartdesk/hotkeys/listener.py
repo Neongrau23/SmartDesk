@@ -10,8 +10,8 @@ from datetime import datetime
 
 # --- NEUER IMPORT ---
 try:
-    # Importiere die get_text Funktion aus dem übergeordneten localization-Modul
-    from ..localization import get_text # <--- NEU
+    # Importiere die get_text Funktion aus dem shared-Modul
+    from ..shared.localization import get_text
 except ImportError:
     # Fallback, falls das Skript eigenständig oder falsch importiert wird
     print("[FALLBACK] Konnte 'get_text' nicht importieren. Verwende Roh-Strings.")
@@ -191,7 +191,7 @@ def start_listener():
     
     # Log-Datei einrichten
     try:
-        from ..config import DATA_DIR
+        from ..shared.config import DATA_DIR
         log_file = os.path.join(DATA_DIR, "listener.log")
     except ImportError:
         log_file = "listener.log"
@@ -215,7 +215,7 @@ def start_listener():
     # Cleanup-Funktion für PID-Datei
     def cleanup_pid_file():
         try:
-            from ..config import DATA_DIR
+            from ..shared.config import DATA_DIR
             pid_file = os.path.join(DATA_DIR, "listener.pid")
             if os.path.exists(pid_file):
                 os.remove(pid_file)
@@ -251,7 +251,7 @@ def run_listener():
     Hauptfunktion des Listener-Prozesses.
     """
     try:
-        from ..config import DATA_DIR
+        from ..shared.config import DATA_DIR
     except ImportError:
         DATA_DIR = "."
     
