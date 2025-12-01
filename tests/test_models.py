@@ -8,7 +8,7 @@ Testet die Serialisierung und Deserialisierung von:
 """
 
 import pytest
-from smartdesk.models.desktop import Desktop, IconPosition
+from smartdesk.core.models.desktop import Desktop, IconPosition
 
 
 class TestIconPosition:

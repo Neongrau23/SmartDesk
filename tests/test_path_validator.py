@@ -9,7 +9,7 @@ Testet:
 import os
 from unittest.mock import patch, MagicMock
 
-from smartdesk.utils.path_validator import ensure_directory_exists
+from smartdesk.core.utils.path_validator import ensure_directory_exists
 
 
 class TestEnsureDirectoryExists:

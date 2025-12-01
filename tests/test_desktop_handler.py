@@ -13,7 +13,7 @@ import json
 from unittest.mock import patch
 import pytest
 
-from smartdesk.models.desktop import Desktop, IconPosition
+from smartdesk.core.models.desktop import Desktop, IconPosition
 
 
 # =============================================================================
@@ -25,14 +25,14 @@ class TestDesktopModelIntegration:
 
     def test_desktop_data_roundtrip(self, tmp_path):
         """Test: Desktop-Daten können gespeichert und geladen werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(
@@ -51,14 +51,14 @@ class TestDesktopModelIntegration:
 
     def test_multiple_desktops_persistence(self, tmp_path):
         """Test: Mehrere Desktops können verwaltet werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -86,14 +86,14 @@ class TestCreateDesktopLogic:
 
     def test_desktop_name_validation(self, tmp_path):
         """Test: Duplikat-Namen werden erkannt."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop1 = Desktop(name="Existing", path="C:\\Existing")
@@ -106,14 +106,14 @@ class TestCreateDesktopLogic:
 
     def test_new_name_allowed(self, tmp_path):
         """Test: Neue Namen sind erlaubt."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop1 = Desktop(name="First", path="C:\\First")
@@ -126,14 +126,14 @@ class TestCreateDesktopLogic:
 
     def test_add_new_desktop_to_list(self, tmp_path):
         """Test: Neuer Desktop kann zur Liste hinzugefügt werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             # Initialer Desktop
@@ -157,14 +157,14 @@ class TestGetAllDesktopsLogic:
 
     def test_active_status_detection(self, tmp_path):
         """Test: Aktiver Status wird korrekt erkannt."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -193,14 +193,14 @@ class TestGetAllDesktopsLogic:
 
     def test_only_one_active_desktop(self, tmp_path):
         """Test: Nur ein Desktop sollte aktiv sein."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -225,14 +225,14 @@ class TestDeleteDesktopLogic:
 
     def test_cannot_delete_active_desktop_rule(self, tmp_path):
         """Test: Aktiver Desktop sollte nicht gelöscht werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(name="Active", path="C:\\Active", is_active=True)
@@ -246,14 +246,14 @@ class TestDeleteDesktopLogic:
 
     def test_inactive_desktop_can_be_deleted(self, tmp_path):
         """Test: Inaktiver Desktop kann gelöscht werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -273,14 +273,14 @@ class TestDeleteDesktopLogic:
 
     def test_find_desktop_by_name(self, tmp_path):
         """Test: Desktop kann per Name gefunden werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -306,14 +306,14 @@ class TestUpdateDesktopLogic:
 
     def test_update_desktop_name(self, tmp_path):
         """Test: Desktop-Name kann aktualisiert werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(name="OldName", path="C:\\Path")
@@ -328,14 +328,14 @@ class TestUpdateDesktopLogic:
 
     def test_update_desktop_path(self, tmp_path):
         """Test: Desktop-Pfad kann aktualisiert werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(name="Desktop", path="C:\\OldPath")
@@ -350,14 +350,14 @@ class TestUpdateDesktopLogic:
 
     def test_name_conflict_detection(self, tmp_path):
         """Test: Namenskonflikt wird erkannt."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -385,14 +385,14 @@ class TestSwitchToDesktopLogic:
 
     def test_switch_updates_active_status(self, tmp_path):
         """Test: Switch aktualisiert is_active Status."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -416,14 +416,14 @@ class TestSwitchToDesktopLogic:
 
     def test_already_active_needs_no_switch(self, tmp_path):
         """Test: Bereits aktiver Desktop braucht keinen Switch."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(name="Active", path="C:\\Active", is_active=True)
@@ -437,14 +437,14 @@ class TestSwitchToDesktopLogic:
 
     def test_find_target_desktop(self, tmp_path):
         """Test: Ziel-Desktop kann gefunden werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktops = [
@@ -469,14 +469,14 @@ class TestIconPositionLogic:
 
     def test_save_icon_positions(self, tmp_path):
         """Test: Icon-Positionen können gespeichert werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             icons = [
@@ -498,14 +498,14 @@ class TestIconPositionLogic:
 
     def test_empty_icon_positions(self, tmp_path):
         """Test: Leere Icon-Liste ist gültig."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(
@@ -520,14 +520,14 @@ class TestIconPositionLogic:
 
     def test_update_icon_positions(self, tmp_path):
         """Test: Icon-Positionen können aktualisiert werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             # Initial ohne Icons
@@ -555,14 +555,14 @@ class TestWallpaperLogic:
 
     def test_wallpaper_path_persistence(self, tmp_path):
         """Test: Wallpaper-Pfad wird gespeichert."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(
@@ -577,14 +577,14 @@ class TestWallpaperLogic:
 
     def test_empty_wallpaper_path(self, tmp_path):
         """Test: Leerer Wallpaper-Pfad ist gültig."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(
@@ -599,14 +599,14 @@ class TestWallpaperLogic:
 
     def test_update_wallpaper(self, tmp_path):
         """Test: Wallpaper kann aktualisiert werden."""
-        from smartdesk.storage.file_operations import (
+        from smartdesk.core.storage.file_operations import (
             load_desktops, save_desktops
         )
         
         json_file = tmp_path / "desktops.json"
         
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             desktop = Desktop(name="Desktop", path="C:\\Desktop")

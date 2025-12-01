@@ -21,7 +21,7 @@ class TestUpdateRegistryKey:
     def test_successful_update(self):
         """Test: Erfolgreicher Registry-Update gibt True zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             # Setup
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
@@ -36,7 +36,7 @@ class TestUpdateRegistryKey:
                 return_value=False
             )
 
-            from smartdesk.utils.registry_operations import update_registry_key
+            from smartdesk.core.utils.registry_operations import update_registry_key
 
             result = update_registry_key(
                 "Software\\Test",
@@ -50,7 +50,7 @@ class TestUpdateRegistryKey:
     def test_update_with_reg_expand_sz(self):
         """Test: Update mit REG_EXPAND_SZ Typ."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.KEY_SET_VALUE = 0x0002
@@ -64,7 +64,7 @@ class TestUpdateRegistryKey:
                 return_value=False
             )
 
-            from smartdesk.utils.registry_operations import update_registry_key
+            from smartdesk.core.utils.registry_operations import update_registry_key
 
             result = update_registry_key(
                 "Software\\Test",
@@ -78,7 +78,7 @@ class TestUpdateRegistryKey:
     def test_update_returns_false_on_error(self):
         """Test: Gibt False bei WindowsError zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.KEY_SET_VALUE = 0x0002
@@ -88,10 +88,10 @@ class TestUpdateRegistryKey:
 
             # Mock get_text um Fehlerausgabe zu verhindern
             with patch(
-                'smartdesk.utils.registry_operations.get_text',
+                'smartdesk.core.utils.registry_operations.get_text',
                 return_value="Error"
             ):
-                from smartdesk.utils.registry_operations import (
+                from smartdesk.core.utils.registry_operations import (
                     update_registry_key
                 )
 
@@ -110,7 +110,7 @@ class TestGetRegistryValue:
     def test_get_existing_value(self):
         """Test: Existierenden Wert lesen."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.KEY_READ = 0x20019
@@ -127,7 +127,7 @@ class TestGetRegistryValue:
                 1
             )
 
-            from smartdesk.utils.registry_operations import get_registry_value
+            from smartdesk.core.utils.registry_operations import get_registry_value
 
             result = get_registry_value("Software\\Test", "Desktop")
 
@@ -136,7 +136,7 @@ class TestGetRegistryValue:
     def test_get_missing_value_returns_empty(self):
         """Test: Fehlender Wert gibt leeren String zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.KEY_READ = 0x20019
@@ -147,7 +147,7 @@ class TestGetRegistryValue:
                 "Key not found"
             )
 
-            from smartdesk.utils.registry_operations import get_registry_value
+            from smartdesk.core.utils.registry_operations import get_registry_value
 
             result = get_registry_value("Software\\NotExists", "Value")
 
@@ -156,7 +156,7 @@ class TestGetRegistryValue:
     def test_get_value_with_expand_sz(self):
         """Test: REG_EXPAND_SZ Wert lesen."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.KEY_READ = 0x20019
@@ -174,7 +174,7 @@ class TestGetRegistryValue:
                 mock_winreg.REG_EXPAND_SZ
             )
 
-            from smartdesk.utils.registry_operations import get_registry_value
+            from smartdesk.core.utils.registry_operations import get_registry_value
 
             result = get_registry_value("Software\\Shell", "Desktop")
 
@@ -187,7 +187,7 @@ class TestTrayPidManagement:
     def test_save_tray_pid(self):
         """Test: PID speichern."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.REG_DWORD = 4
@@ -195,7 +195,7 @@ class TestTrayPidManagement:
             mock_key = MagicMock()
             mock_winreg.CreateKey.return_value = mock_key
 
-            from smartdesk.utils.registry_operations import save_tray_pid
+            from smartdesk.core.utils.registry_operations import save_tray_pid
 
             save_tray_pid(12345)
 
@@ -212,7 +212,7 @@ class TestTrayPidManagement:
     def test_get_tray_pid_exists(self):
         """Test: Existierende PID lesen."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
 
@@ -220,7 +220,7 @@ class TestTrayPidManagement:
             mock_winreg.OpenKey.return_value = mock_key
             mock_winreg.QueryValueEx.return_value = (12345, 4)
 
-            from smartdesk.utils.registry_operations import get_tray_pid
+            from smartdesk.core.utils.registry_operations import get_tray_pid
 
             result = get_tray_pid()
 
@@ -229,11 +229,11 @@ class TestTrayPidManagement:
     def test_get_tray_pid_not_exists(self):
         """Test: Keine PID vorhanden gibt None zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.OpenKey.side_effect = FileNotFoundError()
 
-            from smartdesk.utils.registry_operations import get_tray_pid
+            from smartdesk.core.utils.registry_operations import get_tray_pid
 
             result = get_tray_pid()
 
@@ -242,7 +242,7 @@ class TestTrayPidManagement:
     def test_cleanup_tray_pid(self):
         """Test: PID löschen."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.HKEY_CURRENT_USER = 0x80000001
             mock_winreg.KEY_SET_VALUE = 0x0002
@@ -250,7 +250,7 @@ class TestTrayPidManagement:
             mock_key = MagicMock()
             mock_winreg.OpenKey.return_value = mock_key
 
-            from smartdesk.utils.registry_operations import cleanup_tray_pid
+            from smartdesk.core.utils.registry_operations import cleanup_tray_pid
 
             cleanup_tray_pid()
 
@@ -259,11 +259,11 @@ class TestTrayPidManagement:
     def test_cleanup_tray_pid_handles_missing(self):
         """Test: Cleanup ignoriert fehlende PID."""
         with patch(
-            'smartdesk.utils.registry_operations.winreg'
+            'smartdesk.core.utils.registry_operations.winreg'
         ) as mock_winreg:
             mock_winreg.OpenKey.side_effect = FileNotFoundError()
 
-            from smartdesk.utils.registry_operations import cleanup_tray_pid
+            from smartdesk.core.utils.registry_operations import cleanup_tray_pid
 
             # Sollte keine Exception werfen
             cleanup_tray_pid()
@@ -275,7 +275,7 @@ class TestIsProcessRunning:
     def test_process_exists_and_running_python(self):
         """Test: Laufender Python-Prozess gibt True zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             mock_psutil.pid_exists.return_value = True
             mock_process = MagicMock()
@@ -286,7 +286,7 @@ class TestIsProcessRunning:
             mock_psutil.NoSuchProcess = psutil.NoSuchProcess
             mock_psutil.AccessDenied = psutil.AccessDenied
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 
@@ -296,7 +296,7 @@ class TestIsProcessRunning:
     def test_process_exists_and_running_pythonw(self):
         """Test: Laufender pythonw-Prozess gibt True zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             mock_psutil.pid_exists.return_value = True
             mock_process = MagicMock()
@@ -307,7 +307,7 @@ class TestIsProcessRunning:
             mock_psutil.NoSuchProcess = psutil.NoSuchProcess
             mock_psutil.AccessDenied = psutil.AccessDenied
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 
@@ -316,7 +316,7 @@ class TestIsProcessRunning:
     def test_process_exists_but_not_python(self):
         """Test: Laufender nicht-Python-Prozess gibt False zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             mock_psutil.pid_exists.return_value = True
             mock_process = MagicMock()
@@ -324,7 +324,7 @@ class TestIsProcessRunning:
             mock_process.name.return_value = "notepad.exe"
             mock_psutil.Process.return_value = mock_process
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 
@@ -333,11 +333,11 @@ class TestIsProcessRunning:
     def test_process_not_exists(self):
         """Test: Nicht existierender Prozess gibt False zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             mock_psutil.pid_exists.return_value = False
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(99999)
 
@@ -346,14 +346,14 @@ class TestIsProcessRunning:
     def test_process_exists_but_not_running(self):
         """Test: Beendeter Prozess gibt False zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             mock_psutil.pid_exists.return_value = True
             mock_process = MagicMock()
             mock_process.is_running.return_value = False
             mock_psutil.Process.return_value = mock_process
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 
@@ -362,7 +362,7 @@ class TestIsProcessRunning:
     def test_handles_no_such_process(self):
         """Test: NoSuchProcess Exception wird gefangen."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             import psutil as real_psutil
 
@@ -371,7 +371,7 @@ class TestIsProcessRunning:
             mock_psutil.AccessDenied = real_psutil.AccessDenied
             mock_psutil.Process.side_effect = real_psutil.NoSuchProcess(12345)
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 
@@ -380,7 +380,7 @@ class TestIsProcessRunning:
     def test_handles_access_denied_returns_true(self):
         """Test: AccessDenied Exception gibt True zurück (konservative Annahme)."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             import psutil as real_psutil
 
@@ -389,7 +389,7 @@ class TestIsProcessRunning:
             mock_psutil.AccessDenied = real_psutil.AccessDenied
             mock_psutil.Process.side_effect = real_psutil.AccessDenied(12345)
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 
@@ -399,7 +399,7 @@ class TestIsProcessRunning:
     def test_cmdline_access_denied_still_returns_true_for_python(self):
         """Test: Python-Prozess mit cmdline-Zugriffsfehler gibt True zurück."""
         with patch(
-            'smartdesk.utils.registry_operations.psutil'
+            'smartdesk.core.utils.registry_operations.psutil'
         ) as mock_psutil:
             import psutil as real_psutil
 
@@ -412,7 +412,7 @@ class TestIsProcessRunning:
             mock_process.cmdline.side_effect = real_psutil.AccessDenied(12345)
             mock_psutil.Process.return_value = mock_process
 
-            from smartdesk.utils.registry_operations import is_process_running
+            from smartdesk.core.utils.registry_operations import is_process_running
 
             result = is_process_running(12345)
 

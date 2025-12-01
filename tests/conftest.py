@@ -30,7 +30,7 @@ if 'winreg' not in sys.modules:
     mock_winreg.REG_DWORD = 4
     sys.modules['winreg'] = mock_winreg
 
-from smartdesk.models.desktop import Desktop, IconPosition
+from smartdesk.core.models.desktop import Desktop, IconPosition
 
 
 # =============================================================================
@@ -143,9 +143,9 @@ def temp_data_dir(tmp_path):
     data_dir = tmp_path / "smartdesk_data"
     data_dir.mkdir()
     
-    with patch('smartdesk.config.DATA_DIR', str(data_dir)):
-        with patch('smartdesk.config.DESKTOPS_FILE', str(data_dir / "desktops.json")):
-            with patch('smartdesk.config.WALLPAPERS_DIR', str(data_dir / "wallpapers")):
+    with patch('smartdesk.shared.config.DATA_DIR', str(data_dir)):
+        with patch('smartdesk.shared.config.DESKTOPS_FILE', str(data_dir / "desktops.json")):
+            with patch('smartdesk.shared.config.WALLPAPERS_DIR', str(data_dir / "wallpapers")):
                 yield data_dir
 
 
@@ -170,7 +170,7 @@ def mock_winreg():
     Mock für das winreg-Modul.
     Simuliert erfolgreiche Registry-Operationen.
     """
-    with patch('smartdesk.utils.registry_operations.winreg') as mock:
+    with patch('smartdesk.core.utils.registry_operations.winreg') as mock:
         # Konstanten definieren
         mock.HKEY_CURRENT_USER = 0x80000001
         mock.KEY_READ = 0x20019
@@ -198,7 +198,7 @@ def mock_winreg_failure():
     """
     Mock für winreg mit simulierten Fehlern.
     """
-    with patch('smartdesk.utils.registry_operations.winreg') as mock:
+    with patch('smartdesk.core.utils.registry_operations.winreg') as mock:
         mock.HKEY_CURRENT_USER = 0x80000001
         mock.KEY_READ = 0x20019
         mock.KEY_SET_VALUE = 0x0002
@@ -281,7 +281,7 @@ def mock_psutil():
     """
     Mock für psutil (Prozess-Management).
     """
-    with patch('smartdesk.utils.registry_operations.psutil') as mock:
+    with patch('smartdesk.core.utils.registry_operations.psutil') as mock:
         mock.pid_exists.return_value = True
         mock_process = MagicMock()
         mock_process.is_running.return_value = True
@@ -294,7 +294,7 @@ def mock_psutil_no_process():
     """
     Mock für psutil wenn Prozess nicht existiert.
     """
-    with patch('smartdesk.utils.registry_operations.psutil') as mock:
+    with patch('smartdesk.core.utils.registry_operations.psutil') as mock:
         mock.pid_exists.return_value = False
         yield mock
 
@@ -312,7 +312,7 @@ def mock_localization():
     def mock_get_text(key, **kwargs):
         return f"[{key}]"
     
-    with patch('smartdesk.localization.get_text', side_effect=mock_get_text):
+    with patch('smartdesk.shared.localization.get_text', side_effect=mock_get_text):
         yield mock_get_text
 
 

@@ -2,16 +2,19 @@ import time
 
 # --- 1. Deine Handler importieren ---
 # Wir verwenden relative Imports (..), um aus dem 'hotkeys'-Ordner
-# eine Ebene nach oben ('smartdesk') und dann in 'handlers' zu gelangen.
+# eine Ebene nach oben ('smartdesk') und dann in die neue Struktur zu gelangen.
 try:
-    from ..handlers import desktop_handler
-    from ..handlers import system_manager
-    from ..localization import get_text
-    from ..ui.style import PREFIX_OK, PREFIX_ERROR
+    from ..core.services import desktop_service as desktop_handler
+    from ..core.services import system_service as system_manager
+    from ..shared.localization import get_text
+    from ..shared.style import PREFIX_OK, PREFIX_ERROR
 
     # Kommentar: Hotkey-Aktionen geladen (kein print, da unsichtbar)
 
 except ImportError as e:
+    # PREFIX_ERROR muss vor der Verwendung definiert werden
+    PREFIX_ERROR = "[FEHLER]"
+    PREFIX_OK = "[OK]"
     print(f"{PREFIX_ERROR} Kritischer Fehler in hotkeys/actions.py: {e}")
     print(f"{PREFIX_ERROR} Konnte die SmartDesk-Handler nicht finden.")
     # Definiere Dummy-Funktionen, damit der Listener nicht abstürzt

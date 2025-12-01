@@ -13,12 +13,12 @@ import os
 import pytest
 from unittest.mock import patch, mock_open, MagicMock
 
-from smartdesk.storage.file_operations import (
+from smartdesk.core.storage.file_operations import (
     load_desktops,
     save_desktops,
     get_data_file_path
 )
-from smartdesk.models.desktop import Desktop
+from smartdesk.core.models.desktop import Desktop
 
 
 class TestGetDataFilePath:
@@ -41,7 +41,7 @@ class TestLoadDesktops:
     def test_load_empty_file_returns_empty_list(self, tmp_path):
         """Test: Leere/nicht existierende Datei gibt leere Liste."""
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(tmp_path / "not_exists.json")
         ):
             result = load_desktops()
@@ -54,7 +54,7 @@ class TestLoadDesktops:
             json.dump(sample_desktops_data, f)
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = load_desktops()
@@ -72,7 +72,7 @@ class TestLoadDesktops:
             f.write("{invalid json content")
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = load_desktops()
@@ -85,7 +85,7 @@ class TestLoadDesktops:
             json.dump([], f)
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = load_desktops()
@@ -98,7 +98,7 @@ class TestLoadDesktops:
             json.dump([sample_desktop_data], f)
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = load_desktops()
@@ -124,7 +124,7 @@ class TestLoadDesktops:
             json.dump(data, f)
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = load_desktops()
@@ -148,7 +148,7 @@ class TestLoadDesktops:
             json.dump(data, f, ensure_ascii=False)
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = load_desktops()
@@ -165,7 +165,7 @@ class TestSaveDesktops:
         json_file = tmp_path / "new_desktops.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = save_desktops(sample_desktops)
@@ -178,7 +178,7 @@ class TestSaveDesktops:
         json_file = tmp_path / "valid.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             save_desktops(sample_desktops)
@@ -195,7 +195,7 @@ class TestSaveDesktops:
         json_file = nested_dir / "desktops.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = save_desktops(sample_desktops)
@@ -209,7 +209,7 @@ class TestSaveDesktops:
         json_file = tmp_path / "empty.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             result = save_desktops([])
@@ -228,7 +228,7 @@ class TestSaveDesktops:
         json_file = tmp_path / "unicode.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             save_desktops([desktop])
@@ -248,7 +248,7 @@ class TestSaveDesktops:
             json.dump([{"name": "Alt", "path": "C:\\Alt"}], f)
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             save_desktops(sample_desktops)
@@ -265,7 +265,7 @@ class TestSaveDesktops:
         invalid_path = "Z:\\NonExistent\\Dir\\file.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=invalid_path
         ):
             # Die Funktion sollte bei ungültigem Pfad False zurückgeben
@@ -287,7 +287,7 @@ class TestRoundtrip:
         json_file = tmp_path / "roundtrip.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             # Speichern
@@ -307,7 +307,7 @@ class TestRoundtrip:
         json_file = tmp_path / "cycles.json"
 
         with patch(
-            'smartdesk.storage.file_operations.get_data_file_path',
+            'smartdesk.core.storage.file_operations.get_data_file_path',
             return_value=str(json_file)
         ):
             # Zyklus 1
