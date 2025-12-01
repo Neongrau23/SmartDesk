@@ -53,10 +53,40 @@ def get_tray_pid():
         return None
 
 def is_process_running(pid):
-    """Prüft, ob ein Prozess mit der gegebenen PID läuft"""
+    """Prüft, ob ein Prozess mit der gegebenen PID läuft und ob es ein Python-Prozess ist"""
     try:
-        return psutil.pid_exists(pid) and psutil.Process(pid).is_running()
-    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        if not psutil.pid_exists(pid):
+            return False
+        
+        process = psutil.Process(pid)
+        
+        # Prüfe, ob der Prozess noch läuft
+        if not process.is_running():
+            return False
+        
+        # WICHTIG: Prüfe ob es ein Python-Prozess ist
+        process_name = process.name().lower()
+        if 'python' not in process_name:
+            return False
+        
+        # Optional: Prüfe, ob tray_icon.py im Command-Line ist
+        try:
+            cmdline = ' '.join(process.cmdline()).lower()
+            if 'tray_icon' in cmdline:
+                return True
+            # Falls cmdline nicht verfügbar, akzeptiere jeden Python-Prozess
+            return True
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
+            # Bei Zugriffsproblemen: Wenn es ein Python-Prozess ist, gehe davon aus, dass es stimmt
+            return True
+            
+    except psutil.NoSuchProcess:
+        return False
+    except psutil.AccessDenied:
+        # Prozess existiert, aber wir haben keinen Zugriff - konservativ annehmen, dass er läuft
+        return True
+    except Exception as e:
+        print(f"[DEBUG] Unerwarteter Fehler bei PID-Prüfung: {e}")
         return False
 
 def cleanup_tray_pid():

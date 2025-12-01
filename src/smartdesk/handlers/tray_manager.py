@@ -3,6 +3,10 @@
 import os
 import sys
 import subprocess
+import time
+
+# Zeit in Sekunden, die nach dem Start gewartet wird, bevor der Prozess validiert wird
+TRAY_START_VALIDATION_DELAY = 0.5
 
 
 def start_tray():
@@ -11,7 +15,8 @@ def start_tray():
         from ..utils.registry_operations import (
             is_process_running,
             get_tray_pid,
-            save_tray_pid
+            save_tray_pid,
+            cleanup_tray_pid
         )
         from ..ui.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
         from ..localization import get_text
@@ -21,6 +26,9 @@ def start_tray():
         if existing_pid and is_process_running(existing_pid):
             print(f"{PREFIX_WARN} {get_text('main.warn.tray_already_running', pid=existing_pid)}")
             return False
+        elif existing_pid:
+            # PID existiert, aber Prozess läuft nicht mehr - bereinigen
+            cleanup_tray_pid()
         
         # 1. Finde die relevanten Pfade
         smartdesk_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,6 +55,13 @@ def start_tray():
         
         # 5. Speichere die PID
         save_tray_pid(process.pid)
+        
+        # 6. Validierung nach dem Start (kurze Verzögerung, dann prüfen)
+        time.sleep(TRAY_START_VALIDATION_DELAY)
+        if not is_process_running(process.pid):
+            print(f"{PREFIX_ERROR} {get_text('main.error.tray_failed', e='Prozess wurde nach Start beendet')}")
+            cleanup_tray_pid()
+            return False
         
         print(f"{PREFIX_OK} {get_text('main.success.tray_started')}")
         return True
@@ -108,11 +123,15 @@ def stop_tray():
 def get_tray_status():
     """Gibt zurück, ob das Tray-Icon läuft und die PID."""
     try:
-        from ..utils.registry_operations import is_process_running, get_tray_pid
+        from ..utils.registry_operations import is_process_running, get_tray_pid, cleanup_tray_pid
         
         pid = get_tray_pid()
-        if pid and is_process_running(pid):
-            return True, pid
+        if pid:
+            if is_process_running(pid):
+                return True, pid
+            else:
+                # PID existiert, aber Prozess läuft nicht mehr - automatisch bereinigen
+                cleanup_tray_pid()
         return False, None
     except Exception:
         return False, None

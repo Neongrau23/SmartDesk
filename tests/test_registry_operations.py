@@ -11,6 +11,7 @@ Testet mit MagicMock:
 """
 
 import sys
+import psutil
 from unittest.mock import patch, MagicMock
 
 
@@ -271,15 +272,19 @@ class TestTrayPidManagement:
 class TestIsProcessRunning:
     """Tests für is_process_running()."""
 
-    def test_process_exists_and_running(self):
-        """Test: Laufender Prozess gibt True zurück."""
+    def test_process_exists_and_running_python(self):
+        """Test: Laufender Python-Prozess gibt True zurück."""
         with patch(
             'smartdesk.utils.registry_operations.psutil'
         ) as mock_psutil:
             mock_psutil.pid_exists.return_value = True
             mock_process = MagicMock()
             mock_process.is_running.return_value = True
+            mock_process.name.return_value = "python.exe"
+            mock_process.cmdline.return_value = ["python.exe", "tray_icon.py"]
             mock_psutil.Process.return_value = mock_process
+            mock_psutil.NoSuchProcess = psutil.NoSuchProcess
+            mock_psutil.AccessDenied = psutil.AccessDenied
 
             from smartdesk.utils.registry_operations import is_process_running
 
@@ -287,6 +292,43 @@ class TestIsProcessRunning:
 
             assert result is True
             mock_psutil.pid_exists.assert_called_once_with(12345)
+
+    def test_process_exists_and_running_pythonw(self):
+        """Test: Laufender pythonw-Prozess gibt True zurück."""
+        with patch(
+            'smartdesk.utils.registry_operations.psutil'
+        ) as mock_psutil:
+            mock_psutil.pid_exists.return_value = True
+            mock_process = MagicMock()
+            mock_process.is_running.return_value = True
+            mock_process.name.return_value = "pythonw.exe"
+            mock_process.cmdline.return_value = ["pythonw.exe", "tray_icon.py"]
+            mock_psutil.Process.return_value = mock_process
+            mock_psutil.NoSuchProcess = psutil.NoSuchProcess
+            mock_psutil.AccessDenied = psutil.AccessDenied
+
+            from smartdesk.utils.registry_operations import is_process_running
+
+            result = is_process_running(12345)
+
+            assert result is True
+
+    def test_process_exists_but_not_python(self):
+        """Test: Laufender nicht-Python-Prozess gibt False zurück."""
+        with patch(
+            'smartdesk.utils.registry_operations.psutil'
+        ) as mock_psutil:
+            mock_psutil.pid_exists.return_value = True
+            mock_process = MagicMock()
+            mock_process.is_running.return_value = True
+            mock_process.name.return_value = "notepad.exe"
+            mock_psutil.Process.return_value = mock_process
+
+            from smartdesk.utils.registry_operations import is_process_running
+
+            result = is_process_running(12345)
+
+            assert result is False
 
     def test_process_not_exists(self):
         """Test: Nicht existierender Prozess gibt False zurück."""
@@ -335,8 +377,8 @@ class TestIsProcessRunning:
 
             assert result is False
 
-    def test_handles_access_denied(self):
-        """Test: AccessDenied Exception wird gefangen."""
+    def test_handles_access_denied_returns_true(self):
+        """Test: AccessDenied Exception gibt True zurück (konservative Annahme)."""
         with patch(
             'smartdesk.utils.registry_operations.psutil'
         ) as mock_psutil:
@@ -351,4 +393,28 @@ class TestIsProcessRunning:
 
             result = is_process_running(12345)
 
-            assert result is False
+            # Bei AccessDenied nehmen wir konservativ an, dass der Prozess läuft
+            assert result is True
+
+    def test_cmdline_access_denied_still_returns_true_for_python(self):
+        """Test: Python-Prozess mit cmdline-Zugriffsfehler gibt True zurück."""
+        with patch(
+            'smartdesk.utils.registry_operations.psutil'
+        ) as mock_psutil:
+            import psutil as real_psutil
+
+            mock_psutil.pid_exists.return_value = True
+            mock_psutil.NoSuchProcess = real_psutil.NoSuchProcess
+            mock_psutil.AccessDenied = real_psutil.AccessDenied
+            mock_process = MagicMock()
+            mock_process.is_running.return_value = True
+            mock_process.name.return_value = "python.exe"
+            mock_process.cmdline.side_effect = real_psutil.AccessDenied(12345)
+            mock_psutil.Process.return_value = mock_process
+
+            from smartdesk.utils.registry_operations import is_process_running
+
+            result = is_process_running(12345)
+
+            # Bei Python-Prozess mit cmdline-Zugriffsfehler: True
+            assert result is True
