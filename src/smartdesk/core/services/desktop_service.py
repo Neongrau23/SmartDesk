@@ -240,6 +240,8 @@ def switch_to_desktop(desktop_name: str) -> bool:
     Bereitet den Desktop-Wechsel vor.
     Gibt True zurück, wenn ein Explorer-Neustart NÖTIG ist.
     """
+    from ..utils.backup_service import create_backup_before_switch
+    
     desktops = get_all_desktops()
 
     target_desktop = next(
@@ -254,6 +256,11 @@ def switch_to_desktop(desktop_name: str) -> bool:
         msg = get_text("desktop_handler.info.already_active", name=desktop_name)
         print(msg)
         return False
+    
+    # Automatisches Backup vor dem Wechsel
+    backup_path = create_backup_before_switch()
+    if backup_path:
+        print(f"{PREFIX_OK} Registry-Backup erstellt")
 
     target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
 

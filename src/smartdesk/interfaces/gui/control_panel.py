@@ -5,6 +5,25 @@ import sys
 import subprocess
 import threading
 import time
+import logging
+
+# --- Pfad-Hack für direkten Aufruf ---
+if __name__ == "__main__" or __package__ is None:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    interfaces_dir = os.path.dirname(current_dir)
+    smartdesk_dir = os.path.dirname(interfaces_dir)
+    src_dir = os.path.dirname(smartdesk_dir)
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+
+# --- Logger Setup ---
+try:
+    from smartdesk.shared.logging_config import get_logger
+    logger = get_logger(__name__)
+except ImportError:
+    # Fallback: Standard-Logger
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
 
 # --- Abgerundete Ecken (nur Windows) ---
 try:
@@ -12,36 +31,24 @@ try:
     import win32con
 except ImportError:
     win32gui = None
-    print("[CONTROL_PANEL] Hinweis: 'pywin32' nicht gefunden. Ecken werden nicht abgerundet.")
+    logger.info("Hinweis: 'pywin32' nicht gefunden. Ecken werden nicht abgerundet.")
 
 # --- Projekt-Imports ---
 try:
-    from ...core.services import desktop_service
-    from ...shared.localization import get_text
-    from ...hotkeys import hotkey_manager
-    # Kompatibilitäts-Wrapper
+    from smartdesk.core.services import desktop_service
+    from smartdesk.shared.localization import get_text
+    from smartdesk.hotkeys import hotkey_manager
     desktop_handler = desktop_service
-except ImportError:
-    print("[CONTROL_PANEL] WARNUNG: Relative Imports fehlgeschlagen. Versuche absoluten Pfad-Hack.")
-    try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        interfaces_dir = os.path.dirname(current_dir)
-        smartdesk_dir = os.path.dirname(interfaces_dir)
-        src_dir = os.path.dirname(smartdesk_dir)
-        if src_dir not in sys.path:
-            sys.path.append(src_dir)
-        
-        from smartdesk.core.services import desktop_service
-        from smartdesk.shared.localization import get_text
-        from smartdesk.hotkeys import hotkey_manager
-        desktop_handler = desktop_service
-    except ImportError as e:
-        print(f"[CONTROL_PANEL] FATALER FEHLER: {e}")
-        def get_text(key, **kwargs): return key.split('.')[-1]
-        class FakeHotkeys:
-            def start_listener(self): pass
-            def stop_listener(self): pass
-        hotkey_manager = FakeHotkeys()
+except ImportError as e:
+    logger.error(f"FATALER FEHLER: {e}")
+    
+    def get_text(key, **kwargs):
+        return key.split('.')[-1]
+    
+    class FakeHotkeys:
+        def start_listener(self): pass
+        def stop_listener(self): pass
+    hotkey_manager = FakeHotkeys()
 
 
 # --- PID-Datei-Pfad ---
@@ -51,7 +58,7 @@ try:
     CONTROL_PANEL_PID_PATH = os.path.join(PID_FILE_DIR, 'control_panel.pid')
     GUI_MAIN_PID_PATH = os.path.join(PID_FILE_DIR, 'gui_main.pid')
 except Exception as e:
-    print(f"[CONTROL_PANEL] FEHLER: Konnte APPDATA-Pfad nicht finden: {e}")
+    logger.error(f"Konnte APPDATA-Pfad nicht finden: {e}")
     PID_FILE_PATH = None
     CONTROL_PANEL_PID_PATH = None
     GUI_MAIN_PID_PATH = None
@@ -62,9 +69,9 @@ def cleanup_control_panel_pid():
     try:
         if CONTROL_PANEL_PID_PATH and os.path.exists(CONTROL_PANEL_PID_PATH):
             os.remove(CONTROL_PANEL_PID_PATH)
-            print("[CONTROL_PANEL] PID-Datei entfernt")
+            logger.debug("PID-Datei entfernt")
     except Exception as e:
-        print(f"[CONTROL_PANEL] Fehler beim Entfernen der PID-Datei: {e}")
+        logger.error(f"Fehler beim Entfernen der PID-Datei: {e}")
 
 
 class SmartDeskControlPanel:
@@ -250,9 +257,9 @@ class SmartDeskControlPanel:
                     radius, radius
                 )
                 win32gui.SetWindowRgn(hwnd, hrgn, True)
-                print("[CONTROL_PANEL] Abgerundete Ecken erfolgreich angewendet")
+                logger.debug("Abgerundete Ecken erfolgreich angewendet")
             except Exception as e:
-                print(f"[CONTROL_PANEL] Fehler beim Anwenden der abgerundeten Ecken: {e}")
+                logger.warning(f"Fehler beim Anwenden der abgerundeten Ecken: {e}")
     
     def animate_slide_in_from_right(self):
         if not self.is_animating:
@@ -313,7 +320,7 @@ class SmartDeskControlPanel:
                     activebackground=self.accent_green_hover
                 )
         except Exception as e:
-            print(f"[CONTROL_PANEL] Fehler beim Status-Update: {e}")
+            logger.error(f"Fehler beim Status-Update: {e}")
     
     def toggle_smartdesk(self):
         """Toggle zwischen Aktivieren und Deaktivieren."""
@@ -325,27 +332,27 @@ class SmartDeskControlPanel:
     def activate_smartdesk(self):
         """Aktiviert SmartDesk (startet Hotkey-Listener)."""
         try:
-            print("[CONTROL_PANEL] Aktiviere SmartDesk...")
+            logger.info("Aktiviere SmartDesk...")
             hotkey_manager.start_listener()
             self.root.after(500, self.update_status)
         except Exception as e:
-            print(f"[CONTROL_PANEL] Fehler beim Aktivieren: {e}")
+            logger.error(f"Fehler beim Aktivieren: {e}")
             messagebox.showerror("Fehler", f"SmartDesk konnte nicht aktiviert werden:\n{e}")
     
     def deactivate_smartdesk(self):
         """Deaktiviert SmartDesk (stoppt Hotkey-Listener)."""
         try:
-            print("[CONTROL_PANEL] Deaktiviere SmartDesk...")
+            logger.info("Deaktiviere SmartDesk...")
             hotkey_manager.stop_listener()
             self.root.after(500, self.update_status)
         except Exception as e:
-            print(f"[CONTROL_PANEL] Fehler beim Deaktivieren: {e}")
+            logger.error(f"Fehler beim Deaktivieren: {e}")
             messagebox.showerror("Fehler", f"SmartDesk konnte nicht deaktiviert werden:\n{e}")
     
     def open_smartdesk(self):
         """Öffnet die SmartDesk GUI (gui_main) als eigenen Prozess."""
         try:
-            print("[CONTROL_PANEL] Öffne SmartDesk GUI...")
+            logger.info("Öffne SmartDesk GUI...")
             
             # Prüfe ob GUI bereits läuft
             if GUI_MAIN_PID_PATH and os.path.exists(GUI_MAIN_PID_PATH):
@@ -357,7 +364,7 @@ class SmartDeskControlPanel:
                     if psutil.pid_exists(pid):
                         proc = psutil.Process(pid)
                         if proc.is_running():
-                            print("[CONTROL_PANEL] GUI läuft bereits")
+                            logger.debug("GUI läuft bereits")
                             # Fenster in den Vordergrund bringen
                             try:
                                 import win32gui
@@ -376,7 +383,7 @@ class SmartDeskControlPanel:
                                 pass
                             return
                 except Exception as e:
-                    print(f"[CONTROL_PANEL] Fehler beim PID-Check: {e}")
+                    logger.warning(f"Fehler beim PID-Check: {e}")
                     # PID-Datei ungültig, löschen
                     os.remove(GUI_MAIN_PID_PATH)
             
@@ -391,7 +398,7 @@ class SmartDeskControlPanel:
             current_dir = os.path.dirname(os.path.abspath(__file__))
             gui_main_py = os.path.join(current_dir, 'gui_main.py')
             
-            print(f"[CONTROL_PANEL] Starte: {pythonw_executable} {gui_main_py}")
+            logger.debug(f"Starte: {pythonw_executable} {gui_main_py}")
             
             # Starte ohne Terminal-Fenster
             proc = subprocess.Popen(
@@ -404,13 +411,13 @@ class SmartDeskControlPanel:
                 os.makedirs(PID_FILE_DIR, exist_ok=True)
                 with open(GUI_MAIN_PID_PATH, 'w') as f:
                     f.write(str(proc.pid))
-                print(f"[CONTROL_PANEL] GUI PID gespeichert: {proc.pid}")
+                logger.debug(f"GUI PID gespeichert: {proc.pid}")
             
             # Control Panel schließen nach dem Öffnen der GUI
             self.close_panel()
             
         except Exception as e:
-            print(f"[CONTROL_PANEL] Fehler beim Öffnen: {e}")
+            logger.error(f"Fehler beim Öffnen: {e}")
             messagebox.showerror(
                 "Fehler",
                 f"SmartDesk GUI konnte nicht geöffnet werden:\n{e}"
@@ -419,7 +426,7 @@ class SmartDeskControlPanel:
     def create_desktop(self):
         """Startet die GUI-Version für Desktop-Erstellung ohne Konsole."""
         try:
-            print("[CONTROL_PANEL] Starte Desktop-Erstellung GUI...")
+            logger.info("Starte Desktop-Erstellung GUI...")
             
             # Finde pythonw.exe (windowless)
             pythonw_executable = sys.executable
@@ -430,14 +437,14 @@ class SmartDeskControlPanel:
             current_dir = os.path.dirname(os.path.abspath(__file__))
             gui_create_py = os.path.join(current_dir, 'gui_create.py')
             
-            print(f"[CONTROL_PANEL] Starte: {pythonw_executable} {gui_create_py}")
+            logger.debug(f"Starte: {pythonw_executable} {gui_create_py}")
             
             subprocess.Popen(
                 [pythonw_executable, gui_create_py],
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
         except Exception as e:
-            print(f"[CONTROL_PANEL] Fehler beim Erstellen der GUI: {e}")
+            logger.error(f"Fehler beim Erstellen der GUI: {e}")
             messagebox.showerror("Fehler", f"Desktop-Erstellung konnte nicht gestartet werden:\n{e}")
 
     def close_panel(self):
@@ -477,11 +484,11 @@ def show_control_panel():
         app = SmartDeskControlPanel(root)
         root.mainloop()
     except Exception as e:
-        print(f"[CONTROL_PANEL] Fehler beim Starten: {e}")
-        print("[CONTROL_PANEL] Stellen Sie sicher, dass eine Desktop-Umgebung verfügbar ist.")
+        logger.error(f"Fehler beim Starten: {e}")
+        logger.info("Stellen Sie sicher, dass eine Desktop-Umgebung verfügbar ist.")
 
 
 # Zum direkten Testen dieser Datei
 if __name__ == "__main__":
-    print("Starte Control Panel im Testmodus...")
+    logger.info("Starte Control Panel im Testmodus...")
     show_control_panel()

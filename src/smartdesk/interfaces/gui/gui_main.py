@@ -1,66 +1,63 @@
-# Dateipfad: src/smartdesk/ui/gui_main.py
+# Dateipfad: src/smartdesk/interfaces/gui/gui_main.py
 # Moderne GUI für SmartDesk mit CustomTkinter
 
 import customtkinter as ctk
 from tkinter import filedialog, messagebox
 import os
 import threading
-
-# --- Imports ---
+import logging
 import sys
 
+# --- Pfad-Hack für direkten Aufruf ---
+if __name__ == "__main__" or __package__ is None:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    interfaces_dir = os.path.dirname(current_dir)
+    smartdesk_dir = os.path.dirname(interfaces_dir)
+    src_dir = os.path.dirname(smartdesk_dir)
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+
+# --- Logger Setup ---
 try:
-    from ...core.services import desktop_service
-    from ...core.services import system_service
-    from ...hotkeys import hotkey_manager
-    from ..tray import tray_manager
-    from ...shared.config import DATA_DIR
-    from ...shared.localization import get_text
-    from ...shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
-    # Kompatibilitäts-Wrapper für alten Code
+    from smartdesk.shared.logging_config import get_logger
+    logger = get_logger(__name__)
+except ImportError:
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+
+# --- Projekt-Imports ---
+try:
+    from smartdesk.core.services import desktop_service
+    from smartdesk.core.services import system_service
+    from smartdesk.hotkeys import hotkey_manager
+    from smartdesk.interfaces.tray import tray_manager
+    from smartdesk.shared.config import DATA_DIR
+    from smartdesk.shared.localization import get_text
+    from smartdesk.shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
     desktop_handler = desktop_service
     system_manager = system_service
-except ImportError:
-    print("[GUI_MAIN] Relative Imports fehlgeschlagen. Versuche absoluten Pfad...")
-    try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        interfaces_dir = os.path.dirname(current_dir)
-        smartdesk_dir = os.path.dirname(interfaces_dir)
-        src_dir = os.path.dirname(smartdesk_dir)
-        if src_dir not in sys.path:
-            sys.path.insert(0, src_dir)
-        
-        from smartdesk.core.services import desktop_service
-        from smartdesk.core.services import system_service
-        from smartdesk.hotkeys import hotkey_manager
-        from smartdesk.interfaces.tray import tray_manager
-        from smartdesk.shared.config import DATA_DIR
-        from smartdesk.shared.localization import get_text
-        from smartdesk.shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
-        desktop_handler = desktop_service
-        system_manager = system_service
-        print("[GUI_MAIN] Absoluter Import erfolgreich!")
-    except ImportError as e:
-        print(f"[GUI_MAIN] FATALER IMPORT FEHLER: {e}")
-        # Fallback-Implementierungen für Entwicklung
-        class FakeHandler:
-            def __getattr__(self, name):
-                def method(*args, **kwargs):
-                    print(f"DEMO: {name} aufgerufen")
-                    return True
-                return method
-        desktop_handler = FakeHandler()
-        desktop_service = FakeHandler()
-        system_manager = FakeHandler()
-        system_service = FakeHandler()
-        hotkey_manager = FakeHandler()
-        tray_manager = FakeHandler()
-        def get_text(key, **kwargs): 
-            return key.split('.')[-1].replace('_', ' ').title()
-        DATA_DIR = os.path.expanduser("~/SmartDesk")
-        PREFIX_ERROR = "❌"
-        PREFIX_OK = "✓"
-        PREFIX_WARN = "⚠"
+except ImportError as e:
+    logger.error(f"FATALER IMPORT FEHLER: {e}")
+    
+    class FakeHandler:
+        def __getattr__(self, name):
+            def method(*args, **kwargs):
+                logger.debug(f"DEMO: {name} aufgerufen")
+                return True
+            return method
+    desktop_handler = FakeHandler()
+    desktop_service = FakeHandler()
+    system_manager = FakeHandler()
+    system_service = FakeHandler()
+    hotkey_manager = FakeHandler()
+    tray_manager = FakeHandler()
+    
+    def get_text(key, **kwargs):
+        return key.split('.')[-1].replace('_', ' ').title()
+    DATA_DIR = os.path.expanduser("~/SmartDesk")
+    PREFIX_ERROR = "❌"
+    PREFIX_OK = "✓"
+    PREFIX_WARN = "⚠"
 
 # Theme konfigurieren
 ctk.set_appearance_mode("dark")
@@ -1117,7 +1114,7 @@ def launch_gui():
         with open(pid_file, 'w') as f:
             f.write(str(os.getpid()))
     except Exception as e:
-        print(f"[GUI_MAIN] Fehler beim Speichern der PID: {e}")
+        logger.error(f"Fehler beim Speichern der PID: {e}")
         pid_file = None
     
     def cleanup_pid():
@@ -1125,7 +1122,7 @@ def launch_gui():
         try:
             if pid_file and os.path.exists(pid_file):
                 os.remove(pid_file)
-                print("[GUI_MAIN] PID-Datei entfernt")
+                logger.debug("PID-Datei entfernt")
         except Exception:
             pass
     

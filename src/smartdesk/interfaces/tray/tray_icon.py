@@ -5,6 +5,14 @@ Benötigt: pip install pystray pillow
 
 import sys
 import os
+import logging
+
+# Einfaches Logging für Tray (vor allen anderen Imports)
+logging.basicConfig(
+    level=logging.DEBUG if os.environ.get('SMARTDESK_DEBUG') else logging.WARNING,
+    format='[%(levelname)s] %(message)s'
+)
+logger = logging.getLogger('smartdesk.tray')
 
 try:
     # Pfad zur Datei: .../src/smartdesk/interfaces/tray/tray_icon.py
@@ -16,9 +24,9 @@ try:
 
     if src_dir not in sys.path:
         sys.path.append(src_dir)
-        print(f"[DEBUG] 'src' Verzeichnis zum Pfad hinzugefügt: {src_dir}")
+        logger.debug("'src' Verzeichnis zum Pfad hinzugefügt: %s", src_dir)
 except Exception as e:
-    print(f"[DEBUG] FEHLER im Path Hack: {e}")
+    logger.error("FEHLER im Path Hack: %s", e)
     sys.exit(1)
 
 import pystray
@@ -33,29 +41,29 @@ try:
     PID_FILE_DIR = os.path.join(os.environ['APPDATA'], 'SmartDesk')
     PID_FILE_PATH = os.path.join(PID_FILE_DIR, 'listener.pid')
     CONTROL_PANEL_PID_PATH = os.path.join(PID_FILE_DIR, 'control_panel.pid')
-    print(f"[DEBUG] Überwache PID-Datei: {PID_FILE_PATH}")
-    print(f"[DEBUG] Control Panel PID: {CONTROL_PANEL_PID_PATH}")
+    logger.debug("Überwache PID-Datei: %s", PID_FILE_PATH)
+    logger.debug("Control Panel PID: %s", CONTROL_PANEL_PID_PATH)
 except Exception as e:
-    print(f"[DEBUG] FEHLER: Konnte APPDATA-Pfad nicht finden: {e}")
+    logger.error("Konnte APPDATA-Pfad nicht finden: %s", e)
     PID_FILE_PATH = None
     CONTROL_PANEL_PID_PATH = None
 
 
 def load_icon(filepath):
     """Lädt ein Icon aus einer Datei"""
-    print(f"[DEBUG] Versuche Icon zu laden: {filepath}")
+    logger.debug("Versuche Icon zu laden: %s", filepath)
     try:
         if os.path.exists(filepath):
-            print(f"[DEBUG] Datei gefunden: {filepath}")
+            logger.debug("Datei gefunden: %s", filepath)
             image = Image.open(filepath)
             image = image.resize((64, 64), Image.Resampling.LANCZOS)
-            print("[DEBUG] Icon erfolgreich geladen und skaliert")
+            logger.debug("Icon erfolgreich geladen und skaliert")
             return image
         else:
-            print(f"[DEBUG] FEHLER - Datei nicht gefunden: {filepath}")
+            logger.warning("Icon nicht gefunden: %s", filepath)
             return create_fallback_icon()
     except Exception as e:
-        print(f"[DEBUG] FEHLER beim Laden: {e}")
+        logger.error("Fehler beim Laden des Icons: %s", e)
         return create_fallback_icon()
 
 
@@ -97,10 +105,10 @@ status = StatusMonitor(ACTIVE_ICON, IDLE_ICON)
 
 def update_icon(icon):
     """Aktualisiert das Icon basierend auf der Existenz der listener.pid"""
-    print("[DEBUG] Update-Thread (PID-Überwachung) gestartet")
+    logger.debug("Update-Thread (PID-Überwachung) gestartet")
 
     if not PID_FILE_PATH:
-        print("[DEBUG] FEHLER: PID_FILE_PATH ist nicht gesetzt.")
+        logger.error("PID_FILE_PATH ist nicht gesetzt.")
         return
 
     while True:
@@ -121,17 +129,17 @@ def update_icon(icon):
 
             if old_state != status.is_active:
                 new_status = "AKTIV" if status.is_active else "INAKTIV"
-                print(f"[DEBUG] Status geändert: {new_status}")
+                logger.debug("Status geändert: %s", new_status)
 
         except Exception as e:
-            print(f"[DEBUG] FEHLER im Update-Thread: {e}")
+            logger.error("Fehler im Update-Thread: %s", e)
 
         time.sleep(1)
 
 
 def create_desktop(icon, item):
     """Startet die GUI-Version ('create-gui') ohne Konsole."""
-    print("[DEBUG] 'Desktop Erstellen' geklickt (GUI-Version).")
+    logger.debug("'Desktop Erstellen' geklickt (GUI-Version).")
     try:
         pythonw_executable = sys.executable
         if "python.exe" in pythonw_executable.lower():
@@ -141,23 +149,23 @@ def create_desktop(icon, item):
 
         main_py = os.path.join(smartdesk_dir, 'main.py')
 
-        print(f"[DEBUG] Starte: {pythonw_executable} {main_py} create-gui")
+        logger.debug("Starte: %s %s create-gui", pythonw_executable, main_py)
 
         subprocess.Popen(
             [pythonw_executable, main_py, "create-gui"],
             creationflags=subprocess.CREATE_NO_WINDOW
         )
     except Exception as e:
-        print(f"[DEBUG] FEHLER beim Erstellen der GUI: {e}")
+        logger.error("Fehler beim Erstellen der GUI: %s", e)
 
 
 def set_active(icon, item):
-    print("[DEBUG] 'Aktivieren' geklickt.")
+    logger.debug("'Aktivieren' geklickt.")
     hotkey_manager.start_listener()
 
 
 def set_inactiv(icon, item):
-    print("[DEBUG] 'Deaktivieren' geklickt.")
+    logger.debug("'Deaktivieren' geklickt.")
     hotkey_manager.stop_listener()
 
 
@@ -175,7 +183,7 @@ def is_control_panel_running():
                     return True
             os.remove(CONTROL_PANEL_PID_PATH)
     except Exception as e:
-        print(f"[DEBUG] Fehler beim Prüfen der Control Panel PID: {e}")
+        logger.debug("Fehler beim Prüfen der Control Panel PID: %s", e)
     return False
 
 
@@ -188,23 +196,23 @@ def close_control_panel():
             signal_file = CONTROL_PANEL_PID_PATH + '.close'
             with open(signal_file, 'w') as f:
                 f.write('close')
-            print("[DEBUG] Schließ-Signal an Control Panel gesendet")
+            logger.debug("Schließ-Signal an Control Panel gesendet")
             return True
     except Exception as e:
-        print(f"[DEBUG] Fehler beim Senden des Schließ-Signals: {e}")
+        logger.error("Fehler beim Senden des Schließ-Signals: %s", e)
     return False
 
 
 def on_primary_click(icon, item):
     """Toggle: Öffnet oder schließt das Control Panel."""
-    print("[DEBUG] Primär-Klick erkannt...")
+    logger.debug("Primär-Klick erkannt...")
 
     if is_control_panel_running():
-        print("[DEBUG] Control Panel läuft - schließe es...")
+        logger.debug("Control Panel läuft - schließe es...")
         close_control_panel()
         return
 
-    print("[DEBUG] Öffne Control Panel...")
+    logger.debug("Öffne Control Panel...")
     try:
         pythonw_executable = sys.executable
         if "python.exe" in pythonw_executable.lower():
@@ -216,7 +224,7 @@ def on_primary_click(icon, item):
             interfaces_dir, 'gui', 'control_panel.py'
         )
 
-        print(f"[DEBUG] Starte: {pythonw_executable} {control_panel_py}")
+        logger.debug("Starte: %s %s", pythonw_executable, control_panel_py)
 
         proc = subprocess.Popen(
             [pythonw_executable, control_panel_py],
@@ -227,15 +235,15 @@ def on_primary_click(icon, item):
             os.makedirs(PID_FILE_DIR, exist_ok=True)
             with open(CONTROL_PANEL_PID_PATH, 'w') as f:
                 f.write(str(proc.pid))
-            print(f"[DEBUG] Control Panel PID gespeichert: {proc.pid}")
+            logger.debug("Control Panel PID gespeichert: %s", proc.pid)
 
     except Exception as e:
-        print(f"[DEBUG] FEHLER beim Öffnen des Control Panels: {e}")
+        logger.error("Fehler beim Öffnen des Control Panels: %s", e)
 
 
 def open_smart_desk(icon, item):
     """Startet das Haupt-CLI-Menü in einer NEUEN Konsole."""
-    print("[DEBUG] 'SmartDesk Öffnen' geklickt")
+    logger.debug("'SmartDesk Öffnen' geklickt")
     try:
         main_py = os.path.join(smartdesk_dir, 'main.py')
 
@@ -245,25 +253,26 @@ def open_smart_desk(icon, item):
                 "pythonw.exe", "python.exe"
             )
 
-        print(f"[DEBUG] Starte: {python_executable} {main_py} in neuer Konsole")
+        logger.debug("Starte: %s %s in neuer Konsole",
+                     python_executable, main_py)
 
         subprocess.Popen(
             [python_executable, main_py],
             creationflags=subprocess.CREATE_NEW_CONSOLE
         )
     except Exception as e:
-        print(f"[DEBUG] FEHLER beim Öffnen: {e}")
+        logger.error("Fehler beim Öffnen: %s", e)
 
 
 def stop_smartdesk(icon, item):
-    print("[DEBUG] 'Beenden' geklickt.")
+    logger.debug("'Beenden' geklickt.")
 
     try:
         from smartdesk.core.utils.registry_operations import cleanup_tray_pid
         cleanup_tray_pid()
-        print("[DEBUG] Tray-PID aus Registry entfernt")
+        logger.debug("Tray-PID aus Registry entfernt")
     except Exception as e:
-        print(f"[DEBUG] Fehler beim Cleanup: {e}")
+        logger.debug("Fehler beim Cleanup: %s", e)
 
     icon.stop()
 
@@ -293,5 +302,5 @@ icon = pystray.Icon(
 update_thread = threading.Thread(target=update_icon, args=(icon,), daemon=True)
 update_thread.start()
 
-print("[DEBUG] Starte Tray-Icon...")
+logger.debug("Starte Tray-Icon...")
 icon.run()

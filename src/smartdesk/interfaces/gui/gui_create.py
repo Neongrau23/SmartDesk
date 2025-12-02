@@ -2,46 +2,48 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
 import sys
+import logging
 
-# --- Hinzugefügt für abgerundete Ecken (nur Windows) ---
+# --- Pfad-Hack für direkten Aufruf ---
+if __name__ == "__main__" or __package__ is None:
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    interfaces_dir = os.path.dirname(current_dir)
+    smartdesk_dir = os.path.dirname(interfaces_dir)
+    src_dir = os.path.dirname(smartdesk_dir)
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+
+# --- Logger Setup ---
+try:
+    from smartdesk.shared.logging_config import get_logger
+    logger = get_logger(__name__)
+except ImportError:
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+
+# --- Abgerundete Ecken (nur Windows) ---
 try:
     import win32gui
     import win32con
 except ImportError:
     win32gui = None
-    print("[GUI_CREATE] Hinweis: 'pywin32' nicht gefunden. Ecken werden nicht abgerundet.")
-# --- Ende ---
+    logger.info("'pywin32' nicht gefunden. Ecken werden nicht abgerundet.")
 
 # --- Projekt-Imports ---
 try:
-    # Relative Imports, da diese Datei in smartdesk/interfaces/gui/ liegt
-    from ...core.services import desktop_service
-    from ...shared.localization import get_text
-    # Kompatibilitäts-Wrapper
+    from smartdesk.core.services import desktop_service
+    from smartdesk.shared.localization import get_text
     desktop_handler = desktop_service
-except ImportError:
-    # Fallback, falls der Pfad-Kontext nicht stimmt (z.B. bei direktem Testen)
-    print("[GUI_CREATE] WARNUNG: Relative Imports fehlgeschlagen. Versuche absoluten Pfad-Hack.")
-    try:
-        # Pfad-Hack für direktes Ausführen
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        interfaces_dir = os.path.dirname(current_dir)
-        smartdesk_dir = os.path.dirname(interfaces_dir)
-        src_dir = os.path.dirname(smartdesk_dir)
-        if src_dir not in sys.path:
-            sys.path.append(src_dir)
-        
-        from smartdesk.core.services import desktop_service
-        from smartdesk.shared.localization import get_text
-        desktop_handler = desktop_service
-    except ImportError as e:
-        print(f"[GUI_CREATE] FATALER FEHLER: {e}")
-        # Dummy-Funktionen, damit das Modul geladen werden kann
-        def get_text(key, **kwargs): return key.split('.')[-1]
-        class FakeHandler:
-            def create_desktop(*args, **kwargs): return False
-        desktop_handler = FakeHandler()
-# --- Ende Projekt-Imports ---
+except ImportError as e:
+    logger.error(f"FATALER FEHLER: {e}")
+    
+    def get_text(key, **kwargs):
+        return key.split('.')[-1]
+    
+    class FakeHandler:
+        def create_desktop(*args, **kwargs):
+            return False
+    desktop_handler = FakeHandler()
 
 
 class DesktopCreatorGUI:
@@ -209,9 +211,9 @@ class DesktopCreatorGUI:
                     radius, radius
                 )
                 win32gui.SetWindowRgn(hwnd, hrgn, True)
-                print("[GUI_CREATE] Abgerundete Ecken erfolgreich angewendet")
+                logger.debug("Abgerundete Ecken erfolgreich angewendet")
             except Exception as e:
-                print(f"[GUI_CREATE] Fehler beim Anwenden der abgerundeten Ecken: {e}")
+                logger.warning(f"Fehler beim Anwenden der abgerundeten Ecken: {e}")
     
     def on_mode_change(self, *args):
         """Wird aufgerufen, wenn der Modus geändert wird."""
@@ -344,10 +346,10 @@ def show_create_desktop_window():
         app = DesktopCreatorGUI(root)
         root.mainloop()
     except Exception as e:
-        print(f"[GUI_CREATE] Fehler beim Starten von Tkinter: {e}")
-        print("[GUI_CREATE] Stellen Sie sicher, dass eine Desktop-Umgebung verfügbar ist.")
+        logger.error(f"Fehler beim Starten von Tkinter: {e}")
+        logger.info("Stellen Sie sicher, dass eine Desktop-Umgebung verfügbar ist.")
 
 # Zum direkten Testen dieser Datei
 if __name__ == "__main__":
-    print("Starte GUI im Testmodus...")
+    logger.info("Starte GUI im Testmodus...")
     show_create_desktop_window()

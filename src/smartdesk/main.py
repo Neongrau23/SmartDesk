@@ -39,6 +39,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 # --- NEUER IMPORT für Lokalisierung ---
 try:
     from smartdesk.shared.localization import get_text
+    from smartdesk.shared.first_run import ensure_setup_complete
 except ImportError:
     # Fallback, falls Pfad-Hack nicht funktioniert
     print("CRITICAL: localization.py nicht gefunden.")
@@ -49,6 +50,9 @@ except ImportError:
         for k, v in kwargs.items():
             text = text.replace(f"{{{k}}}", str(v))
         return text
+    
+    def ensure_setup_complete():
+        return True
 
 # Importiere UI Module
 try:
@@ -90,6 +94,10 @@ if 'desktop_handler' not in locals():
 
 
 if __name__ == "__main__":
+    
+    # --- FIRST-RUN SETUP ---
+    # Prüfe ob erster Start und führe Setup durch
+    ensure_setup_complete()
     
     args = sys.argv[1:] 
 

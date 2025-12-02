@@ -6,6 +6,10 @@ import platform
 import time
 import subprocess
 
+from ...shared.logging_config import get_logger
+
+logger = get_logger(__name__)
+
 try:
     from ...core.services import desktop_service
     from ...core.services import system_service
@@ -19,13 +23,13 @@ try:
     )
     from ...shared.localization import get_text
 except ImportError as e:
-    print(f"FATALER IMPORT FEHLER in cli.py: {e}")
-    print("Stelle sicher, dass du das Skript mit 'python -m smartdesk.main' startest.")
+    logger.error(f"FATALER IMPORT FEHLER in cli.py: {e}")
+    logger.info("Stelle sicher, dass du das Skript mit 'python -m smartdesk.main' startest.")
 
     class FakeHandler:
         def __getattr__(self, name):
             def method(*args, **kwargs):
-                print(f"FEHLER: {name} konnte nicht geladen werden!")
+                logger.error(f"{name} konnte nicht geladen werden!")
             return method
     desktop_service = FakeHandler()
     system_service = FakeHandler()
@@ -46,7 +50,7 @@ except ImportError as e:
         return f"[{t}]"
 
     def launch_create_desktop_dialog():
-        print("FEHLER: GUI-Manager konnte nicht geladen werden.")
+        logger.error("GUI-Manager konnte nicht geladen werden.")
         return None
 
 
