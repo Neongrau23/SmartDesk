@@ -24,10 +24,11 @@ except ImportError:
 # --- Abgerundete Ecken (nur Windows) ---
 try:
     import win32gui
-    import win32con
+    import ctypes
 except ImportError:
     win32gui = None
-    logger.info("'pywin32' nicht gefunden. Ecken werden nicht abgerundet.")
+    ctypes = None
+    logger.info("'pywin32' nicht gefunden.")
 
 # --- Projekt-Imports ---
 try:
@@ -57,22 +58,39 @@ class DesktopCreatorGUI:
         self.window_width = 420
         self.window_height = 294
         
-        # Bildschirmabmessungen ermitteln
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
+        # Bildschirmabmessungen sicher ermitteln
+        try:
+            self.root.update_idletasks()
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+            
+            if screen_width <= 0 or screen_height <= 0:
+                screen_width = 1920
+                screen_height = 1080
+                logger.warning("Bildschirmabmessungen ungültig, Fallback")
+        except Exception as e:
+            logger.warning(f"Bildschirmgröße Fehler: {e}")
+            screen_width = 1920
+            screen_height = 1080
+        
+        self.screen_width = screen_width
+        self.screen_height = screen_height
         
         # Position für unten rechts berechnen
         padding_x = 20
         padding_y = 60
         
-        self.target_x = screen_width - self.window_width - padding_x
-        self.y_pos = screen_height - self.window_height - padding_y
+        self.target_x = max(0, screen_width - self.window_width - padding_x)
+        self.y_pos = max(0, screen_height - self.window_height - padding_y)
         
+        # Integer-Werte für Animation
         self.start_x = screen_width
-        self.current_x = float(self.start_x)
+        self.current_x = self.start_x
         self.is_animating = True
+        self.is_closing = False
+        self._animation_id = None
         
-        self.root.geometry(f"{self.window_width}x{self.window_height}+{int(self.current_x)}+{self.y_pos}")
+        self.root.geometry(f"{self.window_width}x{self.window_height}+{self.current_x}+{self.y_pos}")
         self.root.resizable(False, False)
         self.root.overrideredirect(True)
         
@@ -187,33 +205,75 @@ class DesktopCreatorGUI:
                                command=self.close_window)
         cancel_btn.pack(side=tk.LEFT)
         
-        # Flag für Schließ-Animation
-        self.is_closing = False
-        
         # Fenster anzeigen und Animation starten
         self.root.deiconify()
-        self.animate_slide_in_from_right()
+        self.root.update_idletasks()
+        self._animation_id = self.root.after(50, self.animate_slide_in_from_right)
         
-        # Abgerundete Ecken anwenden
-        self.root.after(0, self.apply_rounded_corners)
+        # Abgerundete Ecken verzögert anwenden
+        self.root.after(100, self.apply_rounded_corners)
     
     def apply_rounded_corners(self):
         """Wendet abgerundete Ecken an (nur Windows)."""
-        if win32gui:
-            try:
-                hwnd = self.root.winfo_id()
-                radius = 20
-                # WICHTIG: +1 bei width und height für korrekte Darstellung aller Ecken
-                hrgn = win32gui.CreateRoundRectRgn(
-                    0, 0,
-                    self.window_width + 1,
-                    self.window_height + 1,
-                    radius, radius
-                )
-                win32gui.SetWindowRgn(hwnd, hrgn, True)
-                logger.debug("Abgerundete Ecken erfolgreich angewendet")
-            except Exception as e:
-                logger.warning(f"Fehler beim Anwenden der abgerundeten Ecken: {e}")
+        if not win32gui:
+            return
+            
+        try:
+            self.root.update_idletasks()
+            
+            # Hole das echte Top-Level Window Handle
+            frame_hwnd = self.root.winfo_id()
+            hwnd = win32gui.GetParent(frame_hwnd)
+            if not hwnd:
+                hwnd = frame_hwnd
+            
+            # Methode 1: Windows 11+ DWM API
+            if self._try_dwm_rounded_corners(hwnd):
+                logger.debug("DWM runde Ecken angewendet")
+                return
+            
+            # Methode 2: Fallback mit Region
+            self._apply_region_rounded_corners(hwnd)
+            
+        except Exception as e:
+            logger.warning(f"Fehler bei abgerundeten Ecken: {e}")
+    
+    def _try_dwm_rounded_corners(self, hwnd):
+        """Versucht Windows 11 DWM API für runde Ecken."""
+        if not ctypes:
+            return False
+        try:
+            DWMWA_WINDOW_CORNER_PREFERENCE = 33
+            DWMWCP_ROUND = 2
+            
+            dwmapi = ctypes.windll.dwmapi
+            preference = ctypes.c_int(DWMWCP_ROUND)
+            result = dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_WINDOW_CORNER_PREFERENCE,
+                ctypes.byref(preference),
+                ctypes.sizeof(preference)
+            )
+            return result == 0
+        except Exception:
+            return False
+    
+    def _apply_region_rounded_corners(self, hwnd):
+        """Wendet abgerundete Ecken via Window Region an."""
+        try:
+            rect = win32gui.GetWindowRect(hwnd)
+            width = rect[2] - rect[0]
+            height = rect[3] - rect[1]
+            
+            radius = 20
+            hrgn = win32gui.CreateRoundRectRgn(
+                0, 0, width + 1, height + 1, radius, radius
+            )
+            
+            if win32gui.SetWindowRgn(hwnd, hrgn, True):
+                logger.debug("Region runde Ecken angewendet")
+        except Exception as e:
+            logger.warning(f"Region Fehler: {e}")
     
     def on_mode_change(self, *args):
         """Wird aufgerufen, wenn der Modus geändert wird."""
@@ -226,7 +286,19 @@ class DesktopCreatorGUI:
     
     def close_window(self):
         """Schließt das Fenster mit Slide-Out-Animation."""
+        if self.is_closing:
+            return
+        
         self.is_closing = True
+        self.is_animating = False
+        
+        if self._animation_id:
+            try:
+                self.root.after_cancel(self._animation_id)
+            except Exception:
+                pass
+            self._animation_id = None
+        
         self.animate_slide_out_to_right()
     
     def animate_slide_out_to_right(self):
@@ -234,40 +306,74 @@ class DesktopCreatorGUI:
         if not self.is_closing:
             return
         
-        screen_width = self.root.winfo_screenwidth()
-        delay_ms = 10
-        move_fraction = 0.2
-        
-        if self.current_x >= screen_width:
-            # Animation fertig, jetzt wirklich schließen
-            self.root.quit()
-        else:
-            distance_to_go = screen_width - self.current_x
-            step = max(2, distance_to_go * move_fraction)
-            self.current_x += step
-            self.root.geometry(
-                f"{self.window_width}x{self.window_height}"
-                f"+{int(self.current_x)}+{self.y_pos}"
-            )
-            self.root.after(delay_ms, self.animate_slide_out_to_right)
-
-    def animate_slide_in_from_right(self):
-        if not self.is_animating:
+        try:
+            if not self.root.winfo_exists():
+                self._final_cleanup()
+                return
+        except tk.TclError:
+            self._final_cleanup()
             return
         
         delay_ms = 10
-        move_fraction = 0.15
+        ease_factor = 0.20
+        
+        if self.current_x >= self.screen_width:
+            self._final_cleanup()
+        else:
+            distance_to_go = self.screen_width - self.current_x
+            step = max(3, int(distance_to_go * ease_factor))
+            self.current_x += step
+            self._set_geometry(self.current_x)
+            self.root.after(delay_ms, self.animate_slide_out_to_right)
+    
+    def _final_cleanup(self):
+        """Räumt auf und schließt das Fenster."""
+        try:
+            self.root.quit()
+            self.root.destroy()
+        except Exception:
+            pass
+
+    def animate_slide_in_from_right(self):
+        """Animiert das Fenster von rechts herein."""
+        if not self.is_animating or self.is_closing:
+            return
+        
+        try:
+            if not self.root.winfo_exists():
+                return
+        except tk.TclError:
+            return
+        
+        delay_ms = 10
+        ease_factor = 0.20
         distance_to_go = self.current_x - self.target_x
 
-        if distance_to_go <= 0.5:
+        if distance_to_go <= 1:
             self.current_x = self.target_x
             self.is_animating = False
-            self.root.geometry(f"{self.window_width}x{self.window_height}+{self.target_x}+{self.y_pos}")
+            self._set_geometry(self.target_x)
+            self._animation_id = None
         else:
-            step = max(1, distance_to_go * move_fraction)
+            step = max(1, int(distance_to_go * ease_factor))
             self.current_x -= step
-            self.root.geometry(f"{self.window_width}x{self.window_height}+{int(self.current_x)}+{self.y_pos}")
-            self.root.after(delay_ms, self.animate_slide_in_from_right)
+            self._set_geometry(self.current_x)
+            self._animation_id = self.root.after(
+                delay_ms, self.animate_slide_in_from_right
+            )
+    
+    def _set_geometry(self, x_pos):
+        """Setzt die Fensterposition sicher."""
+        try:
+            x = max(0, int(x_pos))
+            y = max(0, int(self.y_pos))
+            self.root.geometry(
+                f"{self.window_width}x{self.window_height}+{x}+{y}"
+            )
+        except tk.TclError:
+            pass
+        except Exception as e:
+            logger.debug(f"Geometry-Fehler: {e}")
 
     def browse_folder(self):
         # Ändert den Titel je nach Modus
@@ -343,11 +449,12 @@ def show_create_desktop_window():
     """Hauptfunktion zum Starten der Tkinter-App."""
     try:
         root = tk.Tk()
-        app = DesktopCreatorGUI(root)
+        DesktopCreatorGUI(root)
         root.mainloop()
+    except tk.TclError as e:
+        logger.error(f"Tkinter-Fehler: {e}")
     except Exception as e:
-        logger.error(f"Fehler beim Starten von Tkinter: {e}")
-        logger.info("Stellen Sie sicher, dass eine Desktop-Umgebung verfügbar ist.")
+        logger.error(f"Fehler beim Starten: {e}")
 
 # Zum direkten Testen dieser Datei
 if __name__ == "__main__":

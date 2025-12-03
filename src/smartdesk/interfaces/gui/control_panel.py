@@ -3,8 +3,6 @@ from tkinter import messagebox
 import os
 import sys
 import subprocess
-import threading
-import time
 import logging
 
 # --- Pfad-Hack für direkten Aufruf ---
@@ -28,10 +26,12 @@ except ImportError:
 # --- Abgerundete Ecken (nur Windows) ---
 try:
     import win32gui
-    import win32con
+    import ctypes
+    from ctypes import wintypes
 except ImportError:
     win32gui = None
-    logger.info("Hinweis: 'pywin32' nicht gefunden. Ecken werden nicht abgerundet.")
+    ctypes = None
+    logger.info("Hinweis: 'pywin32' nicht gefunden.")
 
 # --- Projekt-Imports ---
 try:
@@ -85,23 +85,41 @@ class SmartDeskControlPanel:
         self.window_width = 420
         self.window_height = 294
         
-        # Bildschirmabmessungen ermitteln
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
+        # Bildschirmabmessungen sicher ermitteln
+        try:
+            # Update um sicherzustellen, dass die Werte korrekt sind
+            self.root.update_idletasks()
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+            
+            # Fallback für ungültige Werte
+            if screen_width <= 0 or screen_height <= 0:
+                screen_width = 1920
+                screen_height = 1080
+                logger.warning("Bildschirmabmessungen ungültig, verwende Fallback 1920x1080")
+        except Exception as e:
+            logger.warning(f"Fehler beim Ermitteln der Bildschirmgröße: {e}")
+            screen_width = 1920
+            screen_height = 1080
+        
+        self.screen_width = screen_width
+        self.screen_height = screen_height
         
         # Position für unten rechts berechnen
         padding_x = 20
         padding_y = 60
         
-        self.target_x = screen_width - self.window_width - padding_x
-        self.y_pos = screen_height - self.window_height - padding_y
+        self.target_x = max(0, screen_width - self.window_width - padding_x)
+        self.y_pos = max(0, screen_height - self.window_height - padding_y)
         
+        # Integer-Werte für Animation (keine Float-Rundungsprobleme)
         self.start_x = screen_width
-        self.current_x = float(self.start_x)
+        self.current_x = self.start_x
         self.is_animating = True
         self.is_closing = False
+        self._animation_id = None  # Für Animation-Cancellation
         
-        self.root.geometry(f"{self.window_width}x{self.window_height}+{int(self.current_x)}+{self.y_pos}")
+        self.root.geometry(f"{self.window_width}x{self.window_height}+{self.current_x}+{self.y_pos}")
         self.root.resizable(False, False)
         self.root.overrideredirect(True)
         
@@ -206,30 +224,64 @@ class SmartDeskControlPanel:
         
         # Fenster anzeigen und Animation starten
         self.root.deiconify()
-        self.animate_slide_in_from_right()
+        self.root.update_idletasks()  # Wichtig: Fenster vollständig initialisieren
+        self._animation_id = self.root.after(50, self.animate_slide_in_from_right)
         
-        # Abgerundete Ecken anwenden
-        self.root.after(0, self.apply_rounded_corners)
+        # Abgerundete Ecken verzögert anwenden (Fenster muss existieren)
+        self.root.after(100, self.apply_rounded_corners)
         
         # Focus-Lost Event: Schließen wenn Fokus verloren geht
-        self.root.bind('<FocusOut>', self.on_focus_lost)
+        # Verzögert binden, damit Initialisierung abgeschlossen ist
+        self.root.after(500, self._bind_focus_events)
         
-        # Status-Update-Thread starten
+        # Status-Update mit Tkinter-after statt Thread (Thread-Safety)
         self.update_running = True
-        self.update_thread = threading.Thread(target=self.update_status_loop, daemon=True)
-        self.update_thread.start()
+        self._schedule_status_update()
         
         # Initial Status aktualisieren
         self.update_status()
     
+    def _bind_focus_events(self):
+        """Bindet Focus-Events nach der Animation."""
+        if not self.is_closing:
+            self.root.bind('<FocusOut>', self.on_focus_lost)
+    
+    def _schedule_status_update(self):
+        """Plant das nächste Status-Update (Thread-sicher via after)."""
+        if self.update_running and not self.is_closing:
+            try:
+                self._check_close_signal()
+                self.update_status()
+            except Exception as e:
+                logger.debug(f"Status-Update übersprungen: {e}")
+            # Nächstes Update in 500ms
+            self.root.after(500, self._schedule_status_update)
+    
+    def _check_close_signal(self):
+        """Prüft auf Schließ-Signal vom Tray-Icon."""
+        if CONTROL_PANEL_PID_PATH:
+            signal_file = CONTROL_PANEL_PID_PATH + '.close'
+            if os.path.exists(signal_file):
+                try:
+                    os.remove(signal_file)
+                except Exception:
+                    pass
+                self.close_panel()
+    
     def on_focus_lost(self, event):
         """Schließt das Panel wenn der Fokus verloren geht."""
         # Nur reagieren wenn das Hauptfenster den Fokus verliert
-        # und wir nicht bereits schließen
-        if not self.is_closing and not self.is_animating:
-            # Kurze Verzögerung um sicherzustellen, dass der Fokus
-            # wirklich woanders hingegangen ist
-            self.root.after(100, self.check_focus_and_close)
+        # und wir nicht bereits schließen oder animieren
+        if self.is_closing or self.is_animating:
+            return
+        
+        # Ignoriere Focus-Verlust an Kind-Widgets (Buttons etc.)
+        if event.widget != self.root:
+            return
+        
+        # Kurze Verzögerung um sicherzustellen, dass der Fokus
+        # wirklich woanders hingegangen ist (nicht nur Button-Klick)
+        self.root.after(150, self.check_focus_and_close)
     
     def check_focus_and_close(self):
         """Prüft ob der Fokus wirklich weg ist und schließt dann."""
@@ -238,63 +290,141 @@ class SmartDeskControlPanel:
         try:
             # Prüfe ob das Fenster noch den Fokus hat
             focused = self.root.focus_get()
+            # Wenn kein Widget in diesem Fenster den Fokus hat, schließen
             if focused is None:
+                # Zusätzliche Prüfung: Ist das Fenster noch aktiv?
+                try:
+                    if not self.root.winfo_exists():
+                        return
+                except Exception:
+                    return
                 self.close_panel()
-        except Exception:
+        except tk.TclError:
+            # Fenster wurde bereits zerstört
             pass
+        except Exception as e:
+            logger.debug(f"Focus-Check Fehler (ignoriert): {e}")
     
     def apply_rounded_corners(self):
         """Wendet abgerundete Ecken an (nur Windows)."""
-        if win32gui:
-            try:
-                hwnd = self.root.winfo_id()
-                radius = 20
-                # WICHTIG: +1 bei width und height für korrekte Darstellung aller Ecken
-                hrgn = win32gui.CreateRoundRectRgn(
-                    0, 0, 
-                    self.window_width + 1, 
-                    self.window_height + 1, 
-                    radius, radius
-                )
-                win32gui.SetWindowRgn(hwnd, hrgn, True)
-                logger.debug("Abgerundete Ecken erfolgreich angewendet")
-            except Exception as e:
-                logger.warning(f"Fehler beim Anwenden der abgerundeten Ecken: {e}")
+        if not win32gui:
+            return
+            
+        try:
+            # Warte bis Fenster vollständig gerendert ist
+            self.root.update_idletasks()
+            
+            # Hole das echte Top-Level Window Handle
+            frame_hwnd = self.root.winfo_id()
+            hwnd = win32gui.GetParent(frame_hwnd)
+            if not hwnd:
+                hwnd = frame_hwnd
+            
+            # Methode 1: Windows 11+ DWM API für native runde Ecken
+            if self._try_dwm_rounded_corners(hwnd):
+                logger.debug("DWM runde Ecken angewendet (Windows 11+)")
+                return
+            
+            # Methode 2: Fallback mit Region (ältere Windows-Versionen)
+            self._apply_region_rounded_corners(hwnd)
+            
+        except Exception as e:
+            logger.warning(f"Fehler bei abgerundeten Ecken: {e}")
+    
+    def _try_dwm_rounded_corners(self, hwnd):
+        """Versucht Windows 11 DWM API für runde Ecken zu nutzen."""
+        if not ctypes:
+            return False
+        try:
+            # DWMWA_WINDOW_CORNER_PREFERENCE = 33
+            # DWMWCP_ROUND = 2 (runde Ecken)
+            DWMWA_WINDOW_CORNER_PREFERENCE = 33
+            DWMWCP_ROUND = 2
+            
+            dwmapi = ctypes.windll.dwmapi
+            preference = ctypes.c_int(DWMWCP_ROUND)
+            result = dwmapi.DwmSetWindowAttribute(
+                hwnd,
+                DWMWA_WINDOW_CORNER_PREFERENCE,
+                ctypes.byref(preference),
+                ctypes.sizeof(preference)
+            )
+            return result == 0  # S_OK
+        except Exception:
+            return False
+    
+    def _apply_region_rounded_corners(self, hwnd):
+        """Wendet abgerundete Ecken via Window Region an."""
+        try:
+            rect = win32gui.GetWindowRect(hwnd)
+            width = rect[2] - rect[0]
+            height = rect[3] - rect[1]
+            
+            radius = 20
+            
+            # CreateRoundRectRgn: rechts/unten sind exklusiv
+            hrgn = win32gui.CreateRoundRectRgn(
+                0, 0,
+                width + 1,
+                height + 1,
+                radius, radius
+            )
+            
+            if win32gui.SetWindowRgn(hwnd, hrgn, True):
+                logger.debug("Region runde Ecken angewendet")
+            else:
+                logger.warning("SetWindowRgn fehlgeschlagen")
+        except Exception as e:
+            logger.warning(f"Region Fehler: {e}")
     
     def animate_slide_in_from_right(self):
-        if not self.is_animating:
+        """Animiert das Fenster von rechts herein."""
+        if not self.is_animating or self.is_closing:
             return
         
-        delay_ms = 10
-        move_fraction = 0.15
+        try:
+            # Prüfe ob Fenster noch existiert
+            if not self.root.winfo_exists():
+                return
+        except tk.TclError:
+            return
+        
+        delay_ms = 10  # ~60 FPS
+        ease_factor = 0.20  # Easing für flüssigere Animation
         distance_to_go = self.current_x - self.target_x
 
-        if distance_to_go <= 0.5:
+        if distance_to_go <= 1:
+            # Animation abgeschlossen
             self.current_x = self.target_x
             self.is_animating = False
-            self.root.geometry(f"{self.window_width}x{self.window_height}+{self.target_x}+{self.y_pos}")
+            self._set_geometry(self.target_x)
+            self._animation_id = None
         else:
-            step = max(1, distance_to_go * move_fraction)
+            # Easing: Langsamer werden je näher am Ziel
+            step = max(1, int(distance_to_go * ease_factor))
             self.current_x -= step
-            self.root.geometry(f"{self.window_width}x{self.window_height}+{int(self.current_x)}+{self.y_pos}")
-            self.root.after(delay_ms, self.animate_slide_in_from_right)
+            self._set_geometry(self.current_x)
+            self._animation_id = self.root.after(
+                delay_ms, self.animate_slide_in_from_right
+            )
+    
+    def _set_geometry(self, x_pos):
+        """Setzt die Fensterposition sicher."""
+        try:
+            x = max(0, int(x_pos))
+            y = max(0, int(self.y_pos))
+            self.root.geometry(
+                f"{self.window_width}x{self.window_height}+{x}+{y}"
+            )
+        except tk.TclError:
+            # Fenster wurde geschlossen
+            pass
+        except Exception as e:
+            logger.debug(f"Geometry-Fehler: {e}")
     
     def update_status_loop(self):
-        """Überwacht die PID-Datei und das Schließ-Signal."""
-        while self.update_running:
-            try:
-                # Prüfe auf Schließ-Signal vom Tray-Icon
-                if CONTROL_PANEL_PID_PATH:
-                    signal_file = CONTROL_PANEL_PID_PATH + '.close'
-                    if os.path.exists(signal_file):
-                        os.remove(signal_file)
-                        self.root.after(0, self.close_panel)
-                        break
-                
-                self.root.after(0, self.update_status)
-            except:
-                break
-            time.sleep(0.5)
+        """DEPRECATED - Wird nicht mehr verwendet. Status-Update läuft via _schedule_status_update."""
+        pass
     
     def update_status(self):
         """Aktualisiert den Status basierend auf der PID-Datei."""
@@ -449,8 +579,21 @@ class SmartDeskControlPanel:
 
     def close_panel(self):
         """Schließt das Control Panel mit Slide-Out-Animation."""
+        if self.is_closing:
+            return  # Bereits am Schließen
+        
         self.update_running = False
         self.is_closing = True
+        self.is_animating = False
+        
+        # Laufende Animation abbrechen
+        if self._animation_id:
+            try:
+                self.root.after_cancel(self._animation_id)
+            except Exception:
+                pass
+            self._animation_id = None
+        
         self.animate_slide_out_to_right()
     
     def animate_slide_out_to_right(self):
@@ -458,34 +601,52 @@ class SmartDeskControlPanel:
         if not self.is_closing:
             return
         
-        screen_width = self.root.winfo_screenwidth()
-        delay_ms = 10
-        move_fraction = 0.2
+        try:
+            if not self.root.winfo_exists():
+                self._final_cleanup()
+                return
+        except tk.TclError:
+            self._final_cleanup()
+            return
         
-        if self.current_x >= screen_width:
+        delay_ms = 10  # ~60 FPS
+        ease_factor = 0.20  # Schneller raus als rein
+        
+        if self.current_x >= self.screen_width:
             # Animation fertig, jetzt wirklich schließen
-            cleanup_control_panel_pid()
-            self.root.quit()
+            self._final_cleanup()
         else:
-            distance_to_go = screen_width - self.current_x
-            step = max(2, distance_to_go * move_fraction)
+            distance_to_go = self.screen_width - self.current_x
+            step = max(3, int(distance_to_go * ease_factor))
             self.current_x += step
-            self.root.geometry(
-                f"{self.window_width}x{self.window_height}"
-                f"+{int(self.current_x)}+{self.y_pos}"
-            )
+            self._set_geometry(self.current_x)
             self.root.after(delay_ms, self.animate_slide_out_to_right)
+    
+    def _final_cleanup(self):
+        """Räumt auf und schließt das Fenster."""
+        try:
+            cleanup_control_panel_pid()
+        except Exception as e:
+            logger.debug(f"PID Cleanup Fehler: {e}")
+        
+        try:
+            self.root.quit()
+            self.root.destroy()
+        except Exception:
+            pass
 
 
 def show_control_panel():
     """Hauptfunktion zum Starten der Tkinter-App."""
     try:
         root = tk.Tk()
-        app = SmartDeskControlPanel(root)
+        SmartDeskControlPanel(root)
         root.mainloop()
+    except tk.TclError as e:
+        logger.error(f"Tkinter-Fehler: {e}")
+        logger.info("Desktop-Umgebung verfügbar?")
     except Exception as e:
         logger.error(f"Fehler beim Starten: {e}")
-        logger.info("Stellen Sie sicher, dass eine Desktop-Umgebung verfügbar ist.")
 
 
 # Zum direkten Testen dieser Datei
