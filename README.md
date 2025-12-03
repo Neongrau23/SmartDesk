@@ -209,18 +209,6 @@ Dieses Projekt ist unter der [MIT-Lizenz](LICENSE) lizenziert.
 
 ---
 
-## 🤝 Beitragen
-
-Beiträge sind willkommen! Bitte erstellen Sie einen Issue oder Pull Request.
-
-1. Fork erstellen
-2. Feature-Branch erstellen (`git checkout -b feature/AmazingFeature`)
-3. Änderungen committen (`git commit -m 'Add AmazingFeature'`)
-4. Branch pushen (`git push origin feature/AmazingFeature`)
-5. Pull Request erstellen
-
----
-
 ## 🚧 Roadmap
 
 Dieses Projekt befindet sich in aktiver Entwicklung.
