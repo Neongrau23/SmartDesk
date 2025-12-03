@@ -2,7 +2,7 @@
 
 **Virtual Desktop Manager for Windows**
 
-SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer virtueller Desktops unter Windows. Wechseln Sie mühelos zwischen verschiedenen Desktop-Konfigurationen – inklusive Icons, Hintergrundbild und Ordner-Strukturen.
+SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter Windows. Wechseln Sie mühelos zwischen verschiedenen Desktop-Konfigurationen – inklusive Icons, Hintergrundbild und Ordner-Strukturen.
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6.svg)
