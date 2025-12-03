@@ -15,7 +15,7 @@ SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter W
 - 🖼️ **Mehrere Desktop-Profile** – Erstellen und verwalten Sie verschiedene Desktop-Konfigurationen
 - 🔄 **Schneller Desktop-Wechsel** – Wechseln Sie per CLI, GUI oder Hotkeys zwischen Desktops
 - 🎨 **Wallpaper-Verwaltung** – Eigene Hintergrundbilder für jeden Desktop
-- 📍 **Icon-Positionen** – Speichern und Wiederherstellen der Desktop-Icon-Anordnung
+- 📍 **Icon-Positionen** – Automatisches Speichern und Wiederherstellen der Desktop-Icon-Anordnung
 - ⌨️ **Globale Hotkeys** – Schnelles Umschalten mit Tastenkombinationen
 - 🔔 **System Tray Integration** – Zugriff auf alle Funktionen über das Tray-Icon
 - 🌐 **Lokalisierung** – Mehrsprachige Unterstützung (Deutsch/Englisch)
