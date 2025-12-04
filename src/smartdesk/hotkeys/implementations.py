@@ -302,6 +302,17 @@ class SubprocessStarter:
             if os.name == 'nt' and self._hide_window:
                 creation_flags = subprocess.CREATE_NO_WINDOW
             
+            # Umgebungsvariablen - PYTHONPATH für Modul-Auflösung
+            env = os.environ.copy()
+            # Füge src-Verzeichnis zum PYTHONPATH hinzu
+            src_dir = os.path.join(working_dir, 'src')
+            if os.path.isdir(src_dir):
+                current_pythonpath = env.get('PYTHONPATH', '')
+                if current_pythonpath:
+                    env['PYTHONPATH'] = f"{src_dir};{current_pythonpath}"
+                else:
+                    env['PYTHONPATH'] = src_dir
+            
             # Log-Dateien öffnen
             stdout_handle = subprocess.DEVNULL
             stderr_handle = subprocess.DEVNULL
@@ -320,6 +331,7 @@ class SubprocessStarter:
             process = subprocess.Popen(
                 command,
                 cwd=working_dir,
+                env=env,
                 stdout=stdout_handle,
                 stderr=stderr_handle,
                 stdin=subprocess.DEVNULL,

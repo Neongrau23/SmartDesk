@@ -25,7 +25,9 @@ except ImportError:
 try:
     from .banner_controller import get_banner_controller
     _banner_controller = None  # Wird lazy initialisiert
-except ImportError:
+    print("[INFO] Banner-Controller erfolgreich importiert")
+except ImportError as e:
+    print(f"[WARNING] Banner-Controller Import fehlgeschlagen: {e}")
     _banner_controller = None
     def get_banner_controller():
         return None
@@ -81,6 +83,13 @@ def _get_banner_ctrl():
     return _banner_controller
 
 
+def _close_banner_and_reset():
+    """Schließt das Banner und setzt den Controller zurück."""
+    ctrl = _get_banner_ctrl()
+    if ctrl:
+        ctrl.reset()
+
+
 def on_press(key):
     global wait_state
     
@@ -105,46 +114,55 @@ def on_press(key):
             if key_char == '1':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=1))
+                _close_banner_and_reset()
                 aktion_alt_1()
                 wait_state = "IDLE"
             elif key_char == '2':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=2))
+                _close_banner_and_reset()
                 aktion_alt_2()
                 wait_state = "IDLE"
             elif key_char == '3':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=3))
+                _close_banner_and_reset()
                 aktion_alt_3()
                 wait_state = "IDLE"
             elif key_char == '4':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=4))
+                _close_banner_and_reset()
                 aktion_alt_4()
                 wait_state = "IDLE"
             elif key_char == '5':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=5))
+                _close_banner_and_reset()
                 aktion_alt_5()
                 wait_state = "IDLE"
             elif key_char == '6':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=6))
+                _close_banner_and_reset()
                 aktion_alt_6()
                 wait_state = "IDLE"
             elif key_char == '7':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=7))
+                _close_banner_and_reset()
                 aktion_alt_7()
                 wait_state = "IDLE"
             elif key_char == '8':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=8))
+                _close_banner_and_reset()
                 aktion_alt_8()
                 wait_state = "IDLE"
             elif key_char == '9':
                 if _log_func:
                     _log_func(get_text("hotkey_listener.log.action_executed", n=9))
+                _close_banner_and_reset()
                 aktion_alt_9()
                 wait_state = "IDLE"
             
@@ -153,6 +171,7 @@ def on_press(key):
             
             else:
                 print(get_text("hotkey_listener.info.abort_invalid_key"))
+                _close_banner_and_reset()
                 wait_state = "IDLE"
 
         elif is_modifier:

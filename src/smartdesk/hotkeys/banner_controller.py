@@ -12,7 +12,6 @@ Dieser Controller ist unabhängig vom UI und kann getestet werden.
 
 import time
 import threading
-import queue
 from enum import Enum, auto
 from typing import Optional, Callable, Protocol
 from dataclasses import dataclass
@@ -29,7 +28,7 @@ class BannerState(Enum):
 @dataclass
 class BannerConfig:
     """Konfiguration für den Banner-Controller."""
-    hold_duration_sec: float = 1.0   # Wie lange Alt gehalten werden muss
+    hold_duration_sec: float = 0.3   # Wie lange Alt gehalten werden muss
     arm_timeout_sec: float = 5.0     # Timeout nach Strg+Shift
     check_interval_ms: int = 50      # Wie oft der Timer geprüft wird
 
@@ -240,8 +239,10 @@ def set_banner_controller(controller: BannerController) -> None:
 def _create_default_banner() -> BannerUI:
     """Erstellt das Standard-Banner mit Desktop-Status."""
     # Import hier um zirkuläre Imports zu vermeiden
-    from ..shared.animations.taskbar_banner import TaskbarBanner
+    from ..shared.animations.banner import TaskbarBanner, DEFAULT_THEME
     from ..core.services import desktop_service
+    
+    icons = DEFAULT_THEME.icons
     
     # Desktop-Status abrufen
     try:
@@ -249,24 +250,24 @@ def _create_default_banner() -> BannerUI:
         
         if not desktops:
             message = "Keine SmartDesk-Desktops konfiguriert"
-            icon = "⚠"
+            icon = icons.warning
         else:
             parts = []
             active_found = False
             
             for d in desktops:
                 if d.is_active:
-                    parts.append(f"▶ {d.name}")
+                    parts.append(f"{icons.active_marker} {d.name}")
                     active_found = True
                 else:
-                    parts.append(f"• {d.name}")
+                    parts.append(f"{icons.inactive_marker} {d.name}")
             
             message = "    ".join(parts)
-            icon = "💻" if active_found else "🔔"
+            icon = icons.desktop_active if active_found else icons.desktop_inactive
             
     except Exception as e:
         message = f"Fehler: {e}"
-        icon = "❌"
+        icon = icons.error
     
     return TaskbarBanner(message=message, icon=icon)
 
@@ -277,114 +278,128 @@ def _create_default_banner() -> BannerUI:
 
 class ThreadedBannerManager:
     """
-    Verwaltet das Banner in einem separaten Thread mit eigenem Tkinter-Root.
+    Verwaltet das Banner in einem separaten Prozess.
     
-    Tkinter muss im Main-Thread laufen, aber der Listener läuft auch im Main-Thread.
-    Lösung: Wir starten einen eigenen Thread mit eigenem Tkinter-Root für das Banner.
+    Tkinter muss im Main-Thread laufen - da der pynput Listener
+    den Main-Thread blockiert, starten wir das Banner in einem
+    separaten Prozess.
     """
     
     def __init__(self):
-        self._banner_thread: Optional[threading.Thread] = None
-        self._command_queue: queue.Queue = queue.Queue()
-        self._running = False
+        self._process = None
         self._lock = threading.Lock()
     
     def show_banner(self) -> None:
-        """Zeigt das Banner an (thread-safe)."""
+        """Zeigt das Banner an (startet separaten Prozess)."""
         with self._lock:
-            if not self._running:
-                self._start_banner_thread()
-            self._command_queue.put(("show", None))
+            if self._process is not None and self._process.poll() is None:
+                # Prozess läuft noch
+                return
+            
+            self._start_banner_process()
     
     def close_banner(self) -> None:
-        """Schließt das Banner (thread-safe)."""
+        """Schließt das Banner (beendet Prozess)."""
         with self._lock:
-            self._command_queue.put(("close", None))
-    
-    def _start_banner_thread(self) -> None:
-        """Startet den Banner-Thread."""
-        self._running = True
-        self._banner_thread = threading.Thread(
-            target=self._banner_thread_loop,
-            daemon=True
-        )
-        self._banner_thread.start()
-    
-    def _banner_thread_loop(self) -> None:
-        """Der Haupt-Loop des Banner-Threads."""
-        import tkinter as tk
-        
-        try:
-            root = tk.Tk()
-            root.withdraw()
-            
-            banner = None
-            
-            def check_commands():
-                nonlocal banner
+            if self._process is not None and self._process.poll() is None:
                 try:
-                    while True:
-                        cmd, data = self._command_queue.get_nowait()
-                        
-                        if cmd == "show" and banner is None:
-                            banner = _create_default_banner_with_parent(root)
-                            banner.show()
-                            
-                        elif cmd == "close" and banner is not None:
-                            banner.close()
-                            banner = None
-                            
-                        elif cmd == "quit":
-                            root.quit()
-                            return
-                            
-                except queue.Empty:
+                    self._process.terminate()
+                except Exception:
                     pass
-                
-                # Weiter prüfen alle 50ms
-                root.after(50, check_commands)
-            
-            # Starte Command-Check
-            root.after(50, check_commands)
-            root.mainloop()
-            
-        except Exception as e:
-            print(f"Banner-Thread Fehler: {e}")
-        finally:
-            with self._lock:
-                self._running = False
-
-
-def _create_default_banner_with_parent(parent) -> 'BannerUI':
-    """Erstellt das Standard-Banner mit Parent-Fenster."""
-    from ..shared.animations.taskbar_banner import TaskbarBanner
-    from ..core.services import desktop_service
+                self._process = None
     
+    def _start_banner_process(self) -> None:
+        """Startet den Banner-Prozess."""
+        import subprocess
+        import sys
+        import os
+        
+        # Finde den Python-Interpreter
+        python_exe = sys.executable
+        
+        # Robuste Pfadermittlung über das smartdesk-Paket
+        # Funktioniert sowohl bei direktem Aufruf als auch bei -m Modul-Aufruf
+        try:
+            import smartdesk
+            smartdesk_pkg_dir = os.path.dirname(os.path.abspath(smartdesk.__file__))
+            src_dir = os.path.dirname(smartdesk_pkg_dir)
+        except (ImportError, AttributeError):
+            # Fallback auf relative Pfade
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            smartdesk_dir = os.path.dirname(script_dir)
+            src_dir = os.path.dirname(smartdesk_dir)
+        
+        # Inline-Skript das Banner anzeigt
+        banner_script = '''
+import sys
+import os
+sys.path.insert(0, r"{src_dir}")
+
+from smartdesk.shared.animations.banner import TaskbarBanner, DEFAULT_THEME
+from smartdesk.core.services import desktop_service
+import tkinter as tk
+
+def get_message():
+    icons = DEFAULT_THEME.icons
     try:
         desktops = desktop_service.get_all_desktops()
-        
         if not desktops:
-            message = "Keine SmartDesk-Desktops konfiguriert"
-            icon = "⚠"
-        else:
-            parts = []
-            active_found = False
-            
-            for d in desktops:
-                if d.is_active:
-                    parts.append(f"▶ {d.name}")
-                    active_found = True
-                else:
-                    parts.append(f"• {d.name}")
-            
-            message = "    ".join(parts)
-            icon = "💻" if active_found else "🔔"
-            
+            return "Keine SmartDesk-Desktops konfiguriert", icons.warning
+        parts = []
+        active_found = False
+        for d in desktops:
+            if d.is_active:
+                parts.append(f"{{icons.active_marker}} {{d.name}}")
+                active_found = True
+            else:
+                parts.append(f"{{icons.inactive_marker}} {{d.name}}")
+        message = "    ".join(parts)
+        icon = icons.desktop_active if active_found else icons.desktop_inactive
+        return message, icon
     except Exception as e:
-        message = f"Fehler: {e}"
-        icon = "❌"
-    
-    return TaskbarBanner(message=message, icon=icon, parent=parent)
+        return f"Fehler: {{e}}", icons.error
+
+root = tk.Tk()
+root.withdraw()
+message, icon = get_message()
+banner = TaskbarBanner(message=message, icon=icon, parent=root)
+banner.show()
+
+# Warte bis Prozess beendet wird (SIGTERM)
+import signal
+def on_terminate(sig, frame):
+    try:
+        banner.close()
+    except:
+        pass
+    root.quit()
+signal.signal(signal.SIGTERM, on_terminate)
+
+# Halte Fenster offen
+root.mainloop()
+'''.format(src_dir=src_dir)
+        
+        # Starte als separaten Prozess
+        try:
+            # Umgebungsvariablen mit PYTHONPATH
+            env = os.environ.copy()
+            env['PYTHONPATH'] = src_dir
+            
+            # Nutze python.exe (nicht pythonw.exe) um Fehler zu sehen
+            # CREATE_NO_WINDOW versteckt die Konsole trotzdem
+            
+            self._process = subprocess.Popen(
+                [python_exe, '-c', banner_script],
+                env=env,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=(
+                    subprocess.CREATE_NO_WINDOW
+                    if sys.platform == 'win32' else 0
+                )
+            )
+        except Exception as e:
+            print(f"Banner-Prozess Fehler: {e}")
 
 
 # Globaler Banner-Manager
