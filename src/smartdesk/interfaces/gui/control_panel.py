@@ -1,9 +1,9 @@
+import logging
+import os
+import subprocess
+import sys
 import tkinter as tk
 from tkinter import messagebox
-import os
-import sys
-import subprocess
-import logging
 
 # --- Pfad-Hack für direkten Aufruf ---
 if __name__ == "__main__" or __package__ is None:
@@ -26,8 +26,9 @@ except ImportError:
 
 # --- Abgerundete Ecken (nur Windows) ---
 try:
-    import win32gui
     import ctypes
+
+    import win32gui
 except ImportError:
     win32gui = None
     ctypes = None
@@ -36,8 +37,8 @@ except ImportError:
 # --- Projekt-Imports ---
 try:
     from smartdesk.core.services import desktop_service
-    from smartdesk.shared.localization import get_text
     from smartdesk.hotkeys import hotkey_manager
+    from smartdesk.shared.localization import get_text
 
     desktop_handler = desktop_service
 except ImportError as e:
