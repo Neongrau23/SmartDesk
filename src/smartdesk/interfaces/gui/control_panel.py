@@ -573,6 +573,10 @@ class SmartDeskControlPanel:
                 [pythonw_executable, gui_create_py],
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
+            
+            # Control Panel schließen, damit gui_create den Fokus bekommt
+            self.close_panel()
+            
         except Exception as e:
             logger.error(f"Fehler beim Erstellen der GUI: {e}")
             messagebox.showerror("Fehler", f"Desktop-Erstellung konnte nicht gestartet werden:\n{e}")

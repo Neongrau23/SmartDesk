@@ -212,6 +212,29 @@ class DesktopCreatorGUI:
         
         # Abgerundete Ecken verzögert anwenden
         self.root.after(100, self.apply_rounded_corners)
+        
+        # Fokus auf dieses Fenster setzen (wenn von Control Panel gestartet)
+        self.root.after(200, self._request_focus)
+    
+    def _request_focus(self):
+        """Fordert den Fokus für dieses Fenster an."""
+        try:
+            self.root.lift()
+            self.root.focus_force()
+            self.name_entry.focus_set()
+            
+            # Windows-spezifisch: Fenster in den Vordergrund bringen
+            if win32gui:
+                try:
+                    frame_hwnd = self.root.winfo_id()
+                    hwnd = win32gui.GetParent(frame_hwnd)
+                    if not hwnd:
+                        hwnd = frame_hwnd
+                    win32gui.SetForegroundWindow(hwnd)
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.debug(f"Fokus-Anforderung fehlgeschlagen: {e}")
     
     def apply_rounded_corners(self):
         """Wendet abgerundete Ecken an (nur Windows)."""
