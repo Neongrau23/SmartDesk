@@ -19,11 +19,14 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # Virtual environments
 .venv/
+venv/
 ENV/
 env/
+.env/
 
 # IDEs
 .vscode/
@@ -31,27 +34,93 @@ env/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
+ehthumbs.db
+*.lnk
 
 # Project specific
 data/
 *.log
 .coverage
+coverage.xml
+*.cover
+*.py,cover
 
-# Zusätzlich 
-.env                  # Umgebungsvariablen/Secrets
+# Environment & Secrets
+.env
 .env.local
-*.sqlite3             # Lokale Datenbanken
-.mypy_cache/          # Type-Checker Cache
-.pytest_cache/        # Pytest Cache (fehlt!)
-.ruff_cache/          # Linter Cache
-htmlcov/              # Coverage HTML Reports
-*.bak                 # Backup-Dateien
+.env.*.local
+*.pem
+*.key
 
-# Zusätzlich für dieses Projekt
-*.egg-info/           # Bereits vorhanden, aber prüfen ob aktiv
-.pytest_cache/        # Cache-Ordner entfernen
-idea/
+# Databases
+*.sqlite3
+*.db
+*.sql
+
+# Caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.cache/
+.hypothesis/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing & Coverage
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage/
+*.cover
+.coverage.*
+
+# Documentation
+docs/_build/
+site/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Distribution / Packaging
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Type stubs
+.pyi
+
+# pyenv
+.python-version
+
+# Backup & Temp files
+*.bak
+*.tmp
+*.temp
+*.orig
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Local configuration
+local_settings.py
+*.local
+
+# Compiled files
+*.exe
+*.dll
+*.pyd
