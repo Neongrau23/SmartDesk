@@ -7,7 +7,6 @@ Testet die Serialisierung und Deserialisierung von:
 - Desktop
 """
 
-import pytest
 from smartdesk.core.models.desktop import Desktop, IconPosition
 
 

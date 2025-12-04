@@ -1,123 +1,127 @@
 # Dateipfad: src/smartdesk/shared/animations/banner/theme.py
+
 """
-Theme-Definitionen für das TaskbarBanner.
+Theme-Konfiguration für das Banner.
 
-Hier werden alle visuellen Aspekte definiert:
-- Farben
-- Schriftarten
-- Icons/Emojis
-
-Um das Design anzupassen, bearbeite diese Datei.
+Definiert Farben, Schriften und Icons.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict
+from dataclasses import dataclass
 
 
-@dataclass
+@dataclass(frozen=True)
 class BannerColors:
     """Farbschema für das Banner."""
 
-    # Hintergrund
-    background: str = "#1a1a1a"
-    background_dark: str = "#000000"
-
-    # Akzent (oberer Streifen)
-    accent: str = "#0078d4"
-
-    # Text
-    text_primary: str = "#ffffff"
-    text_secondary: str = "#8a8a8a"
-    text_hover: str = "#ffffff"
-
-    # Rahmen
-    border: str = "#404040"
-
-    # Status-Farben
-    success: str = "#4caf50"
-    warning: str = "#ff9800"
-    error: str = "#f44336"
-    info: str = "#2196f3"
+    background: str = "#2D2D30"       # Dunkler Hintergrund
+    background_dark: str = "#1E1E1E"  # Noch dunkler für Rahmen
+    accent: str = "#0078D4"           # Windows-Blau
+    text_primary: str = "#FFFFFF"     # Weißer Text
+    text_secondary: str = "#808080"   # Grauer Text
+    text_hover: str = "#FFFFFF"       # Hover-Farbe
+    border: str = "#3F3F46"           # Rahmenfarbe
 
 
-@dataclass
+# Alias für Kompatibilität
+ColorScheme = BannerColors
+
+
+@dataclass(frozen=True)
 class BannerFonts:
-    """Schriftarten für das Banner."""
+    """Schrift-Konfiguration."""
 
-    # Font-Familien
     primary_family: str = "Segoe UI"
     emoji_family: str = "Segoe UI Emoji"
-
-    # Größen
     message_size: int = 11
-    icon_size: int = 18
+    icon_size: int = 16
     close_button_size: int = 12
 
 
-@dataclass
+# Alias für Kompatibilität
+FontConfig = BannerFonts
+
+
+@dataclass(frozen=True)
 class BannerIcons:
-    """Icons/Emojis für verschiedene Status."""
+    """Icons für das Banner."""
 
-    # Standard-Icons
-    info: str = "ℹ"
-    success: str = "✓"
-    warning: str = "⚠"
-    error: str = "❌"
-
-    # Desktop-Status
-    desktop_active: str = "💻"
-    desktop_inactive: str = "🔔"
-
-    # UI-Elemente
-    close: str = "✕"
-
-    # Marker für aktive/inaktive Desktops
-    active_marker: str = "▶"
-    inactive_marker: str = "•"
+    close: str = "X"              # Schließen-Button
+    info: str = "i"               # Info-Icon
+    warning: str = "!"            # Warnung
+    error: str = "X"              # Fehler
+    success: str = "OK"           # Erfolg
+    # Desktop-Status Icons
+    active_marker: str = ">"      # Aktiver Desktop
+    inactive_marker: str = "-"    # Inaktiver Desktop
+    desktop_active: str = "D"     # Desktop-Icon (aktiv)
+    desktop_inactive: str = "D"   # Desktop-Icon (inaktiv)
 
 
-@dataclass
+# Alias für Kompatibilität
+IconSet = BannerIcons
+
+
+@dataclass(frozen=True)
 class BannerTheme:
-    """
-    Komplettes Theme für das Banner.
+    """Vollständiges Theme für das Banner."""
 
-    Verwendung:
-        theme = BannerTheme()  # Standard-Theme
+    colors: BannerColors = None
+    fonts: BannerFonts = None
+    icons: BannerIcons = None
 
-        # Oder angepasst:
-        theme = BannerTheme(
-            colors=BannerColors(accent="#ff5722"),
-            fonts=BannerFonts(message_size=14)
-        )
-    """
-
-    colors: BannerColors = field(default_factory=BannerColors)
-    fonts: BannerFonts = field(default_factory=BannerFonts)
-    icons: BannerIcons = field(default_factory=BannerIcons)
+    def __post_init__(self):
+        object.__setattr__(self, 'colors', self.colors or BannerColors())
+        object.__setattr__(self, 'fonts', self.fonts or BannerFonts())
+        object.__setattr__(self, 'icons', self.icons or BannerIcons())
 
 
 # =============================================================================
 # Vordefinierte Themes
 # =============================================================================
 
-# Standard-Theme (Windows 11 inspiriert)
-DEFAULT_THEME = BannerTheme()
-
-# Dunkles Theme
-DARK_THEME = BannerTheme(
-    colors=BannerColors(background="#0d0d0d", accent="#0078d4", border="#333333")
+DEFAULT_THEME = BannerTheme(
+    colors=BannerColors(),
+    fonts=BannerFonts(),
+    icons=BannerIcons(),
 )
 
-# Helles Theme
+DARK_THEME = BannerTheme(
+    colors=BannerColors(
+        background="#1E1E1E",
+        background_dark="#141414",
+        accent="#0078D4",
+        text_primary="#FFFFFF",
+        text_secondary="#808080",
+        border="#2D2D30",
+    ),
+    fonts=BannerFonts(),
+    icons=BannerIcons(),
+)
+
 LIGHT_THEME = BannerTheme(
     colors=BannerColors(
-        background="#f5f5f5",
-        background_dark="#ffffff",
-        text_primary="#000000",
+        background="#F3F3F3",
+        background_dark="#E5E5E5",
+        accent="#0078D4",
+        text_primary="#1E1E1E",
         text_secondary="#666666",
-        border="#cccccc",
-    )
+        text_hover="#000000",
+        border="#CCCCCC",
+    ),
+    fonts=BannerFonts(),
+    icons=BannerIcons(),
 )
 
-# Akzent-Theme (Orange)
-ACCENT_THEME = BannerTheme(colors=BannerColors(accent="#ff5722", background="#1a1a1a"))
+ACCENT_THEME = BannerTheme(
+    colors=BannerColors(
+        background="#0078D4",
+        background_dark="#005A9E",
+        accent="#FFFFFF",
+        text_primary="#FFFFFF",
+        text_secondary="#B3D7F2",
+        text_hover="#FFFFFF",
+        border="#005A9E",
+    ),
+    fonts=BannerFonts(),
+    icons=BannerIcons(),
+)

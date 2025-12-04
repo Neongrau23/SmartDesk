@@ -9,9 +9,8 @@ Diese Tests fokussieren auf die Datenlogik ohne direkte Aufrufe
 der Windows-API abhängigen Handler-Funktionen.
 """
 
-import json
 from unittest.mock import patch
-import pytest
+
 
 from smartdesk.core.models.desktop import Desktop, IconPosition
 

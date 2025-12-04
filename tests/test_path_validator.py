@@ -7,7 +7,7 @@ Testet:
 """
 
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from smartdesk.core.utils.path_validator import ensure_directory_exists
 
@@ -109,7 +109,7 @@ class TestEnsureDirectoryExists:
 
     def test_whitespace_path_returns_false(self):
         """Test: Pfad nur aus Whitespace gibt False zurück."""
-        result = ensure_directory_exists("   ")
+        ensure_directory_exists("   ")
         # Abhängig von Implementierung: könnte False oder Fehler sein
         # Der leere String nach strip() sollte False ergeben
 
@@ -163,5 +163,5 @@ class TestEdgeCases:
             long_path = long_path / long_name
 
         # Sollte entweder funktionieren oder sauber fehlschlagen
-        result = ensure_directory_exists(str(long_path))
+        ensure_directory_exists(str(long_path))
         # Ergebnis hängt von OS und Dateisystem ab

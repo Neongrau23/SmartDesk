@@ -1,5 +1,7 @@
 # Dateipfad: src/smartdesk/shared/animations/banner/banner_widget.py
+
 """
+
 UI-Widget für das TaskbarBanner.
 
 Enthält nur die visuelle Darstellung (Tkinter-Komponenten).
@@ -33,7 +35,7 @@ class BannerWidget:
     def __init__(
         self,
         message: str = "Benachrichtigung",
-        icon: str = "ℹ",
+        icon: str = "i",
         theme: Optional[BannerTheme] = None,
         config: Optional[BannerConfig] = None,
         on_close: Optional[Callable[[], None]] = None,
@@ -109,15 +111,24 @@ class BannerWidget:
             pady=cfg.content_padding_y,
         )
 
-        # Icon
-        self.icon_label = tk.Label(
+        # Icon im Kreis
+        icon_frame = tk.Frame(
             content_frame,
-            text=self.icon,
-            font=(theme.fonts.emoji_family, theme.fonts.icon_size),
-            fg=theme.colors.accent,
-            bg=theme.colors.background,
+            bg=theme.colors.accent,
+            width=28,
+            height=28,
         )
-        self.icon_label.pack(side=tk.LEFT, padx=(0, cfg.icon_padding_right))
+        icon_frame.pack(side=tk.LEFT, padx=(0, cfg.icon_padding_right))
+        icon_frame.pack_propagate(False)
+
+        self.icon_label = tk.Label(
+            icon_frame,
+            text=self.icon,
+            font=(theme.fonts.primary_family, theme.fonts.icon_size, "bold"),
+            fg=theme.colors.text_primary,
+            bg=theme.colors.accent,
+        )
+        self.icon_label.place(relx=0.5, rely=0.5, anchor="center")
 
         # Nachricht
         self.message_font = tkFont.Font(

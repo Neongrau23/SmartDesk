@@ -13,7 +13,7 @@ import os
 import sys
 import json
 import pytest
-from unittest.mock import MagicMock, patch, PropertyMock
+from unittest.mock import MagicMock, patch
 from typing import List, Dict, Any
 
 # Projekt-Root zum Path hinzufügen für Imports

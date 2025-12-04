@@ -3,15 +3,13 @@
 Unit-Tests für den Banner-Controller.
 """
 
-import pytest
 import time
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from smartdesk.hotkeys.banner_controller import (
     BannerController,
     BannerState,
-    BannerConfig,
-    BannerUI
+    BannerConfig
 )
 
 
