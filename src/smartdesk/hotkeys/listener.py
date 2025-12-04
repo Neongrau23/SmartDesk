@@ -4,7 +4,6 @@
 from pynput.keyboard import Listener, Key
 import sys
 import os
-import time
 import traceback
 from datetime import datetime
 
@@ -14,7 +13,7 @@ try:
     from ..shared.localization import get_text
 except ImportError:
     # Fallback, falls das Skript eigenständig oder falsch importiert wird
-    print("[FALLBACK] Konnte 'get_text' nicht importieren. Verwende Roh-Strings.")
+    print("[FALLBACK] Konnte 'get_text' nicht importieren.")
 
     def get_text(key, **kwargs):
         text = key.split('.')[-1].replace('_', ' ').capitalize()
@@ -39,7 +38,7 @@ except ImportError as e:
 
 # --- AKTIONEN IMPORT ---
 try:
-    from .actions import (
+    from .actions import (  # type: ignore[import-not-found]
         aktion_alt_1,
         aktion_alt_2,
         aktion_alt_3,
@@ -367,8 +366,8 @@ def run_listener():
     # (die internationalisiert sind) werden dem Benutzer im UI-Debug-Fenster angezeigt.
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
-            log.write(f"\n{'='*50}\n")
-            log.write(f"[{datetime.now()}] === LISTENER START ===\n")
+            log.write(f"\n{'=' * 50}\n")
+            log.write(f"[{datetime.now()}] === LISTENER START ===")
             log.write(f"[{datetime.now()}] PID: {os.getpid()}\n")
             log.write(f"[{datetime.now()}] Python: {sys.executable}\n")
             log.write(f"[{datetime.now()}] Working Dir: {os.getcwd()}\n")

@@ -7,7 +7,7 @@ from typing import Optional
 
 from ...shared.config import WALLPAPERS_DIR
 from ...shared.localization import get_text
-from ...shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
+from ...shared.style import PREFIX_ERROR, PREFIX_OK
 
 # Windows API Konstanten
 SPI_SETDESKWALLPAPER = 0x0014

@@ -6,7 +6,7 @@ import shutil
 import sys
 import time
 import subprocess
-from typing import List, Optional
+from typing import List
 
 from ...shared.config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
 from ..utils.registry_operations import update_registry_key, get_registry_value

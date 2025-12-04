@@ -10,7 +10,6 @@ Testet mit MagicMock:
 - cleanup_tray_pid(): PID aufräumen
 """
 
-import sys
 import psutil
 from unittest.mock import patch, MagicMock
 

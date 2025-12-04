@@ -1,7 +1,6 @@
 # Dateipfad: src/smartdesk/core/services/icon_service.py
 
 import win32gui
-import win32con
 import win32process
 import ctypes
 import ctypes.wintypes
