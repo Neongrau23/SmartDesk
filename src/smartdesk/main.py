@@ -32,18 +32,23 @@ def activate_venv_if_needed():
 # Aktiviere venv, bevor irgendetwas anderes passiert
 activate_venv_if_needed()
 
-# ist dieser Pfad-Hack für lokale Tests.
-# Im finalen Paket wird das durch setup.py geregelt
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# --- PFAD-KONFIGURATION ---
+# Finde das src-Verzeichnis für korrekte Imports
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_src_dir = os.path.dirname(_script_dir)
+
+# Füge src zum Pfad hinzu (für "from smartdesk.xxx import yyy")
+if _src_dir not in sys.path:
+    sys.path.insert(0, _src_dir)
 
 # --- NEUER IMPORT für Lokalisierung ---
 try:
     from smartdesk.shared.localization import get_text
     from smartdesk.shared.first_run import ensure_setup_complete
 except ImportError:
-    # Fallback, falls Pfad-Hack nicht funktioniert
-    print("CRITICAL: localization.py nicht gefunden.")
-    # Dummy-Funktion, damit der Rest nicht abstürzt
+    # Fallback, falls Import nicht funktioniert
+    print(f"CRITICAL: localization.py nicht gefunden. sys.path: {sys.path}")
+
     def get_text(key, **kwargs):
         # Einfaches Ersetzen für die Dummy-Funktion
         text = key
@@ -219,6 +224,11 @@ if __name__ == "__main__":
             
             # Starte den blockierenden Listener
             hotkey_listener.start_listener()
+
+        # --- BEFEHL: stop-listener ---
+        elif command == "stop-listener":
+            from smartdesk.hotkeys import hotkey_manager
+            hotkey_manager.stop_listener()
 
         # --- BEFEHL: start-tray ---
         elif command == "start-tray":

@@ -100,8 +100,9 @@ python src/smartdesk/main.py create-gui
 python src/smartdesk/main.py delete <name>
 python src/smartdesk/main.py delete <name> --delete-folder
 
-# Hotkey-Listener starten
+# Hotkey-Listener starten/stoppen
 python src/smartdesk/main.py start-listener
+python src/smartdesk/main.py stop-listener
 
 # Tray-Icon starten
 python src/smartdesk/main.py start-tray

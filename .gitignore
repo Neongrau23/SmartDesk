@@ -54,3 +54,4 @@ htmlcov/              # Coverage HTML Reports
 # Zusätzlich für dieses Projekt
 *.egg-info/           # Bereits vorhanden, aber prüfen ob aktiv
 .pytest_cache/        # Cache-Ordner entfernen
+idea/

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
 # Importiere die Lokalisierungsfunktion deines Projekts
-from ...shared.localization import get_text
+from smartdesk.shared.localization import get_text
 
 class DesktopCreatorGUI:
     def __init__(self, root):
