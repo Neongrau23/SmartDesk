@@ -16,8 +16,7 @@ def restart_explorer():
     try:
         # Prüfe ob Explorer läuft
         explorer_running = any(
-            p.name().lower() == "explorer.exe"
-            for p in psutil.process_iter(['name'])
+            p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])
         )
 
         if not explorer_running:
@@ -27,17 +26,14 @@ def restart_explorer():
 
         # Beende Explorer
         subprocess.run(
-            ["taskkill", "/F", "/IM", "explorer.exe"],
-            capture_output=True,
-            check=False
+            ["taskkill", "/F", "/IM", "explorer.exe"], capture_output=True, check=False
         )
 
         # Warte bis Explorer wirklich beendet ist
         timeout = 5
         start_time = time.time()
         while any(
-            p.name().lower() == "explorer.exe"
-            for p in psutil.process_iter(['name'])
+            p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])
         ):
             if time.time() - start_time > timeout:
                 print(get_text("system.warning.explorer_timeout"))
@@ -53,8 +49,7 @@ def restart_explorer():
         # Warte kurz und prüfe ob Explorer gestartet ist
         time.sleep(1)
         if any(
-            p.name().lower() == "explorer.exe"
-            for p in psutil.process_iter(['name'])
+            p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])
         ):
             print(get_text("system.info.restarted"))
         else:
@@ -79,7 +74,7 @@ def restart_explorer_simple():
             ["taskkill", "/F", "/IM", "explorer.exe"],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
         )
 
         if result.returncode != 0 and "not found" not in result.stderr.lower():

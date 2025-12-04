@@ -23,13 +23,13 @@ SETUP_CONFIG_FILE = os.path.join(DATA_DIR, "setup.json")
 def is_first_run() -> bool:
     """
     Prüft, ob dies der erste Start von SmartDesk ist.
-    
+
     Returns:
         True wenn erster Start, False sonst
     """
     if not os.path.exists(SETUP_CONFIG_FILE):
         return True
-    
+
     try:
         with open(SETUP_CONFIG_FILE, 'r', encoding='utf-8') as f:
             config = json.load(f)
@@ -41,13 +41,13 @@ def is_first_run() -> bool:
 def get_setup_info() -> dict:
     """
     Liest die Setup-Konfiguration.
-    
+
     Returns:
         Dict mit Setup-Informationen oder leeres Dict
     """
     if not os.path.exists(SETUP_CONFIG_FILE):
         return {}
-    
+
     try:
         with open(SETUP_CONFIG_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -58,10 +58,10 @@ def get_setup_info() -> dict:
 def save_setup_info(info: dict) -> bool:
     """
     Speichert Setup-Informationen.
-    
+
     Args:
         info: Dict mit Setup-Daten
-        
+
     Returns:
         True bei Erfolg, False bei Fehler
     """
@@ -78,32 +78,32 @@ def save_setup_info(info: dict) -> bool:
 def run_first_time_setup(silent: bool = False) -> bool:
     """
     Führt das First-Run-Setup durch.
-    
+
     Args:
         silent: Wenn True, keine Konsolenausgabe
-        
+
     Returns:
         True bei Erfolg, False bei Fehler
     """
     from .style import PREFIX_OK, PREFIX_WARN, PREFIX_ERROR
     from .localization import get_text
     from ..core.utils.backup_service import create_registry_backup
-    
+
     def log_msg(prefix: str, msg: str):
         if not silent:
             print(f"{prefix} {msg}")
         logger.info(msg)
-    
+
     logger.info("Starte First-Run-Setup...")
-    
+
     if not silent:
         print("\n" + "=" * 50)
         print("  SmartDesk - Ersteinrichtung")
         print("=" * 50 + "\n")
-    
+
     setup_info = get_setup_info()
     errors = []
-    
+
     # 1. Datenordner erstellen
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -116,7 +116,7 @@ def run_first_time_setup(silent: bool = False) -> bool:
     except Exception as e:
         errors.append(f"Datenordner: {e}")
         log_msg(PREFIX_ERROR, f"Fehler beim Erstellen der Datenordner: {e}")
-    
+
     # 2. Registry-Backup erstellen
     try:
         backup_path = create_registry_backup()
@@ -129,26 +129,26 @@ def run_first_time_setup(silent: bool = False) -> bool:
     except Exception as e:
         errors.append(f"Registry-Backup: {e}")
         log_msg(PREFIX_WARN, f"Registry-Backup fehlgeschlagen: {e}")
-    
+
     # 3. Setup als abgeschlossen markieren
     setup_info['first_run_completed'] = True
     setup_info['setup_date'] = datetime.now().isoformat()
     setup_info['setup_version'] = '1.0.0'
-    
+
     if errors:
         setup_info['setup_errors'] = errors
-    
+
     if save_setup_info(setup_info):
         log_msg(PREFIX_OK, "Ersteinrichtung abgeschlossen")
     else:
         log_msg(PREFIX_ERROR, "Konnte Setup-Info nicht speichern")
         return False
-    
+
     if not silent:
         print("\n" + "=" * 50)
         print(f"  Daten gespeichert in: {DATA_DIR}")
         print("=" * 50 + "\n")
-    
+
     return len(errors) == 0
 
 
@@ -156,7 +156,7 @@ def ensure_setup_complete() -> bool:
     """
     Stellt sicher, dass das Setup durchgeführt wurde.
     Führt es bei Bedarf automatisch aus.
-    
+
     Returns:
         True wenn Setup erfolgreich (oder bereits abgeschlossen)
     """
@@ -176,7 +176,7 @@ def get_backup_path() -> str:
 def get_initial_backup() -> str | None:
     """
     Gibt den Pfad zum initialen Registry-Backup zurück.
-    
+
     Returns:
         Pfad zum Backup oder None
     """

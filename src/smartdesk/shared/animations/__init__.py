@@ -1,5 +1,6 @@
 # SmartDesk Animationen
 from .screen_fade import MultiMonitorFade
+
 # AnimationConfig wird jetzt aus config.py importiert
 from ..config import AnimationConfig
 
@@ -13,15 +14,15 @@ from .banner import (
     DEFAULT_THEME,
     DARK_THEME,
     FAST_CONFIG,
-    SLOW_CONFIG
+    SLOW_CONFIG,
 )
 
 # Behalte FadeConfig für Rückwärtskompatibilität (Alias)
 FadeConfig = AnimationConfig
 
 __all__ = [
-    'MultiMonitorFade', 
-    'AnimationConfig', 
+    'MultiMonitorFade',
+    'AnimationConfig',
     'FadeConfig',
     # Banner
     'TaskbarBanner',

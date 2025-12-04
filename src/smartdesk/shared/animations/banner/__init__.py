@@ -17,10 +17,10 @@ Verwendung:
         show_notification,
         show_desktop_status
     )
-    
+
     # Einfache Benachrichtigung
     show_notification("Hallo Welt!", icon="🎉", auto_close_ms=3000)
-    
+
     # Mit Theme
     from smartdesk.shared.animations.banner import DARK_THEME
     banner = TaskbarBanner(message="Dunkel", theme=DARK_THEME)
@@ -28,11 +28,7 @@ Verwendung:
 """
 
 # Haupt-API
-from .banner import (
-    TaskbarBanner,
-    show_desktop_status,
-    show_notification
-)
+from .banner import TaskbarBanner, show_desktop_status, show_notification
 
 # Theme
 from .theme import (
@@ -43,7 +39,7 @@ from .theme import (
     DEFAULT_THEME,
     DARK_THEME,
     LIGHT_THEME,
-    ACCENT_THEME
+    ACCENT_THEME,
 )
 
 # Config
@@ -57,15 +53,11 @@ from .config import (
     FAST_CONFIG,
     SLOW_CONFIG,
     LARGE_CONFIG,
-    COMPACT_CONFIG
+    COMPACT_CONFIG,
 )
 
 # Animationen (für erweiterte Nutzung)
-from .animations import (
-    BannerAnimator,
-    SlideAnimator,
-    FadeAnimator
-)
+from .animations import BannerAnimator, SlideAnimator, FadeAnimator
 
 # Widget (für erweiterte Nutzung)
 from .banner_widget import BannerWidget
@@ -75,7 +67,6 @@ __all__ = [
     'TaskbarBanner',
     'show_desktop_status',
     'show_notification',
-    
     # Theme
     'BannerTheme',
     'BannerColors',
@@ -85,7 +76,6 @@ __all__ = [
     'DARK_THEME',
     'LIGHT_THEME',
     'ACCENT_THEME',
-    
     # Config
     'BannerConfig',
     'BannerSize',
@@ -97,12 +87,10 @@ __all__ = [
     'SLOW_CONFIG',
     'LARGE_CONFIG',
     'COMPACT_CONFIG',
-    
     # Animationen
     'BannerAnimator',
     'SlideAnimator',
     'FadeAnimator',
-    
     # Widget
     'BannerWidget',
 ]

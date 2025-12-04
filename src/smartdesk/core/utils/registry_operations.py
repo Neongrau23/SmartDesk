@@ -8,25 +8,21 @@ from ...shared.localization import get_text
 
 
 def update_registry_key(
-    key_path: str,
-    value_name: str,
-    value: str,
-    value_type=winreg.REG_SZ
+    key_path: str, value_name: str, value: str, value_type=winreg.REG_SZ
 ) -> bool:
     """
     Setzt einen Wert in der Windows Registry (HKEY_CURRENT_USER).
     """
     try:
         with winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER,
-            key_path,
-            0,
-            winreg.KEY_SET_VALUE
+            winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE
         ) as key:
             winreg.SetValueEx(key, value_name, 0, value_type, value)
         return True
     except WindowsError as e:
-        print(f"{PREFIX_ERROR} {get_text('registry.error.update', key_path=key_path, e=e)}")
+        print(
+            f"{PREFIX_ERROR} {get_text('registry.error.update', key_path=key_path, e=e)}"
+        )
         return False
 
 
@@ -37,10 +33,7 @@ def get_registry_value(key_path: str, value_name: str) -> str:
     """
     try:
         with winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER,
-            key_path,
-            0,
-            winreg.KEY_READ
+            winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ
         ) as key:
             value, _ = winreg.QueryValueEx(key, value_name)
             return value
@@ -51,10 +44,7 @@ def get_registry_value(key_path: str, value_name: str) -> str:
 def save_tray_pid(pid):
     """Speichert die PID des Tray-Icon-Prozesses in der Registry"""
     try:
-        key = winreg.CreateKey(
-            winreg.HKEY_CURRENT_USER,
-            r"Software\SmartDesk"
-        )
+        key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\SmartDesk")
         winreg.SetValueEx(key, "TrayPID", 0, winreg.REG_DWORD, pid)
         winreg.CloseKey(key)
     except Exception as e:
@@ -64,10 +54,7 @@ def save_tray_pid(pid):
 def get_tray_pid():
     """Liest die gespeicherte PID des Tray-Icon-Prozesses"""
     try:
-        key = winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER,
-            r"Software\SmartDesk"
-        )
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SmartDesk")
         pid, _ = winreg.QueryValueEx(key, "TrayPID")
         winreg.CloseKey(key)
         return pid
@@ -118,10 +105,7 @@ def cleanup_tray_pid():
     """Entfernt die gespeicherte Tray-PID (beim Beenden aufrufen)"""
     try:
         key = winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER,
-            r"Software\SmartDesk",
-            0,
-            winreg.KEY_SET_VALUE
+            winreg.HKEY_CURRENT_USER, r"Software\SmartDesk", 0, winreg.KEY_SET_VALUE
         )
         winreg.DeleteValue(key, "TrayPID")
         winreg.CloseKey(key)

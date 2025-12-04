@@ -17,22 +17,22 @@ from typing import Dict
 @dataclass
 class BannerColors:
     """Farbschema für das Banner."""
-    
+
     # Hintergrund
     background: str = "#1a1a1a"
     background_dark: str = "#000000"
-    
+
     # Akzent (oberer Streifen)
     accent: str = "#0078d4"
-    
+
     # Text
     text_primary: str = "#ffffff"
     text_secondary: str = "#8a8a8a"
     text_hover: str = "#ffffff"
-    
+
     # Rahmen
     border: str = "#404040"
-    
+
     # Status-Farben
     success: str = "#4caf50"
     warning: str = "#ff9800"
@@ -43,11 +43,11 @@ class BannerColors:
 @dataclass
 class BannerFonts:
     """Schriftarten für das Banner."""
-    
+
     # Font-Familien
     primary_family: str = "Segoe UI"
     emoji_family: str = "Segoe UI Emoji"
-    
+
     # Größen
     message_size: int = 11
     icon_size: int = 18
@@ -57,20 +57,20 @@ class BannerFonts:
 @dataclass
 class BannerIcons:
     """Icons/Emojis für verschiedene Status."""
-    
+
     # Standard-Icons
     info: str = "ℹ"
     success: str = "✓"
     warning: str = "⚠"
     error: str = "❌"
-    
+
     # Desktop-Status
     desktop_active: str = "💻"
     desktop_inactive: str = "🔔"
-    
+
     # UI-Elemente
     close: str = "✕"
-    
+
     # Marker für aktive/inaktive Desktops
     active_marker: str = "▶"
     inactive_marker: str = "•"
@@ -80,16 +80,17 @@ class BannerIcons:
 class BannerTheme:
     """
     Komplettes Theme für das Banner.
-    
+
     Verwendung:
         theme = BannerTheme()  # Standard-Theme
-        
+
         # Oder angepasst:
         theme = BannerTheme(
             colors=BannerColors(accent="#ff5722"),
             fonts=BannerFonts(message_size=14)
         )
     """
+
     colors: BannerColors = field(default_factory=BannerColors)
     fonts: BannerFonts = field(default_factory=BannerFonts)
     icons: BannerIcons = field(default_factory=BannerIcons)
@@ -104,11 +105,7 @@ DEFAULT_THEME = BannerTheme()
 
 # Dunkles Theme
 DARK_THEME = BannerTheme(
-    colors=BannerColors(
-        background="#0d0d0d",
-        accent="#0078d4",
-        border="#333333"
-    )
+    colors=BannerColors(background="#0d0d0d", accent="#0078d4", border="#333333")
 )
 
 # Helles Theme
@@ -118,14 +115,9 @@ LIGHT_THEME = BannerTheme(
         background_dark="#ffffff",
         text_primary="#000000",
         text_secondary="#666666",
-        border="#cccccc"
+        border="#cccccc",
     )
 )
 
 # Akzent-Theme (Orange)
-ACCENT_THEME = BannerTheme(
-    colors=BannerColors(
-        accent="#ff5722",
-        background="#1a1a1a"
-    )
-)
+ACCENT_THEME = BannerTheme(colors=BannerColors(accent="#ff5722", background="#1a1a1a"))

@@ -1,5 +1,5 @@
 # SmartDesk - Desktop Manager for Windows
-# 
+#
 # New Package Structure:
 # - core/        : Business logic and data layer
 #   - models/    : Data classes (Desktop, IconPosition)

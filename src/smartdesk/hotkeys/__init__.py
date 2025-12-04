@@ -22,14 +22,10 @@ from .hotkey_manager import (
     is_listener_running,
     get_listener_pid,
     configure_manager,
-    reset_manager
+    reset_manager,
 )
 
-from .listener_manager import (
-    ListenerManager,
-    ManagerResult,
-    ListenerStatus
-)
+from .listener_manager import ListenerManager, ManagerResult, ListenerStatus
 
 from .interfaces import (
     ProcessController,
@@ -37,14 +33,10 @@ from .interfaces import (
     ProcessStarter,
     ProcessResult,
     ProcessState,
-    StartResult
+    StartResult,
 )
 
-from .implementations import (
-    PsutilProcessController,
-    FilePidStorage,
-    SubprocessStarter
-)
+from .implementations import PsutilProcessController, FilePidStorage, SubprocessStarter
 
 # Banner-Controller für Hold-to-Show
 from .banner_controller import (
@@ -52,7 +44,7 @@ from .banner_controller import (
     BannerState,
     BannerConfig,
     get_banner_controller,
-    set_banner_controller
+    set_banner_controller,
 )
 
 __all__ = [
@@ -64,12 +56,10 @@ __all__ = [
     'get_listener_pid',
     'configure_manager',
     'reset_manager',
-    
     # Manager-Klassen
     'ListenerManager',
     'ManagerResult',
     'ListenerStatus',
-    
     # Interfaces (für Tests)
     'ProcessController',
     'PidStorage',
@@ -77,12 +67,10 @@ __all__ = [
     'ProcessResult',
     'ProcessState',
     'StartResult',
-    
     # Implementierungen
     'PsutilProcessController',
     'FilePidStorage',
     'SubprocessStarter',
-    
     # Banner-Controller
     'BannerController',
     'BannerState',

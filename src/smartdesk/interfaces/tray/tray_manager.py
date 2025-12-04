@@ -15,7 +15,7 @@ def start_tray():
             is_process_running,
             get_tray_pid,
             save_tray_pid,
-            cleanup_tray_pid
+            cleanup_tray_pid,
         )
         from ...shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
         from ...shared.localization import get_text
@@ -49,7 +49,7 @@ def start_tray():
         process = subprocess.Popen(
             [pythonw_executable, tray_icon_path],
             cwd=project_root,
-            creationflags=subprocess.CREATE_NEW_CONSOLE
+            creationflags=subprocess.CREATE_NEW_CONSOLE,
         )
 
         save_tray_pid(process.pid)
@@ -58,8 +58,7 @@ def start_tray():
         time.sleep(TRAY_START_VALIDATION_DELAY)
         if not is_process_running(process.pid):
             msg = get_text(
-                'main.error.tray_failed',
-                e='Prozess wurde nach Start beendet'
+                'main.error.tray_failed', e='Prozess wurde nach Start beendet'
             )
             print(f"{PREFIX_ERROR} {msg}")
             cleanup_tray_pid()
@@ -72,6 +71,7 @@ def start_tray():
     except Exception as e:
         from ...shared.style import PREFIX_ERROR
         from ...shared.localization import get_text
+
         msg = get_text('main.error.tray_failed', e=e)
         print(f"{PREFIX_ERROR} {msg}")
         return False
@@ -83,7 +83,7 @@ def stop_tray():
         from ...core.utils.registry_operations import (
             is_process_running,
             get_tray_pid,
-            cleanup_tray_pid
+            cleanup_tray_pid,
         )
         from ...shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
         from ...shared.localization import get_text
@@ -119,6 +119,7 @@ def stop_tray():
     except Exception as e:
         from ...shared.style import PREFIX_ERROR
         from ...shared.localization import get_text
+
         msg = get_text('tray_manager.error.stop_failed', e=e)
         print(f"{PREFIX_ERROR} {msg}")
         return False
@@ -130,7 +131,7 @@ def get_tray_status():
         from ...core.utils.registry_operations import (
             is_process_running,
             get_tray_pid,
-            cleanup_tray_pid
+            cleanup_tray_pid,
         )
 
         pid = get_tray_pid()

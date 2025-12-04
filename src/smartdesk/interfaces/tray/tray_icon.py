@@ -10,7 +10,7 @@ import logging
 # Einfaches Logging für Tray (vor allen anderen Imports)
 logging.basicConfig(
     level=logging.DEBUG if os.environ.get('SMARTDESK_DEBUG') else logging.WARNING,
-    format='[%(levelname)s] %(message)s'
+    format='[%(levelname)s] %(message)s',
 )
 logger = logging.getLogger('smartdesk.tray')
 
@@ -143,9 +143,7 @@ def create_desktop(icon, item):
     try:
         pythonw_executable = sys.executable
         if "python.exe" in pythonw_executable.lower():
-            pythonw_executable = pythonw_executable.replace(
-                "python.exe", "pythonw.exe"
-            )
+            pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
 
         main_py = os.path.join(smartdesk_dir, 'main.py')
 
@@ -153,7 +151,7 @@ def create_desktop(icon, item):
 
         subprocess.Popen(
             [pythonw_executable, main_py, "create-gui"],
-            creationflags=subprocess.CREATE_NO_WINDOW
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
     except Exception as e:
         logger.error("Fehler beim Erstellen der GUI: %s", e)
@@ -216,19 +214,15 @@ def on_primary_click(icon, item):
     try:
         pythonw_executable = sys.executable
         if "python.exe" in pythonw_executable.lower():
-            pythonw_executable = pythonw_executable.replace(
-                "python.exe", "pythonw.exe"
-            )
+            pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
 
-        control_panel_py = os.path.join(
-            interfaces_dir, 'gui', 'control_panel.py'
-        )
+        control_panel_py = os.path.join(interfaces_dir, 'gui', 'control_panel.py')
 
         logger.debug("Starte: %s %s", pythonw_executable, control_panel_py)
 
         proc = subprocess.Popen(
             [pythonw_executable, control_panel_py],
-            creationflags=subprocess.CREATE_NO_WINDOW
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
 
         if CONTROL_PANEL_PID_PATH:
@@ -249,16 +243,12 @@ def open_smart_desk(icon, item):
 
         python_executable = sys.executable
         if "pythonw.exe" in python_executable.lower():
-            python_executable = python_executable.replace(
-                "pythonw.exe", "python.exe"
-            )
+            python_executable = python_executable.replace("pythonw.exe", "python.exe")
 
-        logger.debug("Starte: %s %s in neuer Konsole",
-                     python_executable, main_py)
+        logger.debug("Starte: %s %s in neuer Konsole", python_executable, main_py)
 
         subprocess.Popen(
-            [python_executable, main_py],
-            creationflags=subprocess.CREATE_NEW_CONSOLE
+            [python_executable, main_py], creationflags=subprocess.CREATE_NEW_CONSOLE
         )
     except Exception as e:
         logger.error("Fehler beim Öffnen: %s", e)
@@ -269,6 +259,7 @@ def stop_smartdesk(icon, item):
 
     try:
         from smartdesk.core.utils.registry_operations import cleanup_tray_pid
+
         cleanup_tray_pid()
         logger.debug("Tray-PID aus Registry entfernt")
     except Exception as e:
@@ -283,10 +274,7 @@ icon = pystray.Icon(
     "○ Bereit",
     menu=pystray.Menu(
         pystray.MenuItem(
-            "Primary Action",
-            on_primary_click,
-            default=True,
-            visible=False
+            "Primary Action", on_primary_click, default=True, visible=False
         ),
         pystray.MenuItem("SmartDesk Öffnen", open_smart_desk),
         pystray.Menu.SEPARATOR,
@@ -295,7 +283,7 @@ icon = pystray.Icon(
         pystray.MenuItem("Aktivieren", set_active),
         pystray.MenuItem("Deaktivieren", set_inactiv),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Beenden", stop_smartdesk)
+        pystray.MenuItem("Beenden", stop_smartdesk),
     ),
 )
 

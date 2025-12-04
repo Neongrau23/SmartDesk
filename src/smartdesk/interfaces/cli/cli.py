@@ -18,19 +18,26 @@ try:
     from ..gui.ui_manager import launch_create_desktop_dialog
     from ...shared.config import DATA_DIR
     from ...shared.style import (
-        PREFIX_ERROR, PREFIX_OK, PREFIX_WARN,
-        format_status_active, format_status_inactive
+        PREFIX_ERROR,
+        PREFIX_OK,
+        PREFIX_WARN,
+        format_status_active,
+        format_status_inactive,
     )
     from ...shared.localization import get_text
 except ImportError as e:
     logger.error(f"FATALER IMPORT FEHLER in cli.py: {e}")
-    logger.info("Stelle sicher, dass du das Skript mit 'python -m smartdesk.main' startest.")
+    logger.info(
+        "Stelle sicher, dass du das Skript mit 'python -m smartdesk.main' startest."
+    )
 
     class FakeHandler:
         def __getattr__(self, name):
             def method(*args, **kwargs):
                 logger.error(f"{name} konnte nicht geladen werden!")
+
             return method
+
     desktop_service = FakeHandler()
     system_service = FakeHandler()
     hotkey_manager = FakeHandler()
@@ -38,6 +45,7 @@ except ImportError as e:
 
     def get_text(key, **kwargs):
         return key
+
     PREFIX_ERROR = "ERROR:"
     PREFIX_OK = "OK:"
     PREFIX_WARN = "WARN:"
@@ -156,7 +164,9 @@ def run_hotkey_menu():
                         else:
                             print(get_text("ui.messages.log_empty"))
                 except Exception as e:
-                    print(f"{PREFIX_ERROR} {get_text('ui.errors.log_read_failed', e=e)}")
+                    print(
+                        f"{PREFIX_ERROR} {get_text('ui.errors.log_read_failed', e=e)}"
+                    )
             else:
                 print(get_text("ui.messages.log_not_found"))
                 print(f"({get_text('ui.messages.path_was')}: {log_file})")
@@ -237,8 +247,7 @@ def run_restore_registry():
 
     script_path = os.path.abspath(
         os.path.join(
-            os.path.dirname(__file__),
-            '..', '..', '..', '..', 'scripts', 'restore.bat'
+            os.path.dirname(__file__), '..', '..', '..', '..', 'scripts', 'restore.bat'
         )
     )
 
@@ -277,9 +286,7 @@ def run_settings_menu():
                     if d.is_active:
                         status = format_status_active(get_text("ui.status.active"))
                     else:
-                        status = format_status_inactive(
-                            get_text("ui.status.inactive")
-                        )
+                        status = format_status_inactive(get_text("ui.status.inactive"))
 
                     wallpaper_info = ""
                     if hasattr(d, 'wallpaper_path') and d.wallpaper_path:
@@ -325,23 +332,26 @@ def run_settings_menu():
                     if target_desktop.is_active:
                         msg = get_text(
                             'desktop_handler.error.delete_active',
-                            name=target_desktop.name
+                            name=target_desktop.name,
                         )
                         print(f"{PREFIX_ERROR} {msg}")
                         input(get_text("ui.prompts.continue"))
                         continue
 
-                    delete_folder_confirm = input(
-                        get_text(
-                            "ui.prompts.delete_folder_confirm",
-                            path=target_desktop.path
+                    delete_folder_confirm = (
+                        input(
+                            get_text(
+                                "ui.prompts.delete_folder_confirm",
+                                path=target_desktop.path,
+                            )
                         )
-                    ).strip().lower()
-                    delete_folder = (delete_folder_confirm == 'y')
+                        .strip()
+                        .lower()
+                    )
+                    delete_folder = delete_folder_confirm == 'y'
 
                     desktop_service.delete_desktop(
-                        target_desktop.name,
-                        delete_folder=delete_folder
+                        target_desktop.name, delete_folder=delete_folder
                     )
                 else:
                     print(f"{PREFIX_ERROR} {get_text('ui.errors.invalid_number')}")
@@ -394,9 +404,7 @@ def run_settings_menu():
                     continue
 
                 target_desktop = desktops[index]
-                source_path = input(
-                    get_text("ui.prompts.wallpaper_path")
-                ).strip()
+                source_path = input(get_text("ui.prompts.wallpaper_path")).strip()
 
                 if not source_path:
                     print(get_text("ui.messages.aborted_no_path"))
@@ -450,9 +458,9 @@ def run_create_desktop_menu():
     mode = input(get_text("ui.prompts.choose_1_or_2")).strip()
 
     if mode == "1":
-        final_path_input = input(
-            get_text("ui.prompts.existing_path")
-        ).strip().strip('"')
+        final_path_input = (
+            input(get_text("ui.prompts.existing_path")).strip().strip('"')
+        )
         if final_path_input:
             final_path = os.path.normpath(final_path_input)
             desktop_service.create_desktop(name, final_path, create_if_missing=False)
@@ -461,9 +469,9 @@ def run_create_desktop_menu():
 
     elif mode == "2":
         while True:
-            parent_path_input = input(
-                get_text("ui.prompts.new_path_parent")
-            ).strip().strip('"')
+            parent_path_input = (
+                input(get_text("ui.prompts.new_path_parent")).strip().strip('"')
+            )
 
             if not parent_path_input:
                 print(get_text("ui.messages.aborted_no_path"))
@@ -486,8 +494,7 @@ def run_create_desktop_menu():
                 drive, _ = os.path.splitdrive(parent_path)
                 if drive and not os.path.exists(drive):
                     msg = get_text(
-                        'desktop_handler.error.path_invalid',
-                        path=parent_path
+                        'desktop_handler.error.path_invalid', path=parent_path
                     )
                     print(f"{PREFIX_ERROR} {msg}")
                     print(get_text("ui.prompts.path_error_menu.title"))
@@ -498,10 +505,7 @@ def run_create_desktop_menu():
                     else:
                         continue
             except Exception:
-                msg = get_text(
-                    'desktop_handler.error.path_invalid',
-                    path=parent_path
-                )
+                msg = get_text('desktop_handler.error.path_invalid', path=parent_path)
                 print(f"{PREFIX_ERROR} {msg}")
                 print(get_text("ui.prompts.path_error_menu.title"))
                 print(get_text("ui.prompts.path_error_menu.abort"))
@@ -515,21 +519,13 @@ def run_create_desktop_menu():
                 final_path = os.path.join(parent_path, name)
                 msg = get_text("ui.messages.new_path_location", path=final_path)
                 print(msg)
-                desktop_service.create_desktop(
-                    name, final_path, create_if_missing=True
-                )
+                desktop_service.create_desktop(name, final_path, create_if_missing=True)
                 break
             else:
-                msg = get_text(
-                    'ui.prompts.parent_dir_menu.not_found',
-                    path=parent_path
-                )
+                msg = get_text('ui.prompts.parent_dir_menu.not_found', path=parent_path)
                 print(f"{PREFIX_WARN} {msg}")
                 print(get_text("ui.prompts.parent_dir_menu.title"))
-                print(get_text(
-                    "ui.prompts.parent_dir_menu.create",
-                    path=parent_path
-                ))
+                print(get_text("ui.prompts.parent_dir_menu.create", path=parent_path))
                 print(get_text("ui.prompts.parent_dir_menu.reenter"))
                 print(get_text("ui.prompts.parent_dir_menu.abort"))
 
@@ -538,16 +534,10 @@ def run_create_desktop_menu():
                 if sub_choice == "1":
                     try:
                         os.makedirs(parent_path)
-                        msg = get_text(
-                            'ui.messages.parent_created',
-                            path=parent_path
-                        )
+                        msg = get_text('ui.messages.parent_created', path=parent_path)
                         print(f"{PREFIX_OK} {msg}")
                         final_path = os.path.join(parent_path, name)
-                        msg = get_text(
-                            "ui.messages.new_path_location",
-                            path=final_path
-                        )
+                        msg = get_text("ui.messages.new_path_location", path=final_path)
                         print(msg)
                         desktop_service.create_desktop(
                             name, final_path, create_if_missing=True
@@ -555,8 +545,7 @@ def run_create_desktop_menu():
                         break
                     except Exception as e:
                         msg = get_text(
-                            'desktop_handler.error.path_invalid',
-                            path=parent_path
+                            'desktop_handler.error.path_invalid', path=parent_path
                         )
                         print(f"{PREFIX_ERROR} {msg}")
                         input(get_text("ui.prompts.continue"))
@@ -624,8 +613,7 @@ def run():
 
                     if desktop_service.switch_to_desktop(target_desktop.name):
                         msg = get_text(
-                            "ui.messages.registry_set_success",
-                            name=target_desktop.name
+                            "ui.messages.registry_set_success", name=target_desktop.name
                         )
                         print(msg)
                         print(get_text("ui.messages.restarting_explorer"))
@@ -633,9 +621,7 @@ def run():
 
                         print(get_text("ui.messages.waiting_for_explorer"))
 
-                        SIGNAL_FILE_PATH = os.path.join(
-                            DATA_DIR, "fade_signal.lock"
-                        )
+                        SIGNAL_FILE_PATH = os.path.join(DATA_DIR, "fade_signal.lock")
                         try:
                             with open(SIGNAL_FILE_PATH, "w") as f:
                                 f.write("done")
@@ -646,8 +632,7 @@ def run():
                         desktop_service.sync_desktop_state_and_apply_icons()
 
                         msg = get_text(
-                            'ui.messages.switch_success',
-                            name=target_desktop.name
+                            'ui.messages.switch_success', name=target_desktop.name
                         )
                         print(f"{PREFIX_OK} {msg}")
                 else:

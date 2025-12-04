@@ -21,7 +21,7 @@ TEXT = {
                 "switch": "Desktop wechseln",
                 "create": "Neuen Desktop erstellen",
                 "settings": "Einstellungen",
-                "exit": "Beenden"
+                "exit": "Beenden",
             },
             # --- UNTERMENÜ ENTFERNT ---
             "settings": {
@@ -29,12 +29,12 @@ TEXT = {
                 "list": "Alle Desktops anzeigen",
                 "delete": "Desktop löschen",
                 "save_icons": "Aktuelle Icon-Positionen speichern",
-                "wallpaper": "Hintergrundbild zuweisen", 
+                "wallpaper": "Hintergrundbild zuweisen",
                 "restart": "Explorer manuell neu starten",
                 "hotkeys": "Hotkey-Listener verwalten",
                 "tray": "Tray-Icon verwalten",
                 "restore_registry": "Registry-Pfade wiederherstellen",
-                "back": "Zurück"
+                "back": "Zurück",
             },
             # --- NEUER ABSCHNITT FÜR HOTKEY-MENÜ ---
             "hotkeys": {
@@ -44,13 +44,12 @@ TEXT = {
             # --- NEUER ABSCHNITT FÜR TRAY-MENÜ ---
             "tray": {
                 "manage": "1. Tray-Icon verwalten (Start/Stop)",
-            }
+            },
         },
         "prompts": {
             "choose": "\nBitte wählen: ",
             "continue": "\n--- Drücke Enter, um fortzufahren ---",
             "cancel": "0. Abbrechen",
-            
             "choose_number": "\nNummer eingeben: ",
             "desktop_name": "Name des neuen Desktops: ",
             "folder_mode": "\nWie soll der Ordner gewählt werden?",
@@ -59,33 +58,23 @@ TEXT = {
             "choose_1_or_2": "Auswahl (1/2): ",
             "existing_path": r"Bitte vollen Pfad eingeben (z.B. F:\SmartDesk\Work): ",
             "new_path_parent": r"In welchem Verzeichnis soll der Ordner erstellt werden? (z.B. F:\SmartDesk): ",
-            
             "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): ",
             "wallpaper_path": "Pfad zum Hintergrundbild (leer = abbrechen): ",
-            
             # --- NEUER ABSCHNITT FÜR HOTKEY-MENÜ ---
-            "hotkeys": {
-                "start": "1. Listener starten",
-                "stop": "2. Listener stoppen"
-            },
-            
+            "hotkeys": {"start": "1. Listener starten", "stop": "2. Listener stoppen"},
             # --- NEUER ABSCHNITT FÜR TRAY-MENÜ ---
-            "tray": {
-                "start": "1. Tray-Icon starten",
-                "stop": "2. Tray-Icon stoppen"
-            },
-            
+            "tray": {"start": "1. Tray-Icon starten", "stop": "2. Tray-Icon stoppen"},
             "parent_dir_menu": {
                 "not_found": "! Warnung: Das Basis-Verzeichnis '{path}' existiert nicht.",
                 "title": "\nWas möchten Sie tun?",
                 "create": "1. Das Verzeichnis '{path}' erstellen",
                 "reenter": "2. Ein anderes Verzeichnis eingeben",
-                "abort": "0. Abbrechen"
+                "abort": "0. Abbrechen",
             },
             "path_error_menu": {
                 "title": "1. Anderen Pfad eingeben",
-                "abort": "2. Zurück zum Hauptmenü"
-            }
+                "abort": "2. Zurück zum Hauptmenü",
+            },
         },
         "status": {
             "active": "AKTIV",
@@ -93,16 +82,14 @@ TEXT = {
             "active_short": "Aktiv",
             "wallpaper": "Hintergrund",
             "wallpaper_none": "Kein Hintergrundbild",
-
             # --- NEUE TEXTE FÜR HOTKEY-STATUS ---
             "hotkeys_status": "Status:",
             "hotkeys_on": "Aktiv",
             "hotkeys_off": "Gestoppt",
-            
             # --- NEUE TEXTE FÜR TRAY-STATUS ---
             "tray_status": "Status:",
             "tray_on": "Aktiv",
-            "tray_off": "Gestoppt"
+            "tray_off": "Gestoppt",
         },
         "headings": {
             "delete": "\n--- Desktop löschen ---",
@@ -112,16 +99,14 @@ TEXT = {
             "which_desktop_delete": "\n--- Welchen Desktop löschen? ---",
             "which_desktop_switch": "\n--- Zu welchem Desktop wechseln? ---",
             "which_desktop_wallpaper": "\n--- Welchem Desktop ein Hintergrundbild zuweisen? ---",
-
             # --- NEUE TEXTE FÜR HOTKEY-MENÜ ---
             "hotkeys": "\n--- Hotkey-Listener ---",
             "hotkeys_manage": "\n--- Listener verwalten ---",
             "hotkeys_debug": "\n--- Hotkey Debug-Log (Letzte 20 Zeilen) ---",
-            
             # --- NEUE TEXTE FÜR TRAY-MENÜ ---
             "tray": "\n--- Tray-Icon ---",
-            "tray_manage": "\n--- Tray-Icon verwalten ---"
-            ,"restore_registry": "\n--- Registry Wiederherstellung ---"
+            "tray_manage": "\n--- Tray-Icon verwalten ---",
+            "restore_registry": "\n--- Registry Wiederherstellung ---",
         },
         "messages": {
             "exit": "Auf Wiedersehen!",
@@ -135,17 +120,15 @@ TEXT = {
             "switch_success": "Wechsel zu '{name}' abgeschlossen.",
             "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben).",
             "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt.",
-            
             # --- NEUE TEXTE FÜR GUI-INTEGRATION ---
             "aborted_by_user": "Vorgang vom Benutzer abgebrochen.",
             "processing_gui_input": "Verarbeite Eingaben aus der GUI...",
-
             # --- NEUE TEXTE FÜR HOTKEY-MENÜ ---
             "log_empty": "(Log-Datei ist leer)",
             "log_not_found": "(Log-Datei nicht gefunden)",
-            "path_was": "Pfad war" # Hilfstext
-            ,"running_restore": "Starte Wiederherstellung der Registry-Pfade..."
-            ,"restore_finished": "Wiederherstellung abgeschlossen."
+            "path_was": "Pfad war",  # Hilfstext
+            "running_restore": "Starte Wiederherstellung der Registry-Pfade...",
+            "restore_finished": "Wiederherstellung abgeschlossen.",
         },
         "errors": {
             "invalid_input": "Ungültige Eingabe.",
@@ -157,15 +140,12 @@ TEXT = {
             "path_not_found": "Pfad nicht gefunden: {path}",
             "not_windows": "Diese Funktion ist nur unter Windows verfügbar.",
             "restore_failed": "Fehler bei der Wiederherstellung: {e}",
-            
             # --- NEUER TEXT FÜR GUI-INTEGRATION ---
             "gui_create_failed": "Der Desktop konnte nicht erstellt werden. (Siehe Fehler oben)",
-            
             # --- NEUER TEXT FÜR HOTKEY-MENÜ ---
-            "log_read_failed": "Log-Datei konnte nicht gelesen werden: {e}"
-        }
+            "log_read_failed": "Log-Datei konnte nicht gelesen werden: {e}",
+        },
     },
-    
     # --- NEUER ABSCHNITT FÜR DIE TKINTER GUI ---
     "gui": {
         "create": {
@@ -181,27 +161,26 @@ TEXT = {
             "error_title": "Fehler",
             "error_no_name": "Bitte geben Sie einen Desktop-Namen ein!",
             "error_no_path": "Bitte geben Sie einen Pfad an!",
-            "error_path_not_absolute": "Der Pfad ist nicht absolut: {path}"
+            "error_path_not_absolute": "Der Pfad ist nicht absolut: {path}",
         }
     },
-    
     # ... (alle anderen Sektionen wie desktop_handler, icon_manager, etc. bleiben hier) ...
     "desktop_handler": {
         "error": {
             "path_invalid": "Pfad '{path}' ist ungültig oder konnte nicht erstellt werden.",
             "path_not_found_or_not_dir": "Pfad '{path}' existiert nicht oder ist kein Verzeichnis.",
             "name_exists": "Desktop '{name}' existiert bereits.",
-            "desktop_not_found": "Desktop '{name}' nicht gefunden.", # <-- Name geändert (war 'not_found')
-            "not_found": "Desktop '{name}' nicht gefunden.", # <-- Behalte 'not_found' für update_desktop
-            "not_found_delete": "Desktop '{name}' nicht gefunden.", # <-- Eindeutiger Schlüssel
-            "new_name_exists": "Der neue Name '{name}' existiert bereits.", # <-- Name geändert (war 'new_name_exists')
+            "desktop_not_found": "Desktop '{name}' nicht gefunden.",  # <-- Name geändert (war 'not_found')
+            "not_found": "Desktop '{name}' nicht gefunden.",  # <-- Behalte 'not_found' für update_desktop
+            "not_found_delete": "Desktop '{name}' nicht gefunden.",  # <-- Eindeutiger Schlüssel
+            "new_name_exists": "Der neue Name '{name}' existiert bereits.",  # <-- Name geändert (war 'new_name_exists')
             "folder_move": "Ordner konnte nicht verschoben werden: {e}",
             "new_path_create": "Neuer Pfad '{path}' konnte nicht erstellt werden.",
             "delete_active": "Der aktive Desktop '{name}' kann nicht gelöscht werden. Wechseln Sie zuerst zu einem anderen Desktop.",
             "delete_critical": "FEHLER: Der zu löschende Pfad '{path}' ist immer noch in der Registry als aktiv eingetragen.",
             "delete_denied": "Löschen aus Sicherheitsgründen verweigert.",
             "folder_delete": "Ordner konnte nicht gelöscht werden: {e}",
-            "switch_no_desktops": "Keine Desktops verfügbar.", # <-- Veraltet?
+            "switch_no_desktops": "Keine Desktops verfügbar.",  # <-- Veraltet?
             "switch_not_found": "Desktop '{name}' wurde nicht gefunden.",
             "registry_update_failed": "Registry-Update fehlgeschlagen.",
             "recreating_folder": "Fehler beim erneuten Erstellen des Ordners.",
@@ -209,7 +188,7 @@ TEXT = {
             "sync_no_active": "Synchronisierungsfehler: Kein Desktop ist als aktiv markiert.",
             "save_icons": "Fehler beim Speichern der Icon-Positionen: {e}",
             "save_icons_no_active": "Fehler: Kein aktiver Desktop gefunden.",
-            "wallpaper_assign_failed": "Fehler beim Zuweisen des Hintergrundbilds." # <-- Veraltet?
+            "wallpaper_assign_failed": "Fehler beim Zuweisen des Hintergrundbilds.",  # <-- Veraltet?
         },
         "success": {
             "create": "Desktop '{name}' erfolgreich angelegt.",
@@ -220,8 +199,8 @@ TEXT = {
             "recreating_folder": "Ordner erfolgreich neu erstellt.",
             "removing_config": "Desktop '{name}' wurde entfernt.",
             "db_update": "Datenbank-Update erfolgreich.",
-            "save_icons": "Icon-Positionen für '{name}' gespeichert.", # <-- Angepasst
-            "wallpaper_assigned": "Hintergrundbild erfolgreich {name} zugewiesen." # <-- Name geändert
+            "save_icons": "Icon-Positionen für '{name}' gespeichert.",  # <-- Angepasst
+            "wallpaper_assigned": "Hintergrundbild erfolgreich {name} zugewiesen.",  # <-- Name geändert
         },
         "info": {
             "delete_aborted": "Löschvorgang abgebrochen.",
@@ -243,7 +222,7 @@ TEXT = {
             "sync_icons_done": "Icon-Wiederherstellung abgeschlossen.",
             "reading_icons": "Lese Icon-Positionen für '{name}'...",
             "old_wallpaper_removed": "Altes Hintergrundbild entfernt.",
-            "setting_wallpaper_now": "Desktop ist aktiv. Setze Hintergrundbild sofort."
+            "setting_wallpaper_now": "Desktop ist aktiv. Setze Hintergrundbild sofort.",
         },
         "warn": {
             "sync_failed": "Warnung: Registry-Synchronisierung fehlgeschlagen: {e}",
@@ -252,7 +231,7 @@ TEXT = {
             "path_not_found": "Ziel-Pfad für '{name}' nicht gefunden!",
             "no_active_desktop": "Warnung: Kein Desktop war als aktiv markiert. Speichere keine Icons.",
             "sync_path_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
-            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert."
+            "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
         },
         "prompts": {
             "delete_confirm": "Desktop '{name}' wirklich löschen? (y/n): ",
@@ -260,77 +239,78 @@ TEXT = {
             "path_recreate": "1. Den Ordner neu erstellen und fortfahren.",
             "path_remove": "2. Den (ungültigen) Desktop-Eintrag entfernen.",
             "path_abort": "0. (oder Jede andere Taste) Vorgang abbrechen.",
-            "your_choice": "Ihre Wahl: "
-        }
+            "your_choice": "Ihre Wahl: ",
+        },
     },
-    
     # --- (Hier icon_manager, system, main, storage, path_validator einfügen) ---
     "icon_manager": {
-        "error": { "fatal_commctrl": "FATAL: 'commctrl' nicht gefunden." },
-        "info": { "reading": "[IconManager] Lese Icon-Positionen..." },
-        "warn": { "no_icons_on_desktop": "Aktueller Desktop hat 0 Icons." },
-        "debug": { "item_count": "[IconManager DEBUG] Anzahl Items: {count}" }
+        "error": {"fatal_commctrl": "FATAL: 'commctrl' nicht gefunden."},
+        "info": {"reading": "[IconManager] Lese Icon-Positionen..."},
+        "warn": {"no_icons_on_desktop": "Aktueller Desktop hat 0 Icons."},
+        "debug": {"item_count": "[IconManager DEBUG] Anzahl Items: {count}"},
     },
     "system": {
-        "info": { "restarting": "[SYSTEM] Starte Windows Explorer neu...", "restarted": "[SYSTEM] Explorer neu gestartet." },
-        "warning": { # <-- Hinzugefügt
+        "info": {
+            "restarting": "[SYSTEM] Starte Windows Explorer neu...",
+            "restarted": "[SYSTEM] Explorer neu gestartet.",
+        },
+        "warning": {  # <-- Hinzugefügt
             "explorer_not_running": "Explorer läuft nicht, starte ihn...",
             "explorer_timeout": "Explorer konnte nicht beendet werden (Timeout).",
             "kill_failed": "taskkill war nicht erfolgreich (ignoriert).",
         },
-        "error": { # <-- Hinzugefügt
+        "error": {  # <-- Hinzugefügt
             "restart_failed": "Explorer konnte nicht neu gestartet werden.",
-            "restart_exception": "Fehler bei Explorer-Neustart: {error}"
-        }
+            "restart_exception": "Fehler bei Explorer-Neustart: {error}",
+        },
     },
     "main": {
-        "error": { 
-            "import": "Import Fehler: {e}", 
-            "import_hint_1": "Stelle sicher...", 
-            "import_hint_2": "...", 
-            "handler_call_failed": "{name} konnte nicht geladen werden!", 
-            "name_missing": "Desktop-Name fehlt.", 
+        "error": {
+            "import": "Import Fehler: {e}",
+            "import_hint_1": "Stelle sicher...",
+            "import_hint_2": "...",
+            "handler_call_failed": "{name} konnte nicht geladen werden!",
+            "name_missing": "Desktop-Name fehlt.",
             "unknown_command": "Unbekannter Befehl: {command}",
             # --- HINZUGEFÜGT ---
             "tray_not_found": "Tray-Icon Skript nicht gefunden unter: {path}",
-            "tray_failed": "Fehler beim Starten des Tray-Icons: {e}"
+            "tray_failed": "Fehler beim Starten des Tray-Icons: {e}",
         },
-        "warn": { 
+        "warn": {
             "handler_load_failed": "{handler} konnte nicht geladen werden.",
-            "tray_already_running": "Tray-Icon läuft bereits (PID: {pid})." # <-- Hinzugefügt
+            "tray_already_running": "Tray-Icon läuft bereits (PID: {pid}).",  # <-- Hinzugefügt
         },
-        "info": { 
-            "starting_interactive": "Starte interaktives Menü...", 
-            "switching_to": "Versuche...", 
-            "restarting_explorer": "Starte Explorer neu...", 
-            "waiting_explorer": "Warte...", 
-            "list_header": "\nVerfügbare Desktops:", 
-            "available_commands": "Verfügbare Befehle: delete, switch, list", 
+        "info": {
+            "starting_interactive": "Starte interaktives Menü...",
+            "switching_to": "Versuche...",
+            "restarting_explorer": "Starte Explorer neu...",
+            "waiting_explorer": "Warte...",
+            "list_header": "\nVerfügbare Desktops:",
+            "available_commands": "Verfügbare Befehle: delete, switch, list",
             "hint_interactive": "Oder starte ohne Argumente...",
-            "starting_create_menu": "Starte Menü zum Erstellen (Text)...", # <-- Text angepasst
-            "starting_create_gui": "Starte grafische Oberfläche (GUI)...", # <-- NEU
-            "starting_listener": "Starte Listener...", # <-- Hinzugefügt
+            "starting_create_menu": "Starte Menü zum Erstellen (Text)...",  # <-- Text angepasst
+            "starting_create_gui": "Starte grafische Oberfläche (GUI)...",  # <-- NEU
+            "starting_listener": "Starte Listener...",  # <-- Hinzugefügt
             # --- HINZUGEFÜGT ---
-            "starting_tray": "Starte das SmartDesk Tray-Icon..."
+            "starting_tray": "Starte das SmartDesk Tray-Icon...",
         },
-        "success": { 
+        "success": {
             "switch": "Wechsel zu '{name}' abgeschlossen.",
             # --- HINZUGEFÜGT ---
-            "tray_started": "Tray-Icon wurde erfolgreich gestartet."
+            "tray_started": "Tray-Icon wurde erfolgreich gestartet.",
         },
-        "usage": { 
-            "delete": "Verwendung: ...", 
-            "switch": "Verwendung: ..." 
-        }
+        "usage": {"delete": "Verwendung: ...", "switch": "Verwendung: ..."},
     },
     "storage": {
-        "error": { "create_dir": "Konnte Datenverzeichnis nicht erstellen: {e}", "save": "Konnte Desktops nicht speichern: {e}", "load": "Konnte Desktops nicht laden: {e}" }
+        "error": {
+            "create_dir": "Konnte Datenverzeichnis nicht erstellen: {e}",
+            "save": "Konnte Desktops nicht speichern: {e}",
+            "load": "Konnte Desktops nicht laden: {e}",
+        }
     },
     "path_validator": {
-        "error": { "create_dir": "Fehler beim Erstellen des Verzeichnisses {path}: {e}" }
+        "error": {"create_dir": "Fehler beim Erstellen des Verzeichnisses {path}: {e}"}
     },
-
-    
     # --- NEUER ABSCHNITT FÜR DEN HOTKEY MANAGER ---
     "hotkey_manager": {
         "error": {
@@ -338,7 +318,7 @@ TEXT = {
             "python_not_found": "Python-Ausführungsdatei (.venv) nicht gefunden: {path}",
             "start_failed": "Fehler beim Starten des Listeners: {e}",
             "stop_failed": "Unerwarteter Fehler beim Stoppen des Listeners: {e}",
-            "access_denied": "Keine Berechtigung, Prozess {pid} zu beenden."
+            "access_denied": "Keine Berechtigung, Prozess {pid} zu beenden.",
         },
         "warn": {
             "already_running": "Listener läuft bereits.",
@@ -346,7 +326,7 @@ TEXT = {
             "pid_write_failed": "PID-Datei konnte nicht geschrieben werden: {e}",
             "process_not_found": "Prozess {pid} wurde nicht gefunden (lief evtl. schon nicht mehr).",
             "pid_clean_failed": "PID-Datei konnte nicht gelöscht werden: {e}",
-            "force_kill": "Prozess {pid} reagiert nicht, erzwinge Beendigung..."
+            "force_kill": "Prozess {pid} reagiert nicht, erzwinge Beendigung...",
         },
         "info": {
             "starting": "Starte Hotkey-Listener im Hintergrund...",
@@ -354,30 +334,24 @@ TEXT = {
             "stopping": "Versuche, Prozess mit PID {pid} zu beenden...",
             "signal_sent": "Signal zum Beenden an PID {pid} gesendet.",
             "stop_success": "Prozess {pid} erfolgreich beendet.",
-            "pid_cleaned": "PID-Datei aufgeräumt."
-        }
+            "pid_cleaned": "PID-Datei aufgeräumt.",
+        },
     },
-
     # --- NEUER ABSCHNITT FÜR DEN TRAY MANAGER ---
     "tray_manager": {
         "warn": {
             "not_running": "Tray-Icon läuft derzeit nicht.",
-            "pid_not_found": "Prozess {pid} wurde nicht gefunden (lief evtl. schon nicht mehr)."
+            "pid_not_found": "Prozess {pid} wurde nicht gefunden (lief evtl. schon nicht mehr).",
         },
-        "success": {
-            "stopped": "Tray-Icon erfolgreich beendet."
-        },
-        "error": {
-            "stop_failed": "Fehler beim Beenden des Tray-Icons: {e}"
-        }
+        "success": {"stopped": "Tray-Icon erfolgreich beendet."},
+        "error": {"stop_failed": "Fehler beim Beenden des Tray-Icons: {e}"},
     },
-
     "hotkey_listener": {
         "error": {
             "actions_load": "FEHLER: Konnte .actions nicht laden: {e}",
             "actions_hint": "Stelle sicher, dass actions.py im 'hotkeys'-Ordner liegt.",
             "action_fallback": "FEHLER: Aktion {n} nicht geladen",
-            "generic": "Ein Fehler ist aufgetreten: {e}"
+            "generic": "Ein Fehler ist aufgetreten: {e}",
         },
         "warn": {
             "pid_clean_failed": "Warnung: PID-Datei konnte nicht bereinigt werden: {e}"
@@ -391,7 +365,7 @@ TEXT = {
             "instructions_stop": "Drücke 'Strg+C' im Terminal, um das Skript zu beenden.",
             "pid_cleaned": "PID-Datei bereinigt.",
             "stopped_user": "\nListener durch Benutzer (Strg+C) gestoppt.",
-            "stopping": "Listener wird beendet."
+            "stopping": "Listener wird beendet.",
         },
         "log": {
             "action_executed": "Hotkey Alt+{n} ausgeführt",
@@ -403,29 +377,23 @@ TEXT = {
             "pid_clean_failed": "Warnung: PID-Datei-Cleanup fehlgeschlagen: {e}",
             "stopped_user": "Listener durch Benutzer gestoppt (Strg+C)",
             "error_generic": "Fehler aufgetreten: {e}",
-            "stopped": "Listener beendet"
-        }
+            "stopped": "Listener beendet",
+        },
     },
-    
-    "registry": {
-        "error": {
-            "update": "Registry Fehler bei {key_path}: {e}"
-        }
-    },
-    
+    "registry": {"error": {"update": "Registry Fehler bei {key_path}: {e}"}},
     "wallpaper_manager": {
         "error": {
             "path_not_found": "Pfad '{path}' existiert nicht.",
             "source_not_found": "Quelldatei '{path}' wurde nicht gefunden.",
             "api_fail": "Windows-API konnte Hintergrundbild nicht setzen.",
             "api_exception": "Fehler beim Setzen des Hintergrundbilds: {e}",
-            "copy": "Fehler beim Kopieren der Datei: {e}"
+            "copy": "Fehler beim Kopieren der Datei: {e}",
         },
         "success": {
             "set": "Hintergrundbild erfolgreich gesetzt.",
-            "copy": "Hintergrundbild kopiert nach: {path}"
-        }
-    }
+            "copy": "Hintergrundbild kopiert nach: {path}",
+        },
+    },
 }
 
 
@@ -433,19 +401,19 @@ TEXT = {
 def get_text(key: str, **kwargs) -> str:
     """
     Retrieves a localized text using dot notation and formats it with parameters.
-    
+
     Holt einen Textbaustein anhand seines Schlüssels (Punkt-Notation) und formatiert ihn.
     """
     keys = key.split('.')
     value = TEXT
-    
+
     try:
         for k in keys:
             value = value[k]
-        
+
         if not isinstance(value, str):
             return f"<{key} ist kein Text-Wert>"
-        
+
         return value.format(**kwargs)
     except KeyError:
         return f"<{key} nicht gefunden>"

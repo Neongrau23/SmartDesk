@@ -7,14 +7,20 @@ from .config import (
     DESKTOPS_FILE,
     WALLPAPERS_DIR,
     BASE_DIR,
-    AnimationConfig
+    AnimationConfig,
 )
 from .localization import get_text
-from .style import PREFIX_OK, PREFIX_ERROR, PREFIX_WARN, format_status_active, format_status_inactive
+from .style import (
+    PREFIX_OK,
+    PREFIX_ERROR,
+    PREFIX_WARN,
+    format_status_active,
+    format_status_inactive,
+)
 
 __all__ = [
     'KEY_USER_SHELL',
-    'KEY_LEGACY_SHELL', 
+    'KEY_LEGACY_SHELL',
     'VALUE_NAME',
     'DATA_DIR',
     'DESKTOPS_FILE',
@@ -26,5 +32,5 @@ __all__ = [
     'PREFIX_ERROR',
     'PREFIX_WARN',
     'format_status_active',
-    'format_status_inactive'
+    'format_status_inactive',
 ]

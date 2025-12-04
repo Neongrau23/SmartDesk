@@ -5,7 +5,7 @@ from .registry_operations import (
     save_tray_pid,
     get_tray_pid,
     is_process_running,
-    cleanup_tray_pid
+    cleanup_tray_pid,
 )
 from .path_validator import ensure_directory_exists
 
@@ -16,5 +16,5 @@ __all__ = [
     'get_tray_pid',
     'is_process_running',
     'cleanup_tray_pid',
-    'ensure_directory_exists'
+    'ensure_directory_exists',
 ]

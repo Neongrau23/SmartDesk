@@ -18,18 +18,18 @@ from .config import BannerConfig, DEFAULT_CONFIG
 class BannerWidget:
     """
     Reine UI-Komponente für das Banner.
-    
+
     Verantwortlich für:
     - Fenster-Erstellung
     - UI-Layout
     - Visuelle Darstellung
-    
+
     NICHT verantwortlich für:
     - Animationen
     - Geschäftslogik
     - Event-Handling (außer Close-Button)
     """
-    
+
     def __init__(
         self,
         message: str = "Benachrichtigung",
@@ -37,14 +37,14 @@ class BannerWidget:
         theme: Optional[BannerTheme] = None,
         config: Optional[BannerConfig] = None,
         on_close: Optional[Callable[[], None]] = None,
-        parent: Optional[tk.Tk] = None
+        parent: Optional[tk.Tk] = None,
     ):
         self.message = message
         self.icon = icon
         self.theme = theme or DEFAULT_THEME
         self.config = config or DEFAULT_CONFIG
         self.on_close_callback = on_close
-        
+
         # Root-Fenster
         if parent:
             self.root = tk.Toplevel(parent)
@@ -53,21 +53,21 @@ class BannerWidget:
             self.root = tk.Tk()
             self.root.withdraw()
             self._owns_root = True
-        
+
         # UI-Referenzen
         self.message_label: Optional[tk.Label] = None
         self.icon_label: Optional[tk.Label] = None
         self.message_font: Optional[tkFont.Font] = None
-        
+
         self._setup_window()
         self._create_ui()
-    
+
     def _setup_window(self) -> None:
         """Konfiguriert das Fenster."""
         self.root.title("")
         self.root.overrideredirect(True)
         self.root.configure(bg=self.theme.colors.background_dark)
-        
+
         if sys.platform == 'win32':
             if self.config.behavior.always_on_top:
                 self.root.wm_attributes('-topmost', 1)
@@ -76,55 +76,52 @@ class BannerWidget:
         else:
             if self.config.behavior.always_on_top:
                 self.root.attributes('-topmost', True)
-        
+
         # Starte unsichtbar
         self.root.attributes('-alpha', 0.0)
-    
+
     def _create_ui(self) -> None:
         """Erstellt die UI-Elemente."""
         theme = self.theme
         cfg = self.config.size
-        
+
         # Hauptframe mit Rahmen
         main_frame = tk.Frame(
             self.root,
             bg=theme.colors.background,
             highlightbackground=theme.colors.border,
-            highlightthickness=1
+            highlightthickness=1,
         )
         main_frame.pack(fill=tk.BOTH, expand=True)
-        
+
         # Akzent-Streifen oben
         accent_stripe = tk.Frame(
-            main_frame,
-            bg=theme.colors.accent,
-            height=cfg.accent_stripe_height
+            main_frame, bg=theme.colors.accent, height=cfg.accent_stripe_height
         )
         accent_stripe.pack(side=tk.TOP, fill=tk.X)
-        
+
         # Content-Frame
         content_frame = tk.Frame(main_frame, bg=theme.colors.background)
         content_frame.pack(
             fill=tk.BOTH,
             expand=True,
             padx=cfg.content_padding_x,
-            pady=cfg.content_padding_y
+            pady=cfg.content_padding_y,
         )
-        
+
         # Icon
         self.icon_label = tk.Label(
             content_frame,
             text=self.icon,
             font=(theme.fonts.emoji_family, theme.fonts.icon_size),
             fg=theme.colors.accent,
-            bg=theme.colors.background
+            bg=theme.colors.background,
         )
         self.icon_label.pack(side=tk.LEFT, padx=(0, cfg.icon_padding_right))
-        
+
         # Nachricht
         self.message_font = tkFont.Font(
-            family=theme.fonts.primary_family,
-            size=theme.fonts.message_size
+            family=theme.fonts.primary_family, size=theme.fonts.message_size
         )
         self.message_label = tk.Label(
             content_frame,
@@ -132,10 +129,10 @@ class BannerWidget:
             font=self.message_font,
             fg=theme.colors.text_primary,
             bg=theme.colors.background,
-            anchor='w'
+            anchor='w',
         )
         self.message_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        
+
         # Schließen-Button
         close_btn = tk.Label(
             content_frame,
@@ -144,52 +141,51 @@ class BannerWidget:
             fg=theme.colors.text_secondary,
             bg=theme.colors.background,
             cursor='hand2',
-            padx=cfg.close_button_padding_x
+            padx=cfg.close_button_padding_x,
         )
         close_btn.pack(side=tk.RIGHT)
-        
+
         # Hover-Effekt für Close-Button
         close_btn.bind('<Button-1>', lambda e: self._on_close_click())
         close_btn.bind(
-            '<Enter>',
-            lambda e: close_btn.config(fg=theme.colors.text_hover)
+            '<Enter>', lambda e: close_btn.config(fg=theme.colors.text_hover)
         )
         close_btn.bind(
-            '<Leave>',
-            lambda e: close_btn.config(fg=theme.colors.text_secondary)
+            '<Leave>', lambda e: close_btn.config(fg=theme.colors.text_secondary)
         )
-    
+
     def _on_close_click(self) -> None:
         """Handler für Schließen-Button."""
         if self.on_close_callback:
             self.on_close_callback()
-    
+
     def calculate_geometry(self) -> tuple:
         """
         Berechnet Fensterposition und -größe.
-        
+
         Returns:
             Tuple (window_width, window_height, x_pos, target_y, start_y)
         """
         cfg_size = self.config.size
         cfg_pos = self.config.position
-        
+
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
-        
+
         # Breite basierend auf Text
         text_width = self.message_font.measure(self.message)
         static_width = (
-            45 +  # Icon
-            cfg_size.content_padding_x * 2 +  # Padding
-            cfg_size.close_button_padding_x * 2 + 20  # Close-Button
+            45  # Icon
+            + cfg_size.content_padding_x * 2  # Padding
+            + cfg_size.close_button_padding_x * 2
+            + 20  # Close-Button
         )
         calculated_width = text_width + static_width
-        
+
         max_width = screen_width - cfg_size.max_width_margin
         window_width = max(cfg_size.min_width, min(calculated_width, max_width))
         window_height = cfg_size.height
-        
+
         # Horizontale Position
         if cfg_pos.horizontal_align == 'left':
             x_pos = cfg_pos.margin_horizontal
@@ -197,50 +193,44 @@ class BannerWidget:
             x_pos = screen_width - window_width - cfg_pos.margin_horizontal
         else:  # center
             x_pos = (screen_width - window_width) // 2
-        
+
         # Vertikale Position
         target_y = screen_height - window_height - cfg_pos.margin_bottom
         start_y = screen_height  # Unterhalb des Bildschirms
-        
+
         return window_width, window_height, x_pos, target_y, start_y
-    
-    def set_geometry(
-        self,
-        width: int,
-        height: int,
-        x: int,
-        y: int
-    ) -> None:
+
+    def set_geometry(self, width: int, height: int, x: int, y: int) -> None:
         """Setzt die Fenstergeometrie."""
         self.root.geometry(f'{width}x{height}+{x}+{y}')
-    
+
     def update_message(self, message: str, icon: Optional[str] = None) -> None:
         """Aktualisiert den angezeigten Text."""
         self.message = message
         if self.message_label:
             self.message_label.config(text=message)
-        
+
         if icon and self.icon_label:
             self.icon = icon
             self.icon_label.config(text=icon)
-    
+
     def show(self) -> None:
         """Zeigt das Fenster an (ohne Animation)."""
         self.root.deiconify()
         self.root.update()
         self.root.lift()
-    
+
     def hide(self) -> None:
         """Versteckt das Fenster."""
         self.root.withdraw()
-    
+
     def destroy(self) -> None:
         """Zerstört das Fenster."""
         try:
             self.root.destroy()
         except tk.TclError:
             pass
-    
+
     @property
     def window(self) -> tk.Toplevel:
         """Gibt das Tkinter-Fenster zurück."""

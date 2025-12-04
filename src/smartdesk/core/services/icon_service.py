@@ -41,16 +41,16 @@ class LVITEM(ctypes.Structure):
         ("iIndent", ctypes.c_int),
         ("iGroupId", ctypes.c_int),
         ("cColumns", ctypes.c_uint),
-        ("puColumns", ctypes.c_void_p)
+        ("puColumns", ctypes.c_void_p),
     ]
 
 
 # --- Konstanten ---
-LVM_GETITEMCOUNT = (LVM_FIRST + 4)
-LVM_GETITEMW = (LVM_FIRST + 75)
-LVM_GETITEMPOSITION = (LVM_FIRST + 16)
-LVM_SETITEMPOSITION = (LVM_FIRST + 15)
-LVM_UPDATE = (LVM_FIRST + 42)
+LVM_GETITEMCOUNT = LVM_FIRST + 4
+LVM_GETITEMW = LVM_FIRST + 75
+LVM_GETITEMPOSITION = LVM_FIRST + 16
+LVM_SETITEMPOSITION = LVM_FIRST + 15
+LVM_UPDATE = LVM_FIRST + 42
 
 PROCESS_VM_READ = 0x0010
 PROCESS_VM_WRITE = 0x0020
@@ -75,14 +75,10 @@ def _get_desktop_listview_handle():
         h_workerw = win32gui.FindWindowEx(0, h_workerw, "WorkerW", None)
         if h_workerw == 0:
             break
-        h_shell_def_view = win32gui.FindWindowEx(
-            h_workerw, 0, "SHELLDLL_DefView", None
-        )
+        h_shell_def_view = win32gui.FindWindowEx(h_workerw, 0, "SHELLDLL_DefView", None)
 
     if h_shell_def_view == 0:
-        h_shell_def_view = win32gui.FindWindowEx(
-            h_progman, 0, "SHELLDLL_DefView", None
-        )
+        h_shell_def_view = win32gui.FindWindowEx(h_progman, 0, "SHELLDLL_DefView", None)
 
     if h_shell_def_view == 0:
         print(f"{PREFIX_ERROR} {get_text('icon_manager.error.shelldll_not_found')}")
@@ -151,9 +147,7 @@ def get_current_icon_positions(timeout_seconds=5) -> List[IconPosition]:
 
         def get_item_count():
             try:
-                item_count[0] = win32gui.SendMessage(
-                    h_listview, LVM_GETITEMCOUNT, 0, 0
-                )
+                item_count[0] = win32gui.SendMessage(h_listview, LVM_GETITEMCOUNT, 0, 0)
             except Exception as e:
                 error[0] = e
 
@@ -185,14 +179,15 @@ def get_current_icon_positions(timeout_seconds=5) -> List[IconPosition]:
 
         for i in range(item_count[0]):
             try:
-                win32gui.SendMessage(
-                    h_listview, LVM_GETITEMPOSITION, i, p_point
-                )
+                win32gui.SendMessage(h_listview, LVM_GETITEMPOSITION, i, p_point)
 
                 point = POINT()
                 if not read_process_memory(
-                    h_process, p_point, ctypes.byref(point),
-                    ctypes.sizeof(point), ctypes.byref(bytes_read)
+                    h_process,
+                    p_point,
+                    ctypes.byref(point),
+                    ctypes.sizeof(point),
+                    ctypes.byref(bytes_read),
                 ):
                     continue
 
@@ -204,8 +199,11 @@ def get_current_icon_positions(timeout_seconds=5) -> List[IconPosition]:
                 lvitem.cchTextMax = 260
 
                 if not write_process_memory(
-                    h_process, p_lvitem, ctypes.byref(lvitem),
-                    ctypes.sizeof(lvitem), ctypes.byref(bytes_written)
+                    h_process,
+                    p_lvitem,
+                    ctypes.byref(lvitem),
+                    ctypes.sizeof(lvitem),
+                    ctypes.byref(bytes_written),
                 ):
                     continue
 
@@ -213,16 +211,17 @@ def get_current_icon_positions(timeout_seconds=5) -> List[IconPosition]:
 
                 text_buffer = ctypes.create_unicode_buffer(260)
                 if not read_process_memory(
-                    h_process, p_text_buffer, text_buffer,
-                    260 * 2, ctypes.byref(bytes_read)
+                    h_process,
+                    p_text_buffer,
+                    text_buffer,
+                    260 * 2,
+                    ctypes.byref(bytes_read),
                 ):
                     continue
 
                 name = text_buffer.value
                 if name:
-                    icons.append(IconPosition(
-                        index=i, name=name, x=point.x, y=point.y
-                    ))
+                    icons.append(IconPosition(index=i, name=name, x=point.x, y=point.y))
             except Exception as e:
                 print(f"{PREFIX_WARN} Icon {i} übersprungen: {e}")
                 continue
@@ -230,9 +229,7 @@ def get_current_icon_positions(timeout_seconds=5) -> List[IconPosition]:
     finally:
         ctypes.windll.kernel32.VirtualFreeEx(h_process, p_point, 0, MEM_RELEASE)
         ctypes.windll.kernel32.VirtualFreeEx(h_process, p_lvitem, 0, MEM_RELEASE)
-        ctypes.windll.kernel32.VirtualFreeEx(
-            h_process, p_text_buffer, 0, MEM_RELEASE
-        )
+        ctypes.windll.kernel32.VirtualFreeEx(h_process, p_text_buffer, 0, MEM_RELEASE)
         ctypes.windll.kernel32.CloseHandle(h_process)
 
     print(get_text("icon_manager.info.icons_found", count=len(icons)))
@@ -252,9 +249,7 @@ def set_icon_positions(icons: List[IconPosition]):
     if not h_listview:
         return
 
-    current_item_count = win32gui.SendMessage(
-        h_listview, LVM_GETITEMCOUNT, 0, 0
-    )
+    current_item_count = win32gui.SendMessage(h_listview, LVM_GETITEMCOUNT, 0, 0)
     if current_item_count == 0:
         msg = get_text('icon_manager.warn.no_icons_on_desktop')
         print(f"{PREFIX_WARN} {msg}")
@@ -284,7 +279,7 @@ def set_icon_positions(icons: List[IconPosition]):
                 'icon_manager.warn.index_not_found',
                 index=icon.index,
                 name=icon.name,
-                max=(current_item_count - 1)
+                max=(current_item_count - 1),
             )
             print(f"{PREFIX_WARN} {msg}")
             failed += 1
@@ -292,8 +287,6 @@ def set_icon_positions(icons: List[IconPosition]):
     win32gui.InvalidateRect(h_listview, None, True)
     win32gui.UpdateWindow(h_listview)
 
-    print(get_text(
-        "icon_manager.info.restore_complete",
-        restored=restored,
-        failed=failed
-    ))
+    print(
+        get_text("icon_manager.info.restore_complete", restored=restored, failed=failed)
+    )

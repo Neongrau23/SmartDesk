@@ -20,16 +20,15 @@ def set_wallpaper(path: str) -> bool:
     Setzt das Desktop-Hintergrundbild über die Windows-API.
     """
     if not path or not os.path.exists(path):
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.path_not_found', path=path)}")
+        print(
+            f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.path_not_found', path=path)}"
+        )
         return False
 
     try:
         path_c = ctypes.c_wchar_p(path)
         result = ctypes.windll.user32.SystemParametersInfoW(
-            SPI_SETDESKWALLPAPER,
-            0,
-            path_c,
-            SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
+            SPI_SETDESKWALLPAPER, 0, path_c, SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
         )
 
         if result:
@@ -40,19 +39,20 @@ def set_wallpaper(path: str) -> bool:
             return False
 
     except Exception as e:
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.api_exception', e=e)}")
+        print(
+            f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.api_exception', e=e)}"
+        )
         return False
 
 
-def copy_wallpaper_to_datadir(
-    source_path: str,
-    desktop_name: str
-) -> Optional[str]:
+def copy_wallpaper_to_datadir(source_path: str, desktop_name: str) -> Optional[str]:
     """
     Kopiert ein Bild in den AppData-Ordner von SmartDesk.
     """
     if not os.path.exists(source_path):
-        print(f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.source_not_found', path=source_path)}")
+        print(
+            f"{PREFIX_ERROR} {get_text('wallpaper_manager.error.source_not_found', path=source_path)}"
+        )
         return None
 
     try:
@@ -63,7 +63,9 @@ def copy_wallpaper_to_datadir(
         destination_path = os.path.join(WALLPAPERS_DIR, new_filename)
 
         shutil.copy(source_path, destination_path)
-        print(f"{PREFIX_OK} {get_text('wallpaper_manager.success.copy', path=destination_path)}")
+        print(
+            f"{PREFIX_OK} {get_text('wallpaper_manager.success.copy', path=destination_path)}"
+        )
         return destination_path
 
     except Exception as e:
