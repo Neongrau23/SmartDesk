@@ -21,6 +21,15 @@ except ImportError:
             text += ": " + str(kwargs)
         return f"[i18n: {text}]"
 
+# --- BANNER CONTROLLER IMPORT ---
+try:
+    from .banner_controller import get_banner_controller
+    _banner_controller = None  # Wird lazy initialisiert
+except ImportError:
+    _banner_controller = None
+    def get_banner_controller():
+        return None
+
 # --- AKTIONEN IMPORT ---
 try:
     from .actions import (
@@ -61,8 +70,25 @@ _log_func = None
 
 # --- 3. Listener-Funktionen (Das Kernstück) ---
 
+def _get_banner_ctrl():
+    """Lazy-Initialisierung des Banner-Controllers."""
+    global _banner_controller
+    if _banner_controller is None:
+        ctrl = get_banner_controller()
+        if ctrl and _log_func:
+            ctrl._log = _log_func
+        _banner_controller = ctrl
+    return _banner_controller
+
+
 def on_press(key):
     global wait_state
+    
+    # Banner-Controller: Alt-Erkennung
+    if key == Key.alt_l or key == Key.alt_r:
+        ctrl = _get_banner_ctrl()
+        if ctrl:
+            ctrl.on_alt_pressed()
     
     if wait_state == "WAITING_FOR_ALT_NUM":
         alt_gehalten = Key.alt_l in current_keys or Key.alt_r in current_keys
@@ -143,6 +169,20 @@ def on_press(key):
 def on_release(key):
     global wait_state
     
+    # Banner-Controller: Alt losgelassen
+    if key == Key.alt_l or key == Key.alt_r:
+        # Prüfe ob die andere Alt-Taste noch gehalten wird
+        other_alt_held = False
+        if key == Key.alt_l and Key.alt_r in current_keys:
+            other_alt_held = True
+        if key == Key.alt_r and Key.alt_l in current_keys:
+            other_alt_held = True
+        
+        if not other_alt_held:
+            ctrl = _get_banner_ctrl()
+            if ctrl:
+                ctrl.on_alt_released()
+    
     if wait_state == "WAITING_FOR_ALT_NUM":
         if key == Key.alt_l or key == Key.alt_r:
             other_alt_held = False
@@ -170,6 +210,11 @@ def on_release(key):
         print(msg)
         if _log_func:
             _log_func(get_text("hotkey_listener.log.wait_for_alt_num"))
+        
+        # Banner-Controller: Strg+Shift erkannt
+        ctrl = _get_banner_ctrl()
+        if ctrl:
+            ctrl.on_ctrl_shift_triggered()
         
     try:
         current_keys.remove(key)

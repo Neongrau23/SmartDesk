@@ -46,6 +46,15 @@ from .implementations import (
     SubprocessStarter
 )
 
+# Banner-Controller für Hold-to-Show
+from .banner_controller import (
+    BannerController,
+    BannerState,
+    BannerConfig,
+    get_banner_controller,
+    set_banner_controller
+)
+
 __all__ = [
     # Öffentliche API
     'start_listener',
@@ -73,4 +82,11 @@ __all__ = [
     'PsutilProcessController',
     'FilePidStorage',
     'SubprocessStarter',
+    
+    # Banner-Controller
+    'BannerController',
+    'BannerState',
+    'BannerConfig',
+    'get_banner_controller',
+    'set_banner_controller',
 ]
