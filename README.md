@@ -32,22 +32,43 @@ SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter W
 
 ## 🚀 Installation
 
+### Voraussetzungen
+
+- **Python 3.10+** muss installiert sein ([Download](https://www.python.org/downloads/))
+- **Windows 10/11**
+
 ### Automatische Installation (Empfohlen)
 
-1. Repository klonen:
+1. Repository klonen oder herunterladen:
    ```powershell
    git clone https://github.com/Neongrau23/SmartDesk.CLI.git
    cd SmartDesk.CLI
    ```
 
-2. Startskript ausführen:
+2. Installationsskript ausführen:
    ```powershell
-   .\scripts\start.ps1
+   # Per Doppelklick oder Terminal:
+   .\scripts\install.bat
+   
+   # Oder direkt mit Python:
+   python scripts/install.py
+   
+   # PowerShell (für Power-User):
+   .\scripts\install.ps1
    ```
 
-Das Skript erstellt automatisch ein Virtual Environment, installiert alle Abhängigkeiten und startet die Tray-Anwendung.
+Das Skript führt automatisch folgende Schritte aus:
+1. ✅ Prüft Python-Version und Systemanforderungen
+2. ✅ Erstellt ein Virtual Environment (`.venv/`)
+3. ✅ Installiert alle Abhängigkeiten
+4. ✅ Erstellt den AppData-Ordner mit Standardkonfiguration
+5. ✅ Erstellt den **geschützten "Original Desktop"** (Backup des Ausgangszustands)
+
+> **💡 Hinweis:** Der automatisch erstellte "Original Desktop" speichert Ihre aktuellen Desktop-Icons und das Wallpaper. Bei einer Deinstallation kann dieser Zustand einfach wiederhergestellt werden.
 
 ### Manuelle Installation
+
+Falls Sie die Installation manuell durchführen möchten:
 
 1. Repository klonen:
    ```powershell
@@ -64,6 +85,11 @@ Das Skript erstellt automatisch ein Virtual Environment, installiert alle Abhän
 3. Abhängigkeiten installieren:
    ```powershell
    pip install -r requirements.txt
+   ```
+
+4. Erster Start (erstellt Original Desktop):
+   ```powershell
+   python src/smartdesk/main.py
    ```
 
 ---
@@ -175,6 +201,52 @@ pytest tests/test_desktop_handler.py -v
 | `pystray` | System Tray Integration |
 | `Pillow` | Bildverarbeitung |
 | `customtkinter` | Moderne GUI-Komponenten |
+
+---
+
+## 🗑️ Deinstallation
+
+SmartDesk erstellt beim ersten Start automatisch einen **geschützten "Original" Desktop**, der den Ausgangszustand Ihres Systems speichert. 
+
+### Automatische Deinstallation (Empfohlen)
+
+Führen Sie einfach das Deinstallations-Skript aus:
+
+```powershell
+# Per Doppelklick oder Terminal:
+.\scripts\uninstall.bat
+
+# Oder direkt mit Python:
+python scripts/uninstall.py
+```
+
+Das Skript führt automatisch folgende Schritte aus:
+1. ✅ Wechselt zum Original Desktop (stellt Ausgangszustand wieder her)
+2. ✅ Stoppt alle laufenden Dienste (Listener, Tray)
+3. ✅ Löscht den SmartDesk-Ordner in AppData (mit Bestätigung)
+
+**Optionen:**
+```powershell
+python scripts/uninstall.py --keep-data   # Behält AppData-Ordner
+python scripts/uninstall.py --force       # Keine Bestätigungen
+```
+
+### Manuelle Deinstallation
+
+Falls das Skript nicht funktioniert:
+
+1. **Original-Desktop aktivieren** (wichtig!):
+   - Öffnen Sie SmartDesk (CLI oder Tray)
+   - Wechseln Sie zum Desktop **"🔒 Original (Datum)"**
+
+2. **Dienste stoppen & Daten löschen**:
+   ```powershell
+   python src/smartdesk/main.py stop-listener
+   python src/smartdesk/main.py stop-tray
+   Remove-Item -Recurse "$env:APPDATA\SmartDesk"
+   ```
+
+> **💡 Tipp:** Durch das Aktivieren des Original-Desktops wird sichergestellt, dass alle Registry-Einträge auf den ursprünglichen Zustand zurückgesetzt werden.
 
 ---
 

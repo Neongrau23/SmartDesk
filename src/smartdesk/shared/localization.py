@@ -189,6 +189,8 @@ TEXT = {
             "save_icons": "Fehler beim Speichern der Icon-Positionen: {e}",
             "save_icons_no_active": "Fehler: Kein aktiver Desktop gefunden.",
             "wallpaper_assign_failed": "Fehler beim Zuweisen des Hintergrundbilds.",  # <-- Veraltet?
+            "protected_delete": "Desktop '{name}' ist geschützt und kann nicht gelöscht werden.",
+            "protected_edit": "Desktop '{name}' ist geschützt und kann nicht bearbeitet werden.",
         },
         "success": {
             "create": "Desktop '{name}' erfolgreich angelegt.",

@@ -39,6 +39,8 @@ class Desktop:
     is_active: bool = False
     wallpaper_path: str = ""
     icon_positionen: List[IconPosition] = field(default_factory=list)
+    protected: bool = False  # Geschützt vor Löschen/Bearbeiten (z.B. Original Desktop)
+    created_at: str = ""  # ISO-Format Zeitstempel der Erstellung
 
     def to_dict(self) -> Dict[str, Any]:
         """Konvertiert das Desktop-Objekt für die JSON-Speicherung."""
@@ -48,6 +50,8 @@ class Desktop:
             "is_active": self.is_active,
             "wallpaper_path": self.wallpaper_path,
             "icon_positionen": [icon.to_dict() for icon in self.icon_positionen],
+            "protected": self.protected,
+            "created_at": self.created_at,
         }
 
     @classmethod
@@ -62,4 +66,10 @@ class Desktop:
             is_active=data.get("is_active", False),
             wallpaper_path=data.get("wallpaper_path", ""),
             icon_positionen=icons,
+            protected=data.get("protected", False),
+            created_at=data.get("created_at", ""),
         )
+    
+    def is_protected(self) -> bool:
+        """Prüft ob der Desktop geschützt ist."""
+        return self.protected

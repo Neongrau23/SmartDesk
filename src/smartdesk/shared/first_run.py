@@ -5,10 +5,12 @@ Führt beim ersten Start alle notwendigen Initialisierungen durch:
 - Registry-Backup erstellen
 - Datenordner initialisieren
 - Konfigurationsdatei erstellen
+- Original Desktop erstellen (geschützt)
 """
 
 import os
 import json
+import winreg
 from datetime import datetime
 
 from .config import DATA_DIR
@@ -75,6 +77,110 @@ def save_setup_info(info: dict) -> bool:
         return False
 
 
+def get_current_wallpaper_path() -> str:
+    """
+    Liest den aktuellen Wallpaper-Pfad aus der Registry.
+    
+    Returns:
+        Pfad zum aktuellen Wallpaper oder leerer String
+    """
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER, 
+            r"Control Panel\Desktop", 
+            0, 
+            winreg.KEY_READ
+        ) as key:
+            value, _ = winreg.QueryValueEx(key, "Wallpaper")
+            return value if value else ""
+    except (FileNotFoundError, OSError) as e:
+        logger.warning(f"Konnte Wallpaper-Pfad nicht lesen: {e}")
+        return ""
+
+
+def get_current_desktop_path() -> str:
+    """
+    Liest den aktuellen Desktop-Pfad aus der Registry.
+    
+    Returns:
+        Pfad zum aktuellen Desktop-Ordner
+    """
+    from .config import KEY_USER_SHELL, VALUE_NAME
+    
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            KEY_USER_SHELL,
+            0,
+            winreg.KEY_READ
+        ) as key:
+            value, _ = winreg.QueryValueEx(key, VALUE_NAME)
+            return os.path.expandvars(value) if value else ""
+    except (FileNotFoundError, OSError) as e:
+        logger.warning(f"Konnte Desktop-Pfad nicht lesen: {e}")
+        # Fallback zum Standard-Desktop
+        return os.path.join(os.environ.get('USERPROFILE', ''), 'Desktop')
+
+
+def create_original_desktop(silent: bool = False) -> bool:
+    """
+    Erstellt den geschützten Original Desktop beim Erststart.
+    Erfasst den aktuellen Systemzustand als Sicherheitsnetz.
+    
+    Args:
+        silent: Wenn True, keine Konsolenausgabe
+        
+    Returns:
+        True bei Erfolg, False bei Fehler
+    """
+    from ..core.models.desktop import Desktop
+    from ..core.storage.file_operations import load_desktops, save_desktops
+    from ..core.services.icon_service import get_current_icon_positions
+    
+    try:
+        # Prüfen ob bereits ein Original Desktop existiert
+        desktops = load_desktops()
+        if any(d.protected for d in desktops):
+            logger.info("Original Desktop existiert bereits")
+            return True
+        
+        # Aktuellen Systemzustand erfassen
+        current_desktop_path = get_current_desktop_path()
+        current_wallpaper = get_current_wallpaper_path()
+        
+        # Icon-Positionen erfassen (mit Timeout)
+        try:
+            icon_positions = get_current_icon_positions(timeout_seconds=5)
+        except Exception as e:
+            logger.warning(f"Konnte Icon-Positionen nicht lesen: {e}")
+            icon_positions = []
+        
+        # Datum für den Namen
+        date_str = datetime.now().strftime("%d.%m.%Y")
+        
+        # Original Desktop erstellen
+        original_desktop = Desktop(
+            name=f"🔒 Original ({date_str})",
+            path=current_desktop_path,
+            is_active=True,  # Der aktuelle Zustand ist aktiv
+            wallpaper_path=current_wallpaper,
+            icon_positionen=icon_positions,
+            protected=True,  # GESCHÜTZT!
+            created_at=datetime.now().isoformat()
+        )
+        
+        # Am Anfang der Liste einfügen
+        desktops.insert(0, original_desktop)
+        save_desktops(desktops)
+        
+        logger.info(f"Original Desktop erstellt: {original_desktop.name}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Fehler beim Erstellen des Original Desktops: {e}")
+        return False
+
+
 def run_first_time_setup(silent: bool = False) -> bool:
     """
     Führt das First-Run-Setup durch.
@@ -86,7 +192,6 @@ def run_first_time_setup(silent: bool = False) -> bool:
         True bei Erfolg, False bei Fehler
     """
     from .style import PREFIX_OK, PREFIX_WARN, PREFIX_ERROR
-    from .localization import get_text
     from ..core.utils.backup_service import create_registry_backup
 
     def log_msg(prefix: str, msg: str):
@@ -130,7 +235,19 @@ def run_first_time_setup(silent: bool = False) -> bool:
         errors.append(f"Registry-Backup: {e}")
         log_msg(PREFIX_WARN, f"Registry-Backup fehlgeschlagen: {e}")
 
-    # 3. Setup als abgeschlossen markieren
+    # 3. Original Desktop erstellen (geschützt)
+    try:
+        original_created = create_original_desktop(silent=silent)
+        if original_created:
+            log_msg(PREFIX_OK, "Original Desktop erstellt (geschützt)")
+            setup_info['original_desktop_created'] = True
+        else:
+            log_msg(PREFIX_WARN, "Original Desktop konnte nicht erstellt werden")
+    except Exception as e:
+        errors.append(f"Original Desktop: {e}")
+        log_msg(PREFIX_ERROR, f"Fehler beim Erstellen des Original Desktops: {e}")
+
+    # 4. Setup als abgeschlossen markieren
     setup_info['first_run_completed'] = True
     setup_info['setup_date'] = datetime.now().isoformat()
     setup_info['setup_version'] = '1.0.0'

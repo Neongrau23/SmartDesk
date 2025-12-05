@@ -58,6 +58,12 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
         print(f"{PREFIX_ERROR} {msg}")
         return False
 
+    # Geschützte Desktops können nicht bearbeitet werden
+    if target_desktop.protected:
+        msg = get_text('desktop_handler.error.protected_edit', name=old_name)
+        print(f"{PREFIX_ERROR} {msg}")
+        return False
+
     if new_name != old_name and any(d.name == new_name for d in desktops):
         msg = get_text('desktop_handler.error.new_name_exists', new_name=new_name)
         print(f"{PREFIX_ERROR} {msg}")
@@ -105,12 +111,19 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
 def delete_desktop(name: str, delete_folder: bool = False) -> bool:
     """
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
+    Geschützte Desktops (z.B. Original) können nicht gelöscht werden.
     """
     desktops = get_all_desktops()
     target_desktop = next((d for d in desktops if d.name == name), None)
 
     if not target_desktop:
         msg = get_text('desktop_handler.error.not_found_delete', name=name)
+        print(f"{PREFIX_ERROR} {msg}")
+        return False
+
+    # Geschützte Desktops können nicht gelöscht werden
+    if target_desktop.protected:
+        msg = get_text('desktop_handler.error.protected_delete', name=name)
         print(f"{PREFIX_ERROR} {msg}")
         return False
 
@@ -189,6 +202,7 @@ def get_all_desktops() -> List[Desktop]:
     """
     Gibt eine Liste aller Desktops zurück.
     Synchronisiert dabei automatisch den 'is_active' Status mit der Registry.
+    Geschützte Desktops werden immer zuerst angezeigt.
     """
     desktops = load_desktops()
 
@@ -216,6 +230,9 @@ def get_all_desktops() -> List[Desktop]:
         msg = get_text('desktop_handler.warn.sync_failed', e=e)
         print(f"{PREFIX_WARN} {msg}")
 
+    # Sortierung: Geschützte Desktops zuerst, dann alphabetisch
+    desktops.sort(key=lambda d: (not d.protected, d.name.lower()))
+    
     return desktops
 
 
