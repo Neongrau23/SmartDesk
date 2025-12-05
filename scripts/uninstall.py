@@ -75,8 +75,13 @@ def confirm(message: str, default: bool = False) -> bool:
 def switch_to_original_desktop() -> bool:
     """Wechselt zum Original Desktop."""
     try:
-        from smartdesk.core.services.desktop_service import get_all_desktops, switch_to_desktop
+        from smartdesk.core.services.desktop_service import (
+            get_all_desktops, 
+            switch_to_desktop,
+            sync_desktop_state_and_apply_icons
+        )
         from smartdesk.core.services.system_service import restart_explorer
+        from smartdesk.core.storage.file_operations import load_desktops, save_desktops
         
         desktops = get_all_desktops()
         
@@ -94,13 +99,26 @@ def switch_to_original_desktop() -> bool:
         
         print_info(f"Wechsle zu '{original.name}'...")
         
-        # Desktop wechseln
+        # Desktop wechseln (Registry-Update)
         needs_restart = switch_to_desktop(original.name)
         
         if needs_restart:
+            # Neuen Desktop als aktiv markieren
+            all_desktops = load_desktops()
+            for d in all_desktops:
+                if d.name == original.name:
+                    d.is_active = True
+                else:
+                    d.is_active = False
+            save_desktops(all_desktops)
+            
             print_info("Starte Explorer neu...")
             restart_explorer()
-            time.sleep(2)  # Kurz warten
+            time.sleep(2)  # Kurz warten bis Explorer bereit ist
+            
+            # Wallpaper und Icons anwenden
+            print_info("Wende Wallpaper und Icons an...")
+            sync_desktop_state_and_apply_icons()
         
         print_success("Original Desktop aktiviert - System ist im Ausgangszustand.")
         return True
@@ -186,6 +204,12 @@ def stop_services() -> bool:
         current_pid = os.getpid()
         killed_count = 0
         
+        # Keywords, die SmartDesk-Prozesse identifizieren
+        smartdesk_keywords = [
+            'tray', 'listener', 'actions', 'control_panel', 'gui_main',
+            'main.py', 'tray_icon.py', 'screen_fade.py'
+        ]
+        
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
                 if proc.info['pid'] == current_pid:
@@ -194,8 +218,8 @@ def stop_services() -> bool:
                 cmdline = proc.info.get('cmdline') or []
                 cmdline_str = ' '.join(cmdline).lower()
                 
-                # Suche nach SmartDesk-Prozessen (erweitert um control_panel, gui)
-                if 'smartdesk' in cmdline_str and any(x in cmdline_str for x in ['tray', 'listener', 'actions', 'control_panel', 'gui_main']):
+                # Suche nach SmartDesk-Prozessen
+                if 'smartdesk' in cmdline_str and any(x in cmdline_str for x in smartdesk_keywords):
                     print_info(f"Beende Prozess {proc.info['pid']}: {proc.info['name']}")
                     proc.terminate()
                     try:
