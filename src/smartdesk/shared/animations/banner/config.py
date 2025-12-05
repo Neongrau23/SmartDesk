@@ -101,38 +101,30 @@ class BannerPosition:
 
 
 @dataclass
-
 class BannerAnimation:
+    """Animations-Konfiguration für das Banner."""
 
-    """Animations-Konfiguration fÃ¼r das Banner."""
+    # Slide-Up Animation (Einblenden)
+    slide_up_steps: int = 25          # Mehr Steps = flüssiger
+    slide_up_delay_ms: int = 8        # Etwas langsamer für smootheren Effekt
+    slide_up_distance: int = 60       # Wie weit das Banner slidet
 
+    # Slide-Down Animation (Ausblenden)  
+    slide_down_steps: int = 20        # Schneller als Einblenden
+    slide_down_delay_ms: int = 6
+    slide_down_distance: int = 40     # Kürzere Distanz beim Ausblenden
 
+    # Transparenz
+    max_alpha: float = 0.98           # Fast vollständig sichtbar
+    min_alpha: float = 0.0            # Komplett transparent
 
-    # Slide-Up Animation
-
-    slide_up_steps: int = 20
-
-    slide_up_delay_ms: int = 5
-
-
-
-    # Slide-Down Animation
-
-    slide_down_steps: int = 15
-
-    slide_down_delay_ms: int = 5
-
-
-
-    # Maximale Transparenz (0.0 - 1.0)
-
-    max_alpha: float = 0.96
-
-
-
-    # Easing-Funktion: 'ease-out' (Standard), 'linear', 'ease-in'
-
+    # Easing-Funktion
+    # Optionen: 'ease-out', 'ease-in', 'ease-in-out', 'cubic-bezier', 'spring'
     easing: str = 'ease-out'
+    
+    # Spring-Animation Parameter (für easing='spring')
+    spring_tension: float = 0.3
+    spring_friction: float = 0.7
 
 
 
@@ -251,41 +243,28 @@ DEFAULT_CONFIG = BannerConfig()
 
 
 # Schnelle Animation
-
 FAST_CONFIG = BannerConfig(
-
     animation=BannerAnimation(
-
-        slide_up_steps=10,
-
-        slide_down_steps=8,
-
-        slide_up_delay_ms=3,
-
-        slide_down_delay_ms=3,
-
+        slide_up_steps=15,
+        slide_down_steps=12,
+        slide_up_delay_ms=5,
+        slide_down_delay_ms=4,
+        slide_up_distance=40,
+        slide_down_distance=30,
     )
-
 )
 
-
-
 # Langsame Animation (eleganter)
-
 SLOW_CONFIG = BannerConfig(
-
     animation=BannerAnimation(
-
-        slide_up_steps=30,
-
-        slide_down_steps=25,
-
-        slide_up_delay_ms=8,
-
-        slide_down_delay_ms=8,
-
+        slide_up_steps=35,
+        slide_down_steps=30,
+        slide_up_delay_ms=12,
+        slide_down_delay_ms=10,
+        slide_up_distance=80,
+        slide_down_distance=60,
+        easing='ease-in-out',
     )
-
 )
 
 

@@ -1,12 +1,13 @@
 # Dateipfad: src/smartdesk/shared/animations/banner/animations.py
 """
-Animationen für das TaskbarBanner.
+Moderne Animationen für das TaskbarBanner.
 
-Enthält die Slide-Up/Slide-Down Animationslogik.
-Kann erweitert werden für weitere Animationseffekte.
+Enthält flüssige Slide- und Fade-Animationen mit
+verschiedenen Easing-Funktionen für ein professionelles Erscheinungsbild.
 """
 
 import tkinter as tk
+import math
 from typing import Callable, Optional
 from abc import ABC, abstractmethod
 
@@ -31,12 +32,65 @@ class BannerAnimator(ABC):
         pass
 
 
+class EasingFunctions:
+    """
+    Sammlung von Easing-Funktionen für flüssige Animationen.
+    
+    Alle Funktionen nehmen einen Progress-Wert (0.0 - 1.0) und
+    geben einen interpolierten Wert zurück.
+    """
+    
+    @staticmethod
+    def linear(t: float) -> float:
+        """Lineare Interpolation."""
+        return t
+    
+    @staticmethod
+    def ease_in(t: float) -> float:
+        """Langsamer Start, schnelles Ende (quadratisch)."""
+        return t * t
+    
+    @staticmethod
+    def ease_out(t: float) -> float:
+        """Schneller Start, langsames Ende (quadratisch)."""
+        return 1 - (1 - t) * (1 - t)
+    
+    @staticmethod
+    def ease_in_out(t: float) -> float:
+        """Langsamer Start und Ende, schnell in der Mitte."""
+        if t < 0.5:
+            return 2 * t * t
+        return 1 - pow(-2 * t + 2, 2) / 2
+    
+    @staticmethod
+    def ease_out_cubic(t: float) -> float:
+        """Cubic ease-out - sehr flüssig."""
+        return 1 - pow(1 - t, 3)
+    
+    @staticmethod
+    def ease_out_quart(t: float) -> float:
+        """Quartic ease-out - noch flüssiger."""
+        return 1 - pow(1 - t, 4)
+    
+    @staticmethod
+    def ease_out_expo(t: float) -> float:
+        """Exponential ease-out - dramatischer Effekt."""
+        return 1 if t == 1 else 1 - pow(2, -10 * t)
+    
+    @staticmethod
+    def ease_out_back(t: float) -> float:
+        """Ease-out mit leichtem Überschwingen - federnder Effekt."""
+        c1 = 1.70158
+        c3 = c1 + 1
+        return 1 + c3 * pow(t - 1, 3) + c1 * pow(t - 1, 2)
+
+
 class SlideAnimator(BannerAnimator):
     """
-    Slide-Animation für das Banner.
+    Moderne Slide-Animation für das Banner.
 
-    Animiert das Banner von unten nach oben (rein)
-    und von oben nach unten (raus).
+    Kombiniert Slide- und Fade-Effekte für ein
+    professionelles Erscheinungsbild.
     """
 
     def __init__(
@@ -55,48 +109,44 @@ class SlideAnimator(BannerAnimator):
         self.window_height = window_height
         self.x_pos = x_pos
 
-    def _ease_out(self, progress: float) -> float:
-        """Ease-out Kurve (schneller Start, langsames Ende)."""
-        return 1 - pow(1 - progress, 3)
-
-    def _ease_in(self, progress: float) -> float:
-        """Ease-in Kurve (langsamer Start, schnelles Ende)."""
-        return pow(progress, 3)
-
-    def _linear(self, progress: float) -> float:
-        """Lineare Interpolation."""
-        return progress
-
     def _get_easing_func(self) -> Callable[[float], float]:
         """Gibt die konfigurierte Easing-Funktion zurück."""
         easing_map = {
-            'ease-out': self._ease_out,
-            'ease-in': self._ease_in,
-            'linear': self._linear,
+            'linear': EasingFunctions.linear,
+            'ease-in': EasingFunctions.ease_in,
+            'ease-out': EasingFunctions.ease_out_cubic,
+            'ease-in-out': EasingFunctions.ease_in_out,
+            'cubic': EasingFunctions.ease_out_cubic,
+            'quart': EasingFunctions.ease_out_quart,
+            'expo': EasingFunctions.ease_out_expo,
+            'back': EasingFunctions.ease_out_back,
         }
-        return easing_map.get(self.config.easing, self._ease_out)
+        return easing_map.get(self.config.easing, EasingFunctions.ease_out_cubic)
 
     def animate_in(
         self, window: tk.Toplevel, callback: Optional[Callable] = None
     ) -> None:
         """
-        Slide-Up Animation.
+        Slide-Up + Fade-In Animation.
 
-        Args:
-            window: Das zu animierende Fenster
-            callback: Optionale Funktion nach Abschluss
+        Das Banner gleitet sanft von unten nach oben
+        während es gleichzeitig einblendet.
         """
         cfg = self.config
         steps = cfg.slide_up_steps
         easing = self._get_easing_func()
+        
+        # Berechne Slide-Distanz
+        slide_distance = getattr(cfg, 'slide_up_distance', 60)
+        actual_start_y = self.target_y + slide_distance
 
         try:
             for i in range(steps + 1):
                 progress = i / steps
                 eased = easing(progress)
 
-                # Berechne Y-Position
-                y_pos = self.start_y - (self.start_y - self.target_y) * eased
+                # Berechne Y-Position (von unten nach oben)
+                y_pos = actual_start_y - slide_distance * eased
 
                 # Setze Geometrie
                 window.geometry(
@@ -104,12 +154,20 @@ class SlideAnimator(BannerAnimator):
                     f'+{self.x_pos}+{int(y_pos)}'
                 )
 
-                # Setze Transparenz
-                alpha = eased * cfg.max_alpha
-                window.attributes('-alpha', alpha)
+                # Setze Transparenz - Fade-in etwas schneller
+                alpha_progress = min(1.0, progress * 1.2)
+                alpha = alpha_progress * cfg.max_alpha
+                window.attributes('-alpha', min(alpha, cfg.max_alpha))
 
                 window.update()
                 window.after(cfg.slide_up_delay_ms)
+
+            # Finale Position sicherstellen
+            window.geometry(
+                f'{self.window_width}x{self.window_height}'
+                f'+{self.x_pos}+{self.target_y}'
+            )
+            window.attributes('-alpha', cfg.max_alpha)
 
             if callback:
                 callback()
@@ -121,25 +179,27 @@ class SlideAnimator(BannerAnimator):
         self, window: tk.Toplevel, callback: Optional[Callable] = None
     ) -> None:
         """
-        Slide-Down Animation.
+        Slide-Down + Fade-Out Animation.
 
-        Args:
-            window: Das zu animierende Fenster
-            callback: Optionale Funktion nach Abschluss
+        Das Banner gleitet sanft nach unten
+        während es gleichzeitig ausblendet.
         """
         cfg = self.config
         steps = cfg.slide_down_steps
-        easing = self._get_easing_func()
+        
+        # Für Ausblenden verwenden wir ease-in-out
+        easing = EasingFunctions.ease_in_out
+        
+        # Berechne Slide-Distanz
+        slide_distance = getattr(cfg, 'slide_down_distance', 40)
 
         try:
-            screen_height = window.winfo_screenheight()
-
-            for i in range(steps, -1, -1):
+            for i in range(steps + 1):
                 progress = i / steps
                 eased = easing(progress)
 
-                # Berechne Y-Position
-                y_pos = self.target_y + (screen_height - self.target_y) * (1 - eased)
+                # Berechne Y-Position (nach unten)
+                y_pos = self.target_y + slide_distance * eased
 
                 # Setze Geometrie
                 window.geometry(
@@ -147,12 +207,16 @@ class SlideAnimator(BannerAnimator):
                     f'+{self.x_pos}+{int(y_pos)}'
                 )
 
-                # Setze Transparenz
-                alpha = progress * cfg.max_alpha
+                # Transparenz - Fade schneller als Slide
+                alpha_progress = 1 - min(1.0, progress * 1.4)
+                alpha = max(0, alpha_progress * cfg.max_alpha)
                 window.attributes('-alpha', alpha)
 
                 window.update()
                 window.after(cfg.slide_down_delay_ms)
+
+            # Komplett ausgeblendet
+            window.attributes('-alpha', 0)
 
             if callback:
                 callback()
@@ -163,9 +227,10 @@ class SlideAnimator(BannerAnimator):
 
 class FadeAnimator(BannerAnimator):
     """
-    Fade-Animation für das Banner (Alternative zu Slide).
+    Reine Fade-Animation für das Banner.
 
     Blendet das Banner ein/aus ohne Bewegung.
+    Nützlich für subtilere Benachrichtigungen.
     """
 
     def __init__(self, config: Optional[BannerAnimation] = None):

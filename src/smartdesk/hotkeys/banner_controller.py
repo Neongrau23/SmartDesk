@@ -300,11 +300,20 @@ class ThreadedBannerManager:
             self._start_banner_process()
 
     def close_banner(self) -> None:
-        """Schließt das Banner (beendet Prozess)."""
+        """Schließt das Banner (beendet Prozess sanft)."""
         with self._lock:
             if self._process is not None and self._process.poll() is None:
                 try:
-                    self._process.terminate()
+                    # Sanft beenden durch Schließen von stdin
+                    # Der Kindprozess erkennt das und beendet sich mit Animation
+                    if self._process.stdin:
+                        self._process.stdin.close()
+                    # Warte kurz auf graceful shutdown
+                    try:
+                        self._process.wait(timeout=0.5)
+                    except Exception:
+                        # Falls Timeout, hart beenden
+                        self._process.terminate()
                 except Exception:
                     pass
                 self._process = None
@@ -340,6 +349,7 @@ sys.path.insert(0, r"{src_dir}")
 from smartdesk.shared.animations.banner import TaskbarBanner, DEFAULT_THEME
 from smartdesk.core.services import desktop_service
 import tkinter as tk
+import threading
 
 def get_message():
     icons = DEFAULT_THEME.icons
@@ -361,21 +371,49 @@ def get_message():
     except Exception as e:
         return f"Fehler: {{e}}", icons.error
 
+# Globale Variablen
+banner = None
+root = None
+closing = False
+
+def close_banner_gracefully():
+    global banner, closing, root
+    if closing:
+        return
+    closing = True
+    if banner:
+        try:
+            banner.close()
+        except:
+            pass
+    # Warte kurz damit Animation ablaufen kann
+    if root:
+        root.after(350, lambda: root.quit())
+
+def stdin_listener():
+    # Wartet auf stdin-Schliessen oder Daten
+    # Wenn Parent-Prozess stirbt oder stdin schliesst, beenden wir
+    global root
+    try:
+        # Blockierend auf stdin lesen - wenn es schliesst, wird EOF zurueckgegeben
+        data = sys.stdin.read(1)
+        # Irgendwelche Daten oder EOF bedeutet: beenden
+    except:
+        pass
+    # Sanft beenden
+    if root:
+        root.after(0, close_banner_gracefully)
+
+# Setup
 root = tk.Tk()
 root.withdraw()
 message, icon = get_message()
 banner = TaskbarBanner(message=message, icon=icon, parent=root)
 banner.show()
 
-# Warte bis Prozess beendet wird (SIGTERM)
-import signal
-def on_terminate(sig, frame):
-    try:
-        banner.close()
-    except:
-        pass
-    root.quit()
-signal.signal(signal.SIGTERM, on_terminate)
+# Starte stdin-Listener in separatem Thread
+stdin_thread = threading.Thread(target=stdin_listener, daemon=True)
+stdin_thread.start()
 
 # Halte Fenster offen
 root.mainloop()
@@ -389,12 +427,10 @@ root.mainloop()
             env = os.environ.copy()
             env['PYTHONPATH'] = src_dir
 
-            # Nutze python.exe (nicht pythonw.exe) um Fehler zu sehen
-            # CREATE_NO_WINDOW versteckt die Konsole trotzdem
-
             self._process = subprocess.Popen(
                 [python_exe, '-c', banner_script],
                 env=env,
+                stdin=subprocess.PIPE,  # Damit wir den Prozess kontrollieren koennen
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 creationflags=(

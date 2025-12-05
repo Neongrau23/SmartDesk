@@ -40,6 +40,7 @@ from .theme import (
     DARK_THEME,
     LIGHT_THEME,
     ACCENT_THEME,
+    GLASS_THEME,
 )
 
 # Config
@@ -76,6 +77,7 @@ __all__ = [
     'DARK_THEME',
     'LIGHT_THEME',
     'ACCENT_THEME',
+    'GLASS_THEME',
     # Config
     'BannerConfig',
     'BannerSize',

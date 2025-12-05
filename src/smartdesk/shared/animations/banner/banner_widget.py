@@ -83,87 +83,123 @@ class BannerWidget:
         self.root.attributes('-alpha', 0.0)
 
     def _create_ui(self) -> None:
-        """Erstellt die UI-Elemente."""
+        """Erstellt die UI-Elemente mit modernem Design."""
         theme = self.theme
         cfg = self.config.size
+        
+        # Hole Farben mit Fallbacks für Kompatibilität
+        bg_color = theme.colors.background
+        surface_color = getattr(theme.colors, 'surface', theme.colors.background)
+        accent_color = theme.colors.accent
+        border_color = theme.colors.border
 
-        # Hauptframe mit Rahmen
-        main_frame = tk.Frame(
+        # Äußerer Frame für Schatten-Effekt (dunklerer Rand)
+        shadow_frame = tk.Frame(
             self.root,
-            bg=theme.colors.background,
-            highlightbackground=theme.colors.border,
+            bg=theme.colors.background_dark,
+        )
+        shadow_frame.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
+
+        # Hauptframe mit feinem Rahmen
+        main_frame = tk.Frame(
+            shadow_frame,
+            bg=bg_color,
+            highlightbackground=border_color,
             highlightthickness=1,
         )
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Akzent-Streifen oben
+        # Dezenter Akzent-Streifen am linken Rand (moderner als oben)
         accent_stripe = tk.Frame(
-            main_frame, bg=theme.colors.accent, height=cfg.accent_stripe_height
+            main_frame, 
+            bg=accent_color, 
+            width=3,  # Schmal und elegant
         )
-        accent_stripe.pack(side=tk.TOP, fill=tk.X)
+        accent_stripe.pack(side=tk.LEFT, fill=tk.Y)
 
-        # Content-Frame
-        content_frame = tk.Frame(main_frame, bg=theme.colors.background)
+        # Content-Frame mit etwas mehr Padding
+        content_frame = tk.Frame(main_frame, bg=bg_color)
         content_frame.pack(
             fill=tk.BOTH,
             expand=True,
-            padx=cfg.content_padding_x,
+            padx=(cfg.content_padding_x, cfg.content_padding_x),
             pady=cfg.content_padding_y,
         )
 
-        # Icon im Kreis
+        # Icon-Container mit modernem rundem Design
+        icon_size = 26
         icon_frame = tk.Frame(
             content_frame,
-            bg=theme.colors.accent,
-            width=28,
-            height=28,
+            bg=accent_color,
+            width=icon_size,
+            height=icon_size,
         )
         icon_frame.pack(side=tk.LEFT, padx=(0, cfg.icon_padding_right))
         icon_frame.pack_propagate(False)
 
+        # Icon zentriert im Container
         self.icon_label = tk.Label(
             icon_frame,
             text=self.icon,
-            font=(theme.fonts.primary_family, theme.fonts.icon_size, "bold"),
+            font=(theme.fonts.primary_family, theme.fonts.icon_size),
             fg=theme.colors.text_primary,
-            bg=theme.colors.accent,
+            bg=accent_color,
         )
         self.icon_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Nachricht
+        # Nachricht mit verbesserter Typografie
+        font_family = theme.fonts.primary_family
+        fallback = getattr(theme.fonts, 'fallback_family', 'Segoe UI')
+        
         self.message_font = tkFont.Font(
-            family=theme.fonts.primary_family, size=theme.fonts.message_size
+            family=font_family,
+            size=theme.fonts.message_size,
         )
+        
         self.message_label = tk.Label(
             content_frame,
             text=self.message,
             font=self.message_font,
             fg=theme.colors.text_primary,
-            bg=theme.colors.background,
+            bg=bg_color,
             anchor='w',
         )
         self.message_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
-        # Schließen-Button
+        # Moderner Schließen-Button mit Hover-Effekt
+        close_btn_bg = bg_color
         close_btn = tk.Label(
             content_frame,
             text=theme.icons.close,
             font=(theme.fonts.primary_family, theme.fonts.close_button_size),
             fg=theme.colors.text_secondary,
-            bg=theme.colors.background,
+            bg=close_btn_bg,
             cursor='hand2',
-            padx=cfg.close_button_padding_x,
+            padx=8,
+            pady=4,
         )
         close_btn.pack(side=tk.RIGHT)
+        
+        # Speichere Referenz für Hover
+        self._close_btn = close_btn
+        self._close_btn_bg = close_btn_bg
 
-        # Hover-Effekt für Close-Button
+        # Hover-Effekte
+        def on_enter(e):
+            close_btn.config(
+                fg=theme.colors.text_hover,
+                bg=getattr(theme.colors, 'surface', bg_color),
+            )
+        
+        def on_leave(e):
+            close_btn.config(
+                fg=theme.colors.text_secondary,
+                bg=close_btn_bg,
+            )
+
         close_btn.bind('<Button-1>', lambda e: self._on_close_click())
-        close_btn.bind(
-            '<Enter>', lambda e: close_btn.config(fg=theme.colors.text_hover)
-        )
-        close_btn.bind(
-            '<Leave>', lambda e: close_btn.config(fg=theme.colors.text_secondary)
-        )
+        close_btn.bind('<Enter>', on_enter)
+        close_btn.bind('<Leave>', on_leave)
 
     def _on_close_click(self) -> None:
         """Handler für Schließen-Button."""
@@ -183,17 +219,17 @@ class BannerWidget:
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
 
-        # Breite basierend auf Text
+        # Breite basierend auf Text + mehr Padding für modernes Aussehen
         text_width = self.message_font.measure(self.message)
         static_width = (
-            45  # Icon
-            + cfg_size.content_padding_x * 2  # Padding
+            40  # Icon + Padding
+            + cfg_size.content_padding_x * 2
             + cfg_size.close_button_padding_x * 2
-            + 20  # Close-Button
+            + 30  # Extra Breathing Room
         )
         calculated_width = text_width + static_width
 
-        max_width = screen_width - cfg_size.max_width_margin
+        max_width = screen_width - cfg_size.max_width_margin * 2
         window_width = max(cfg_size.min_width, min(calculated_width, max_width))
         window_height = cfg_size.height
 
@@ -205,9 +241,9 @@ class BannerWidget:
         else:  # center
             x_pos = (screen_width - window_width) // 2
 
-        # Vertikale Position
+        # Vertikale Position - etwas höher für bessere Sichtbarkeit
         target_y = screen_height - window_height - cfg_pos.margin_bottom
-        start_y = screen_height  # Unterhalb des Bildschirms
+        start_y = screen_height + 10  # Etwas unterhalb
 
         return window_width, window_height, x_pos, target_y, start_y
 

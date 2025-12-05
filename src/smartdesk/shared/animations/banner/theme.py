@@ -4,6 +4,7 @@
 Theme-Konfiguration für das Banner.
 
 Definiert Farben, Schriften und Icons.
+Modernes Design mit Glasmorphism-Elementen.
 """
 
 from dataclasses import dataclass
@@ -11,15 +12,33 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class BannerColors:
-    """Farbschema für das Banner."""
+    """Farbschema für das Banner - Modern Dark Theme."""
 
-    background: str = "#2D2D30"       # Dunkler Hintergrund
-    background_dark: str = "#1E1E1E"  # Noch dunkler für Rahmen
-    accent: str = "#0078D4"           # Windows-Blau
-    text_primary: str = "#FFFFFF"     # Weißer Text
-    text_secondary: str = "#808080"   # Grauer Text
-    text_hover: str = "#FFFFFF"       # Hover-Farbe
-    border: str = "#3F3F46"           # Rahmenfarbe
+    # Hauptfarben - Semi-transparent für Glasmorphism-Effekt
+    background: str = "#1F1F23"           # Dunkler Hintergrund
+    background_dark: str = "#18181B"      # Noch dunkler für Rahmen/Schatten
+    surface: str = "#27272A"              # Oberfläche für Elemente
+    
+    # Akzentfarben
+    accent: str = "#3B82F6"               # Modernes Blau
+    accent_hover: str = "#60A5FA"         # Helleres Blau für Hover
+    accent_subtle: str = "#1E3A5F"        # Subtiles Blau für Hintergründe
+    
+    # Textfarben
+    text_primary: str = "#F4F4F5"         # Fast-weiß für bessere Lesbarkeit
+    text_secondary: str = "#A1A1AA"       # Gedämpftes Grau
+    text_hover: str = "#FFFFFF"           # Reines Weiß für Hover
+    text_muted: str = "#71717A"           # Stark gedämpft
+    
+    # Rahmen und Effekte
+    border: str = "#3F3F46"               # Subtiler Rahmen
+    border_light: str = "#52525B"         # Hellerer Rahmen
+    shadow: str = "#000000"               # Schatten
+    
+    # Status-Farben
+    success: str = "#22C55E"              # Grün
+    warning: str = "#F59E0B"              # Orange
+    error: str = "#EF4444"                # Rot
 
 
 # Alias für Kompatibilität
@@ -28,13 +47,20 @@ ColorScheme = BannerColors
 
 @dataclass(frozen=True)
 class BannerFonts:
-    """Schrift-Konfiguration."""
+    """Schrift-Konfiguration - Moderne Typografie."""
 
-    primary_family: str = "Segoe UI"
+    primary_family: str = "Segoe UI Variable"  # Windows 11 Font
+    fallback_family: str = "Segoe UI"          # Fallback für ältere Systeme
     emoji_family: str = "Segoe UI Emoji"
+    
+    # Größen
     message_size: int = 11
-    icon_size: int = 16
-    close_button_size: int = 12
+    message_weight: str = "normal"             # normal, bold
+    icon_size: int = 12
+    close_button_size: int = 10
+    
+    # Abstände
+    letter_spacing: int = 0
 
 
 # Alias für Kompatibilität
@@ -43,18 +69,23 @@ FontConfig = BannerFonts
 
 @dataclass(frozen=True)
 class BannerIcons:
-    """Icons für das Banner."""
+    """Icons für das Banner - Unicode-Symbole."""
 
-    close: str = "X"              # Schließen-Button
-    info: str = "i"               # Info-Icon
-    warning: str = "!"            # Warnung
-    error: str = "X"              # Fehler
-    success: str = "OK"           # Erfolg
+    # UI Icons
+    close: str = "\u2715"             # ✕ Multiplication X
+    close_hover: str = "\u2716"       # ✖ Heavy Multiplication X
+    
+    # Status Icons  
+    info: str = "\u2139"              # ℹ Information
+    warning: str = "\u26A0"           # ⚠ Warning
+    error: str = "\u2718"             # ✘ Heavy Ballot X  
+    success: str = "\u2714"           # ✔ Heavy Check Mark
+    
     # Desktop-Status Icons
-    active_marker: str = ">"      # Aktiver Desktop
-    inactive_marker: str = "-"    # Inaktiver Desktop
-    desktop_active: str = "D"     # Desktop-Icon (aktiv)
-    desktop_inactive: str = "D"   # Desktop-Icon (inaktiv)
+    active_marker: str = "\u25B6"     # ▶ Aktiver Desktop
+    inactive_marker: str = "\u25CB"   # ○ Inaktiver Desktop
+    desktop_active: str = "\u25A0"    # ■ Desktop-Icon (aktiv)
+    desktop_inactive: str = "\u25A1"  # □ Desktop-Icon (inaktiv)
 
 
 # Alias für Kompatibilität
@@ -87,12 +118,18 @@ DEFAULT_THEME = BannerTheme(
 
 DARK_THEME = BannerTheme(
     colors=BannerColors(
-        background="#1E1E1E",
-        background_dark="#141414",
-        accent="#0078D4",
-        text_primary="#FFFFFF",
-        text_secondary="#808080",
-        border="#2D2D30",
+        background="#0F0F10",
+        background_dark="#09090B",
+        surface="#18181B",
+        accent="#8B5CF6",           # Lila-Akzent
+        accent_hover="#A78BFA",
+        accent_subtle="#2E1065",
+        text_primary="#FAFAFA",
+        text_secondary="#A1A1AA",
+        text_hover="#FFFFFF",
+        text_muted="#52525B",
+        border="#27272A",
+        border_light="#3F3F46",
     ),
     fonts=BannerFonts(),
     icons=BannerIcons(),
@@ -100,13 +137,18 @@ DARK_THEME = BannerTheme(
 
 LIGHT_THEME = BannerTheme(
     colors=BannerColors(
-        background="#F3F3F3",
-        background_dark="#E5E5E5",
-        accent="#0078D4",
-        text_primary="#1E1E1E",
-        text_secondary="#666666",
-        text_hover="#000000",
-        border="#CCCCCC",
+        background="#FFFFFF",
+        background_dark="#F4F4F5",
+        surface="#FAFAFA",
+        accent="#2563EB",           # Kräftiges Blau
+        accent_hover="#3B82F6",
+        accent_subtle="#DBEAFE",
+        text_primary="#18181B",
+        text_secondary="#52525B",
+        text_hover="#09090B",
+        text_muted="#A1A1AA",
+        border="#E4E4E7",
+        border_light="#D4D4D8",
     ),
     fonts=BannerFonts(),
     icons=BannerIcons(),
@@ -114,13 +156,38 @@ LIGHT_THEME = BannerTheme(
 
 ACCENT_THEME = BannerTheme(
     colors=BannerColors(
-        background="#0078D4",
-        background_dark="#005A9E",
+        background="#1E40AF",       # Tiefes Blau
+        background_dark="#1E3A8A",
+        surface="#2563EB",
         accent="#FFFFFF",
+        accent_hover="#F0F9FF",
+        accent_subtle="#3B82F6",
         text_primary="#FFFFFF",
-        text_secondary="#B3D7F2",
+        text_secondary="#BFDBFE",
         text_hover="#FFFFFF",
-        border="#005A9E",
+        text_muted="#93C5FD",
+        border="#3B82F6",
+        border_light="#60A5FA",
+    ),
+    fonts=BannerFonts(),
+    icons=BannerIcons(),
+)
+
+# Glasmorphism Theme - Modern und subtil
+GLASS_THEME = BannerTheme(
+    colors=BannerColors(
+        background="#1F1F23",
+        background_dark="#18181B",
+        surface="#27272A",
+        accent="#06B6D4",           # Cyan-Akzent
+        accent_hover="#22D3EE",
+        accent_subtle="#164E63",
+        text_primary="#F4F4F5",
+        text_secondary="#A1A1AA",
+        text_hover="#FFFFFF",
+        text_muted="#71717A",
+        border="#3F3F46",
+        border_light="#52525B",
     ),
     fonts=BannerFonts(),
     icons=BannerIcons(),
