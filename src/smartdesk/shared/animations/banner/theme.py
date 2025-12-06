@@ -20,7 +20,7 @@ class BannerColors:
     surface: str = "#27272A"              # Oberfläche für Elemente
     
     # Akzentfarben
-    accent: str = "#3B82F6"               # Modernes Blau
+    accent: str = "#262729"               # Modernes Blau
     accent_hover: str = "#60A5FA"         # Helleres Blau für Hover
     accent_subtle: str = "#1E3A5F"        # Subtiles Blau für Hintergründe
     
@@ -31,7 +31,7 @@ class BannerColors:
     text_muted: str = "#71717A"           # Stark gedämpft
     
     # Rahmen und Effekte
-    border: str = "#3F3F46"               # Subtiler Rahmen
+    border: str = "#3E4749"               # Subtiler Rahmen
     border_light: str = "#52525B"         # Hellerer Rahmen
     shadow: str = "#000000"               # Schatten
     
@@ -54,10 +54,10 @@ class BannerFonts:
     emoji_family: str = "Segoe UI Emoji"
     
     # Größen
-    message_size: int = 11
-    message_weight: str = "normal"             # normal, bold
-    icon_size: int = 12
-    close_button_size: int = 10
+    message_size: int = 12
+    message_weight: str = "bold"             # normal, bold
+    icon_size: int = 1
+    close_button_size: int = 1
     
     # Abstände
     letter_spacing: int = 0
@@ -70,22 +70,26 @@ FontConfig = BannerFonts
 @dataclass(frozen=True)
 class BannerIcons:
     """Icons für das Banner - Unicode-Symbole."""
+    # Seperator Icons
+    separator: str = "│"         # Vertikaler Strich
 
     # UI Icons
-    close: str = "\u2715"             # ✕ Multiplication X
-    close_hover: str = "\u2716"       # ✖ Heavy Multiplication X
+    close: str = ""             # ✕ Multiplication X
+    close_hover: str = ""       # ✖ Heavy Multiplication X
     
     # Status Icons  
-    info: str = "\u2139"              # ℹ Information
-    warning: str = "\u26A0"           # ⚠ Warning
-    error: str = "\u2718"             # ✘ Heavy Ballot X  
-    success: str = "\u2714"           # ✔ Heavy Check Mark
+    info: str = ""              # ℹ Information
+    warning: str = ""           # ⚠ Warning
+    error: str = ""             # ✘ Heavy Ballot X  
+    success: str = ""           # ✔ Heavy Check Mark
     
     # Desktop-Status Icons
-    active_marker: str = "\u25B6"     # ▶ Aktiver Desktop
-    inactive_marker: str = "\u25CB"   # ○ Inaktiver Desktop
-    desktop_active: str = "\u25A0"    # ■ Desktop-Icon (aktiv)
-    desktop_inactive: str = "\u25A1"  # □ Desktop-Icon (inaktiv)
+    active_marker_1: str = "●"     # ▶ Aktiver Desktop
+    active_marker_2: str = ""     # ▶ Aktiver Desktop
+    inactive_marker_1: str = ""         # ○ Inaktiver Desktop
+    inactive_marker_2: str = ""         # ○ Inaktiver Desktop
+    desktop_active: str = ""    # ■ Desktop-Icon (aktiv)
+    desktop_inactive: str = ""  # □ Desktop-Icon (inaktiv)
 
 
 # Alias für Kompatibilität

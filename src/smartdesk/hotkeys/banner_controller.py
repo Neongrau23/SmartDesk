@@ -257,10 +257,10 @@ def _create_default_banner() -> BannerUI:
 
             for d in desktops:
                 if d.is_active:
-                    parts.append(f"{icons.active_marker} {d.name}")
+                    parts.append(f"{icons.active_marker_1} {d.name} {icons.active_marker_2}")
                     active_found = True
                 else:
-                    parts.append(f"{icons.inactive_marker} {d.name}")
+                    parts.append(f"{icons.inactive_marker_1} {d.name} {icons.inactive_marker_2}")
 
             message = "    ".join(parts)
             icon = icons.desktop_active if active_found else icons.desktop_inactive
@@ -361,10 +361,10 @@ def get_message():
         active_found = False
         for d in desktops:
             if d.is_active:
-                parts.append(f"{{icons.active_marker}} {{d.name}}")
+                parts.append(f"{{icons.active_marker_1}} {{d.name}} {{icons.active_marker_2}}")
                 active_found = True
             else:
-                parts.append(f"{{icons.inactive_marker}} {{d.name}}")
+                parts.append(f"{{icons.inactive_marker_1}} {{d.name}} {{icons.inactive_marker_2}}")
         message = "    ".join(parts)
         icon = icons.desktop_active if active_found else icons.desktop_inactive
         return message, icon

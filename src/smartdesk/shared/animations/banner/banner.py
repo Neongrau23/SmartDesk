@@ -195,10 +195,10 @@ def show_desktop_status(parent=None) -> TaskbarBanner:
 
             for d in desktops:
                 if d.is_active:
-                    parts.append(f"{icons.active_marker} {d.name}")
+                    parts.append(f"{icons.separator}{icons.active_marker_1}{d.name}{icons.active_marker_2}{icons.separator}")
                     active_found = True
                 else:
-                    parts.append(f"{icons.inactive_marker} {d.name}")
+                    parts.append(f"{icons.separator}{icons.inactive_marker_1}{d.name}{icons.inactive_marker_2}{icons.separator}")
 
             message = "    ".join(parts)
             if active_found:
