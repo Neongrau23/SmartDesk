@@ -73,7 +73,7 @@ Falls Sie die Installation manuell durchführen möchten:
 1. Repository klonen:
    ```powershell
    git clone https://github.com/Neongrau23/SmartDesk.git
-   cd SmartDesk.CLI
+   cd SmartDesk
    ```
 
 2. Virtual Environment erstellen und aktivieren:
