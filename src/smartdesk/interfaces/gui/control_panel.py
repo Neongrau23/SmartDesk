@@ -151,126 +151,120 @@ class SmartDeskControlPanel:
         # Status-Variable
         self.is_active = False
 
-        # Hauptframe (mit mehr Padding)
+        # Hauptframe
         main_frame = tk.Frame(root, bg=self.bg_dark)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        # Titel mit Status
-        title_frame = tk.Frame(main_frame, bg=self.bg_dark)
-        title_frame.pack(fill=tk.X, pady=(0, 5))
+        # --- Header ---
+        header_frame = tk.Frame(main_frame, bg=self.bg_dark)
+        header_frame.pack(fill=tk.X, pady=(0, 5))
 
-        title = tk.Label(
-            title_frame,
-            text="SmartDesk",
-            font=('Segoe UI', 12, 'bold'),
+        # Title "Control Panel"
+        tk.Label(
+            header_frame,
+            text="Control Panel",
+            font=('Segoe UI', 12),
             bg=self.bg_dark,
             fg=self.fg_primary,
-            anchor='w',
-        )
-        title.pack(side=tk.LEFT)
+            anchor='w'
+        ).pack(side=tk.LEFT)
 
-        # Status-Indikator
-        self.status_indicator = tk.Label(
-            title_frame,
-            text="●",
-            font=('Segoe UI', 16),
+        # Desktop Name "Desktop: ..."
+        self.desktop_name_label = tk.Label(
+            header_frame,
+            text="Desktop: ...",
+            font=('Segoe UI', 12),
             bg=self.bg_dark,
-            fg="#666666",
-            anchor='e',
+            fg=self.fg_primary,
+            anchor='e'
         )
-        self.status_indicator.pack(side=tk.RIGHT)
+        self.desktop_name_label.pack(side=tk.RIGHT)
 
-        # Status-Text
-        self.status_label = tk.Label(
-            main_frame,
-            text="Inaktiv",
-            font=('Segoe UI', 9),
-            bg=self.bg_dark,
-            fg=self.fg_label,
-            anchor='w',
-        )
-        self.status_label.pack(fill=tk.X, pady=(0, 20))
+        # Separator Line
+        tk.Frame(main_frame, bg="#666666", height=1).pack(fill=tk.X, pady=(0, 15))
 
-        # --- Toggle Button ---
+        # --- Grid Area ---
+        grid_frame = tk.Frame(main_frame, bg=self.bg_dark)
+        grid_frame.pack(fill=tk.BOTH, expand=True)
+        grid_frame.columnconfigure(0, weight=1)
+        grid_frame.columnconfigure(1, weight=1)
 
-        self.toggle_btn = tk.Button(
-            main_frame,
-            text="🟢 Aktivieren",
-            font=('Segoe UI', 10, 'bold'),
-            bg=self.accent_green,
-            fg="#ffffff",
-            activebackground=self.accent_green_hover,
-            activeforeground="#ffffff",
-            relief=tk.FLAT,
-            bd=0,
-            padx=20,
-            pady=12,
-            cursor="hand2",
-            command=self.toggle_smartdesk,
-        )
-        self.toggle_btn.pack(fill=tk.X, pady=(0, 15))
+        # Button Styles
+        btn_opts = {
+            'font': ('Segoe UI', 10),
+            'relief': tk.FLAT,
+            'bd': 0,
+            'cursor': "hand2",
+            'pady': 10
+        }
 
-        # Separator
-        separator = tk.Frame(main_frame, bg=self.bg_input, height=1)
-        separator.pack(fill=tk.X, pady=(0, 15))
-
-        # SmartDesk Öffnen Button
-        open_btn = tk.Button(
-            main_frame,
+        # -- Left Column --
+        
+        # 1. SmartDesk Öffnen
+        self.btn_open = tk.Button(
+            grid_frame,
             text="📂 SmartDesk Öffnen",
-            font=('Segoe UI', 9),
             bg=self.button_bg,
             fg=self.fg_primary,
             activebackground=self.button_hover,
             activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-            padx=20,
-            pady=8,
-            cursor="hand2",
             command=self.open_smartdesk,
+            **btn_opts
         )
-        open_btn.pack(fill=tk.X, pady=(0, 6))
+        self.btn_open.grid(row=0, column=0, sticky="ew", padx=(0, 5), pady=(0, 10))
 
-        # Desktop Erstellen Button
-        create_btn = tk.Button(
-            main_frame,
-            text="➕ Desktop Erstellen",
-            font=('Segoe UI', 9),
+        # 2. Desktop Erstellen
+        self.btn_create = tk.Button(
+            grid_frame,
+            text="+ Desktop Erstellen",
             bg=self.button_bg,
             fg=self.fg_primary,
             activebackground=self.button_hover,
             activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-            padx=20,
-            pady=8,
-            cursor="hand2",
             command=self.create_desktop,
+            **btn_opts
         )
-        create_btn.pack(fill=tk.X, pady=(0, 15))
+        self.btn_create.grid(row=1, column=0, sticky="ew", padx=(0, 5), pady=(0, 10))
 
-        # Separator
-        separator2 = tk.Frame(main_frame, bg=self.bg_input, height=1)
-        separator2.pack(fill=tk.X, pady=(0, 15))
-
-        # Schließen Button
-        close_btn = tk.Button(
-            main_frame,
-            text="✕ Schließen",
-            font=('Segoe UI', 9),
+        # 3. Desktops Verwalten
+        self.btn_manage = tk.Button(
+            grid_frame,
+            text="Desktops verwalten",
             bg=self.button_bg,
             fg=self.fg_primary,
             activebackground=self.button_hover,
             activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-            padx=20,
-            pady=8,
-            cursor="hand2",
-            command=self.close_panel,
+            command=self.manage_desktops,
+            **btn_opts
         )
-        close_btn.pack(fill=tk.X)
+        self.btn_manage.grid(row=2, column=0, sticky="ew", padx=(0, 5), pady=(0, 0))
+
+        # -- Right Column --
+
+        # 1. Hotkey Toggle
+        self.toggle_btn = tk.Button(
+            grid_frame,
+            text="Hotkey Aktivieren",
+            bg=self.button_bg, # Initial color, will be updated
+            fg=self.fg_primary,
+            activebackground=self.button_hover,
+            activeforeground=self.fg_primary,
+            command=self.toggle_smartdesk,
+            **btn_opts
+        )
+        self.toggle_btn.grid(row=0, column=1, sticky="ew", padx=(5, 0), pady=(0, 10))
+
+        # Placeholders
+        for r in [1, 2]:
+            empty_btn = tk.Button(
+                grid_frame,
+                state=tk.DISABLED,
+                bg=self.button_bg,
+                relief=tk.FLAT,
+                bd=0
+            )
+            empty_btn.grid(row=r, column=1, sticky="nsew", padx=(5, 0), pady=(0, 10 if r==1 else 0))
+
 
         # Fenster anzeigen und Animation starten
         self.root.deiconify()
@@ -290,6 +284,7 @@ class SmartDeskControlPanel:
 
         # Initial Status aktualisieren
         self.update_status()
+        self.update_active_desktop_label()
 
     def _bind_focus_events(self):
         """Bindet Focus-Events nach der Animation."""
@@ -302,6 +297,7 @@ class SmartDeskControlPanel:
             try:
                 self._check_close_signal()
                 self.update_status()
+                self.update_active_desktop_label()
             except Exception as e:
                 logger.debug(f"Status-Update übersprungen: {e}")
             # Nächstes Update in 500ms
@@ -476,26 +472,39 @@ class SmartDeskControlPanel:
         try:
             if PID_FILE_PATH and os.path.exists(PID_FILE_PATH):
                 self.is_active = True
-                self.status_label.config(text="Aktiv", fg="#14a085")
-                self.status_indicator.config(fg="#14a085")
                 # Toggle Button auf "Deaktivieren" setzen
-                self.toggle_btn.config(
-                    text="🔴 Deaktivieren",
-                    bg=self.accent_red,
-                    activebackground=self.accent_red_hover,
-                )
+                if hasattr(self, 'toggle_btn'):
+                    self.toggle_btn.config(
+                        text="Hotkey Deaktivieren",
+                        bg=self.accent_red,
+                        activebackground=self.accent_red_hover,
+                    )
             else:
                 self.is_active = False
-                self.status_label.config(text="Inaktiv", fg="#666666")
-                self.status_indicator.config(fg="#666666")
                 # Toggle Button auf "Aktivieren" setzen
-                self.toggle_btn.config(
-                    text="🟢 Aktivieren",
-                    bg=self.accent_green,
-                    activebackground=self.accent_green_hover,
-                )
+                if hasattr(self, 'toggle_btn'):
+                    self.toggle_btn.config(
+                        text="Hotkey Aktivieren",
+                        bg=self.button_bg,
+                        activebackground=self.button_hover,
+                    )
         except Exception as e:
             logger.error(f"Fehler beim Status-Update: {e}")
+
+    def update_active_desktop_label(self):
+        """Aktualisiert das Label mit dem aktuellen Desktop-Namen."""
+        if not hasattr(self, 'desktop_name_label'):
+            return
+        try:
+            desktops = desktop_service.get_all_desktops()
+            active_desktop = next((d for d in desktops if d.is_active), None)
+            if active_desktop:
+                self.desktop_name_label.config(text=f"Desktop: {active_desktop.name}")
+            else:
+                self.desktop_name_label.config(text="Desktop: -")
+        except Exception as e:
+            logger.error(f"Fehler beim Abrufen des Desktops: {e}")
+            self.desktop_name_label.config(text="Desktop: ?")
 
     def toggle_smartdesk(self):
         """Toggle zwischen Aktivieren und Deaktivieren."""
@@ -633,6 +642,38 @@ class SmartDeskControlPanel:
             logger.error(f"Fehler beim Erstellen der GUI: {e}")
             messagebox.showerror(
                 "Fehler", f"Desktop-Erstellung konnte nicht gestartet werden:\n{e}"
+            )
+
+    def manage_desktops(self):
+        """Startet die GUI-Version für Desktop-Verwaltung ohne Konsole."""
+        try:
+            logger.info("Starte Desktop-Verwaltung GUI...")
+
+            # Finde pythonw.exe (windowless)
+            pythonw_executable = sys.executable
+            if "python.exe" in pythonw_executable.lower():
+                pythonw_executable = pythonw_executable.replace(
+                    "python.exe", "pythonw.exe"
+                )
+
+            # Finde gui_manage.py direkt
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            gui_manage_py = os.path.join(current_dir, 'gui_manage.py')
+
+            logger.debug(f"Starte: {pythonw_executable} {gui_manage_py}")
+
+            subprocess.Popen(
+                [pythonw_executable, gui_manage_py],
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+
+            # Control Panel schließen
+            self.close_panel()
+
+        except Exception as e:
+            logger.error(f"Fehler beim Starten der Verwaltung: {e}")
+            messagebox.showerror(
+                "Fehler", f"Desktop-Verwaltung konnte nicht gestartet werden:\n{e}"
             )
 
     def close_panel(self):

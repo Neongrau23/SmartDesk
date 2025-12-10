@@ -1,34 +1,7 @@
 # Dateipfad: src/smartdesk/shared/animations/banner/config.py
 
-"""
-
-Konfiguration fÃ¼r das TaskbarBanner.
-
-
-
-Hier werden alle GrÃ¶ÃŸen, Positionen und Timing-Werte definiert:
-
-- FenstergrÃ¶ÃŸen
-
-- Positionen
-
-- Animationsparameter
-
-
-
-Um das Verhalten anzupassen, bearbeite diese Datei.
-
-"""
-
-
-
 from dataclasses import dataclass
-
 from typing import Optional
-
-
-
-
 
 @dataclass
 
@@ -39,32 +12,24 @@ class BannerSize:
 
 
     # Minimale und maximale Breite
-
     min_width: int = 300
-
     max_width_margin: int = 40  # Abstand zum Bildschirmrand
-
-
 
     # HÃ¶he
 
     height: int = 50
 
-
-
     # Akzent-Streifen
 
     accent_stripe_height: int = 3
 
-
-
     # Padding
 
-    content_padding_x: int = 20
+    content_padding_x: int = 10
 
     content_padding_y: int = 10
 
-    icon_padding_right: int = 15
+    icon_padding_right: int = 10
 
     close_button_padding_x: int = 10
 
@@ -82,7 +47,7 @@ class BannerPosition:
 
     # Abstand zum unteren Bildschirmrand
 
-    margin_bottom: int = 50
+    margin_bottom: int = 53
 
 
 
@@ -105,9 +70,9 @@ class BannerAnimation:
     """Animations-Konfiguration für das Banner."""
 
     # Slide-Up Animation (Einblenden)
-    slide_up_steps: int = 25          # Mehr Steps = flüssiger
-    slide_up_delay_ms: int = 8        # Etwas langsamer für smootheren Effekt
-    slide_up_distance: int = 60       # Wie weit das Banner slidet
+    slide_up_steps: int = 20          # Mehr Steps = flüssiger
+    slide_up_delay_ms: int = 1        # Etwas langsamer für smootheren Effekt
+    slide_up_distance: int = 40       # Wie weit das Banner slidet
 
     # Slide-Down Animation (Ausblenden)  
     slide_down_steps: int = 20        # Schneller als Einblenden
@@ -115,7 +80,7 @@ class BannerAnimation:
     slide_down_distance: int = 40     # Kürzere Distanz beim Ausblenden
 
     # Transparenz
-    max_alpha: float = 0.98           # Fast vollständig sichtbar
+    max_alpha: float = 1.0            # vollständig sichtbar
     min_alpha: float = 0.0            # Komplett transparent
 
     # Easing-Funktion

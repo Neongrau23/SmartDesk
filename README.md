@@ -41,8 +41,8 @@ SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter W
 
 1. Repository klonen oder herunterladen:
    ```powershell
-   git clone https://github.com/Neongrau23/SmartDesk.git
-   cd SmartDesk
+   git clone https://github.com/Neongrau23/SmartDesk.CLI.git
+   cd SmartDesk.CLI
    ```
 
 2. Installationsskript ausführen:
@@ -72,8 +72,8 @@ Falls Sie die Installation manuell durchführen möchten:
 
 1. Repository klonen:
    ```powershell
-   git clone https://github.com/Neongrau23/SmartDesk.git
-   cd SmartDesk
+   git clone https://github.com/Neongrau23/SmartDesk.CLI.git
+   cd SmartDesk.CLI
    ```
 
 2. Virtual Environment erstellen und aktivieren:
