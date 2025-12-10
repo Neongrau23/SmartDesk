@@ -72,7 +72,7 @@ Falls Sie die Installation manuell durchführen möchten:
 
 1. Repository klonen:
    ```powershell
-   git clone https://github.com/Neongrau23/SmartDesk.CLI.git
+   git clone https://github.com/Neongrau23/SmartDesk.git
    cd SmartDesk.CLI
    ```
 
