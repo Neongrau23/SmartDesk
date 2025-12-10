@@ -123,5 +123,4 @@ local_settings.py
 # Compiled files
 *.exe
 *.dll
-*.pyd.venv/
-venv/
+*.pyd
