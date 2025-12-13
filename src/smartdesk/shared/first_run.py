@@ -12,6 +12,7 @@ import os
 import json
 import winreg
 from datetime import datetime
+from typing import Optional
 
 from .config import DATA_DIR
 from .logging_config import get_logger
@@ -290,7 +291,7 @@ def get_backup_path() -> str:
     return os.path.join(DATA_DIR, "backups")
 
 
-def get_initial_backup() -> str | None:
+def get_initial_backup() -> Optional[str]:
     """
     Gibt den Pfad zum initialen Registry-Backup zurück.
 

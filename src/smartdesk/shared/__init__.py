@@ -17,6 +17,7 @@ from .style import (
     format_status_active,
     format_status_inactive,
 )
+from . import first_run
 
 __all__ = [
     'KEY_USER_SHELL',
@@ -33,4 +34,5 @@ __all__ = [
     'PREFIX_WARN',
     'format_status_active',
     'format_status_inactive',
+    'first_run',
 ]
