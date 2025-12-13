@@ -6,7 +6,7 @@ import os
 KEY_USER_SHELL = (
     r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
 )
-KEY_LEGACY_SHELL = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+KEY_LEGACY_SHELL = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
 VALUE_NAME = "Desktop"
 
 # AppData-Pfad für Benutzerdaten (empfohlen für installierte Programme)
