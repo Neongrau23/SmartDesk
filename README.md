@@ -73,7 +73,7 @@ Falls Sie die Installation manuell durchführen möchten:
 1. Repository klonen:
    ```powershell
    git clone https://github.com/Neongrau23/SmartDesk.git
-   cd SmartDesk.CLI
+   cd SmartDesk
    ```
 
 2. Virtual Environment erstellen und aktivieren:
@@ -153,7 +153,7 @@ Die Konfiguration wird im AppData-Verzeichnis gespeichert:
 ## 🏗️ Projektstruktur
 
 ```
-SmartDesk.CLI/
+SmartDesk/
 ├── src/smartdesk/
 │   ├── main.py              # Haupteinstiegspunkt
 │   ├── core/
@@ -285,7 +285,7 @@ Dieses Projekt ist unter der [MIT-Lizenz](LICENSE) lizenziert.
 ## 🚧 Roadmap
 
 Dieses Projekt befindet sich in aktiver Entwicklung.
-Bei Fragen oder Anregungen gerne einen [Issue](https://github.com/Neongrau23/SmartDesk.CLI/issues) erstellen.
+Bei Fragen oder Anregungen gerne einen [Issue](https://github.com/Neongrau23/SmartDesk/issues) erstellen.
 
 ---
 
