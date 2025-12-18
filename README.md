@@ -33,7 +33,7 @@ SmartDesk ist ein Tool zur Verwaltung mehrerer Desktops unter Windows. Wechseln 
 
 1. Repository klonen oder herunterladen:
    ```powershell
-   git clone [https://github.com/Neongrau23/SmartDesk.git](https://github.com/Neongrau23/SmartDesk.git)
+   git clone https://github.com/Neongrau23/SmartDesk.git
    cd SmartDesk
    ```
 
@@ -58,7 +58,7 @@ Falls Sie die Installation manuell durchführen möchten:
 
 1. Repository klonen:
    ```powershell
-   git clone [https://github.com/Neongrau23/SmartDesk.git](https://github.com/Neongrau23/SmartDesk.git)
+   git clone https://github.com/Neongrau23/SmartDesk.git
    cd SmartDesk
    ```
 
