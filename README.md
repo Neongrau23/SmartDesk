@@ -2,9 +2,9 @@
 
 **Virtual Desktop Manager for Windows**
 
-SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter Windows. Wechseln Sie mühelos zwischen verschiedenen Desktop-Konfigurationen – inklusive Icons, Hintergrundbild und Ordner-Strukturen.
+SmartDesk ist ein Tool zur Verwaltung mehrerer Desktops unter Windows. Wechseln Sie mühelos zwischen verschiedenen Desktop-Konfigurationen.
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D6.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
@@ -18,15 +18,7 @@ SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter W
 - 📍 **Icon-Positionen** – Automatisches Speichern und Wiederherstellen der Desktop-Icon-Anordnung
 - ⌨️ **Globale Hotkeys** – Schnelles Umschalten mit Tastenkombinationen
 - 🔔 **System Tray Integration** – Zugriff auf alle Funktionen über das Tray-Icon
-- 🌐 **Lokalisierung** – Mehrsprachige Unterstützung (Deutsch/Englisch)
 - 💻 **CLI & GUI** – Volle Kontrolle über Kommandozeile oder grafische Oberfläche
-
----
-
-## 📋 Voraussetzungen
-
-- **Windows 10/11**
-- **Python 3.8+**
 
 ---
 
@@ -34,27 +26,21 @@ SmartDesk ist ein leistungsstarkes Tool zur Verwaltung mehrerer Desktops unter W
 
 ### Voraussetzungen
 
-- **Python 3.10+** muss installiert sein ([Download](https://www.python.org/downloads/))
 - **Windows 10/11**
+- **Python 3.10+** muss installiert sein ([Download](https://www.python.org/downloads/))
 
 ### Automatische Installation (Empfohlen)
 
 1. Repository klonen oder herunterladen:
    ```powershell
-   git clone https://github.com/Neongrau23/SmartDesk.CLI.git
-   cd SmartDesk.CLI
+   git clone [https://github.com/Neongrau23/SmartDesk.git](https://github.com/Neongrau23/SmartDesk.git)
+   cd SmartDesk
    ```
 
 2. Installationsskript ausführen:
    ```powershell
    # Per Doppelklick oder Terminal:
    .\scripts\install.bat
-   
-   # Oder direkt mit Python:
-   python scripts/install.py
-   
-   # PowerShell (für Power-User):
-   .\scripts\install.ps1
    ```
 
 Das Skript führt automatisch folgende Schritte aus:
@@ -72,8 +58,8 @@ Falls Sie die Installation manuell durchführen möchten:
 
 1. Repository klonen:
    ```powershell
-   git clone https://github.com/Neongrau23/SmartDesk.CLI.git
-   cd SmartDesk.CLI
+   git clone [https://github.com/Neongrau23/SmartDesk.git](https://github.com/Neongrau23/SmartDesk.git)
+   cd SmartDesk
    ```
 
 2. Virtual Environment erstellen und aktivieren:
@@ -96,6 +82,16 @@ Falls Sie die Installation manuell durchführen möchten:
 
 ## 🎮 Verwendung
 
+### ⌨️ Hotkeys & Overlay
+
+SmartDesk nutzt ein zweistufiges System, um versehentliche Eingaben zu verhindern und Konflikte mit anderen Programmen zu minimieren:
+
+1. **Aktivieren:** Drücken Sie `Strg` + `Shift`, um die Hotkey-Steuerung zu wecken.
+2. **Wechseln:** Drücken Sie anschließend `Alt` + `1` bis `9`, um direkt zum jeweiligen Desktop zu springen.
+3. **Overlay (HUD):** Wenn Sie nach der Aktivierung (`Strg` + `Shift`) die `Alt`-Taste gedrückt halten, erscheint ein Overlay auf dem Bildschirm. Dieses zeigt Ihnen:
+   - Alle verfügbaren Desktops
+   - Welcher Desktop aktuell aktiv ist
+
 ### Interaktives CLI-Menü
 
 ```powershell
@@ -108,7 +104,6 @@ Das Hauptmenü bietet folgende Optionen:
 - **Einstellungen** – Desktops verwalten, Hotkeys, Tray-Icon etc.
 
 ### Kommandozeilen-Befehle
-
 ```powershell
 # Alle Desktops auflisten
 python src/smartdesk/main.py list
@@ -153,7 +148,7 @@ Die Konfiguration wird im AppData-Verzeichnis gespeichert:
 ## 🏗️ Projektstruktur
 
 ```
-SmartDesk.CLI/
+SmartDesk/
 ├── src/smartdesk/
 │   ├── main.py              # Haupteinstiegspunkt
 │   ├── core/
@@ -276,16 +271,26 @@ Falls Probleme auftreten, kann die ursprüngliche Desktop-Registry wiederhergest
 
 ---
 
-## 📄 Lizenz
+## 🚧 Beta-Status & Sicherheit
 
-Dieses Projekt ist unter der [MIT-Lizenz](LICENSE) lizenziert.
+Dieses Projekt befindet sich aktuell noch in der **Entwicklungsphase**. Obwohl SmartDesk Mechanismen zum Schutz Ihrer Daten integriert hat, wird empfohlen, sicherheitshalber manuelle Backups wichtiger Registry-Schlüssel zu erstellen, falls unerwartete Fehler auftreten.
+
+**So erstellen Sie ein Backup:**
+1. Drücken Sie `Windows` + `R`, geben Sie `regedit` ein und drücken Sie `Enter`.
+2. Navigieren Sie zu den folgenden Pfaden und exportieren Sie diese (Rechtsklick > Exportieren):
+
+* `Computer\HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders`
+* `Computer\HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders`
+
+Diese Schlüssel steuern die Pfade zu Ihrem Desktop und anderen Systemordnern. 
+
+**Wiederherstellung:** Sollte ein Fehler auftreten, können Sie den ursprünglichen Zustand einfach wiederherstellen, indem Sie die exportierten `.reg`-Dateien **doppelklicken** und die Abfrage bestätigen.
 
 ---
 
-## 🚧 Roadmap
+## 📄 Lizenz
 
-Dieses Projekt befindet sich in aktiver Entwicklung.
-Bei Fragen oder Anregungen gerne einen [Issue](https://github.com/Neongrau23/SmartDesk.CLI/issues) erstellen.
+Dieses Projekt ist unter der [MIT-Lizenz](LICENSE) lizenziert.
 
 ---
 
