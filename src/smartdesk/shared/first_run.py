@@ -9,6 +9,7 @@ Führt beim ersten Start alle notwendigen Initialisierungen durch:
 """
 
 import os
+from typing import Optional
 import json
 import winreg
 from datetime import datetime
@@ -290,7 +291,7 @@ def get_backup_path() -> str:
     return os.path.join(DATA_DIR, "backups")
 
 
-def get_initial_backup() -> str | None:
+def get_initial_backup() -> Optional[str]:
     """
     Gibt den Pfad zum initialen Registry-Backup zurück.
 
