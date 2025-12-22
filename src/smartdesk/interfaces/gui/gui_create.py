@@ -1,8 +1,12 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
 import os
 import sys
 import logging
+from PySide6.QtWidgets import (
+    QApplication, QWidget, QFileDialog, QMessageBox,
+    QLineEdit, QPushButton, QRadioButton
+)
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtCore import QFile, QIODevice, Qt
 
 # --- Pfad-Hack für direkten Aufruf ---
 if __name__ == "__main__" or __package__ is None:
@@ -16,541 +20,133 @@ if __name__ == "__main__" or __package__ is None:
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
-
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
-# --- Abgerundete Ecken (nur Windows) ---
-try:
-    import win32gui
-    import ctypes
-except ImportError:
-    win32gui = None
-    ctypes = None
-    logger.info("'pywin32' nicht gefunden.")
-
 # --- Projekt-Imports ---
 try:
     from smartdesk.core.services import desktop_service
     from smartdesk.shared.localization import get_text
-
-    desktop_handler = desktop_service
 except ImportError as e:
     logger.error(f"FATALER FEHLER: {e}")
-
-    def get_text(key, **kwargs):
-        return key.split('.')[-1]
-
-    class FakeHandler:
-        def create_desktop(*args, **kwargs):
-            return False
-
-    desktop_handler = FakeHandler()
+    def get_text(key, **kwargs): return key.split('.')[-1]
+    class FakeDesktopService:
+        def create_desktop(self, *args, **kwargs): return False
+    desktop_service = FakeDesktopService()
 
 
-class DesktopCreatorGUI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title(get_text("gui.create_dialog.title"))
+class CreateDesktopWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.load_ui()
 
-        # Fenster initial verstecken für die Animation
-        self.root.withdraw()
+        # Fensterkonfiguration
+        self.setWindowTitle(get_text("gui.create_dialog.title"))
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.window_width = 420
-        self.window_height = 294
+        # UI-Elemente finden
+        self.name_entry = self.findChild(QLineEdit, "lineEdit_name")
+        self.path_entry = self.findChild(QLineEdit, "lineEdit_path")
+        self.btn_browse = self.findChild(QPushButton, "btn_browse")
+        self.btn_create = self.findChild(QPushButton, "btn_create")
+        self.btn_cancel = self.findChild(QPushButton, "btn_cancel")
+        self.radio_existing = self.findChild(QRadioButton, "radioButton_existing")
+        self.radio_new = self.findChild(QRadioButton, "radioButton_new")
+        self.label_path = self.findChild(QLabel, "label_path")
 
-        # Bildschirmabmessungen sicher ermitteln
-        try:
-            self.root.update_idletasks()
-            screen_width = self.root.winfo_screenwidth()
-            screen_height = self.root.winfo_screenheight()
+        # Signale verbinden
+        self.btn_browse.clicked.connect(self.browse_folder)
+        self.btn_create.clicked.connect(self.create_desktop)
+        self.btn_cancel.clicked.connect(self.close)
+        self.radio_existing.toggled.connect(self.on_mode_change)
+        self.radio_new.toggled.connect(self.on_mode_change)
 
-            if screen_width <= 0 or screen_height <= 0:
-                screen_width = 1920
-                screen_height = 1080
-                logger.warning("Bildschirmabmessungen ungültig, Fallback")
-        except Exception as e:
-            logger.warning(f"Bildschirmgröße Fehler: {e}")
-            screen_width = 1920
-            screen_height = 1080
+        # Initialen Status setzen
+        self.on_mode_change()
+        self.name_entry.setFocus()
 
-        self.screen_width = screen_width
-        self.screen_height = screen_height
 
-        # Position für unten rechts berechnen
-        padding_x = 20
-        padding_y = 60
+    def load_ui(self):
+        loader = QUiLoader()
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        ui_file_path = os.path.join(current_dir, "smartdesk_create.ui")
+        ui_file = QFile(ui_file_path)
 
-        self.target_x = max(0, screen_width - self.window_width - padding_x)
-        self.y_pos = max(0, screen_height - self.window_height - padding_y)
+        if not ui_file.open(QIODevice.ReadOnly):
+            logger.error(f"Cannot open UI file: {ui_file.errorString()}")
+            sys.exit(-1)
+        
+        # Widget aus UI-Datei laden und dem aktuellen Widget hinzufügen
+        container_widget = loader.load(ui_file, self)
+        ui_file.close()
 
-        # Integer-Werte für Animation
-        self.start_x = screen_width
-        self.current_x = self.start_x
-        self.is_animating = True
-        self.is_closing = False
-        self._animation_id = None
-
-        self.root.geometry(
-            f"{self.window_width}x{self.window_height}+{self.current_x}+{self.y_pos}"
-        )
-        self.root.resizable(False, False)
-        self.root.overrideredirect(True)
-
-        # --- Farben (KEIN Transparenz-Hack mehr) ---
-        self.bg_dark = "#2b2b2b"
-
-        self.root.configure(bg=self.bg_dark)
-        # --- Ende Transparenz-Hack ---
-
-        self.bg_input = "#3c3c3c"
-        self.fg_primary = "#ffffff"
-        self.fg_label = "#cccccc"
-        self.accent = "#14a085"
-        self.accent_hover = "#0d7377"
-        self.button_bg = "#3c3c3c"
-        self.button_hover = "#4a4a4a"
-
-        # Hauptframe (dieser bekommt die ECHTE Hintergrundfarbe)
-        main_frame = tk.Frame(root, bg=self.bg_dark)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
-
-        # Titel
-        title = tk.Label(
-            main_frame,
-            text=get_text("gui.create_dialog.header"),
-            font=('Segoe UI', 11),
-            bg=self.bg_dark,
-            fg=self.fg_primary,
-            anchor='w',
-        )
-        title.pack(fill=tk.X, pady=(0, 15))
-
-        # Name Label
-        name_label = tk.Label(
-            main_frame,
-            text=get_text("gui.create_dialog.label_name"),
-            font=('Segoe UI', 9),
-            bg=self.bg_dark,
-            fg=self.fg_label,
-            anchor='w',
-        )
-        name_label.pack(fill=tk.X, pady=(0, 3))
-
-        # Name Input
-        self.name_entry = tk.Entry(
-            main_frame,
-            font=('Segoe UI', 10),
-            bg=self.bg_input,
-            fg=self.fg_primary,
-            insertbackground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-        )
-        self.name_entry.pack(fill=tk.X, ipady=6, pady=(0, 10))
-
-        # Pfad Label - dynamisch je nach Modus
-        self.pfad_label = tk.Label(
-            main_frame,
-            text=get_text("gui.create_dialog.label_path_existing"),
-            font=('Segoe UI', 9),
-            bg=self.bg_dark,
-            fg=self.fg_label,
-            anchor='w',
-        )
-        self.pfad_label.pack(fill=tk.X, pady=(0, 3))
-
-        # Pfad Input Container
-        pfad_container = tk.Frame(main_frame, bg=self.bg_dark)
-        pfad_container.pack(fill=tk.X, pady=(0, 15))
-
-        self.path_entry = tk.Entry(
-            pfad_container,
-            font=('Segoe UI', 10),
-            bg=self.bg_input,
-            fg=self.fg_primary,
-            insertbackground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-        )
-        self.path_entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, ipady=6)
-
-        browse_btn = tk.Button(
-            pfad_container,
-            text=get_text("gui.common.button_browse"),
-            font=('Segoe UI', 10),
-            bg=self.bg_input,
-            fg=self.fg_primary,
-            activebackground=self.button_hover,
-            activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-            width=4,
-            cursor="hand2",
-            command=self.browse_folder,
-        )
-        browse_btn.pack(side=tk.LEFT, padx=(5, 0), ipady=6)
-
-        # Bottom Container
-        bottom = tk.Frame(main_frame, bg=self.bg_dark)
-        bottom.pack(fill=tk.X)
-
-        # Radio Buttons (links)
-        radio_frame = tk.Frame(bottom, bg=self.bg_dark)
-        radio_frame.pack(side=tk.LEFT)
-
-        self.mode_var = tk.StringVar(value="1")
-        self.mode_var.trace_add("write", self.on_mode_change)
-
-        rb1 = tk.Radiobutton(
-            radio_frame,
-            text=get_text("gui.create_dialog.radio_existing"),
-            variable=self.mode_var,
-            value="1",
-            font=('Segoe UI', 9),
-            bg=self.bg_dark,
-            fg=self.fg_primary,
-            selectcolor=self.bg_input,
-            activebackground=self.bg_dark,
-            activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            cursor="hand2",
-        )
-        rb1.pack(side=tk.LEFT, padx=(0, 5))
-
-        rb2 = tk.Radiobutton(
-            radio_frame,
-            text=get_text("gui.create_dialog.radio_new"),
-            variable=self.mode_var,
-            value="2",
-            font=('Segoe UI', 9),
-            bg=self.bg_dark,
-            fg=self.fg_primary,
-            selectcolor=self.bg_input,
-            activebackground=self.bg_dark,
-            activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            cursor="hand2",
-        )
-        rb2.pack(side=tk.LEFT)
-
-        # Buttons (rechts)
-        button_frame = tk.Frame(bottom, bg=self.bg_dark)
-        button_frame.pack(side=tk.RIGHT)
-
-        create_btn = tk.Button(
-            button_frame,
-            text=get_text("gui.common.button_create"),
-            font=('Segoe UI', 9),
-            bg=self.accent,
-            fg="#ffffff",
-            activebackground=self.accent_hover,
-            activeforeground="#ffffff",
-            relief=tk.FLAT,
-            bd=0,
-            padx=15,
-            pady=5,
-            cursor="hand2",
-            command=self.create_desktop,
-        )
-        create_btn.pack(side=tk.LEFT, padx=(0, 5))
-
-        cancel_btn = tk.Button(
-            button_frame,
-            text=get_text("gui.common.button_cancel"),
-            font=('Segoe UI', 9),
-            bg=self.button_bg,
-            fg=self.fg_primary,
-            activebackground=self.button_hover,
-            activeforeground=self.fg_primary,
-            relief=tk.FLAT,
-            bd=0,
-            padx=15,
-            pady=5,
-            cursor="hand2",
-            command=self.close_window,
-        )
-        cancel_btn.pack(side=tk.LEFT)
-
-        # Fenster anzeigen und Animation starten
-        self.root.deiconify()
-        self.root.update_idletasks()
-        self._animation_id = self.root.after(50, self.animate_slide_in_from_right)
-
-        # Abgerundete Ecken verzögert anwenden
-        self.root.after(100, self.apply_rounded_corners)
-
-        # Fokus auf dieses Fenster setzen (wenn von Control Panel gestartet)
-        self.root.after(200, self._request_focus)
-
-    def _request_focus(self):
-        """Fordert den Fokus für dieses Fenster an."""
-        try:
-            self.root.lift()
-            self.root.focus_force()
-            self.name_entry.focus_set()
-
-            # Windows-spezifisch: Fenster in den Vordergrund bringen
-            if win32gui:
-                try:
-                    frame_hwnd = self.root.winfo_id()
-                    hwnd = win32gui.GetParent(frame_hwnd)
-                    if not hwnd:
-                        hwnd = frame_hwnd
-                    win32gui.SetForegroundWindow(hwnd)
-                except Exception:
-                    pass
-        except Exception as e:
-            logger.debug(f"Fokus-Anforderung fehlgeschlagen: {e}")
-
-    def apply_rounded_corners(self):
-        """Wendet abgerundete Ecken an (nur Windows)."""
-        if not win32gui:
-            return
-
-        try:
-            self.root.update_idletasks()
-
-            # Hole das echte Top-Level Window Handle
-            frame_hwnd = self.root.winfo_id()
-            hwnd = win32gui.GetParent(frame_hwnd)
-            if not hwnd:
-                hwnd = frame_hwnd
-
-            # Methode 1: Windows 11+ DWM API
-            if self._try_dwm_rounded_corners(hwnd):
-                logger.debug("DWM runde Ecken angewendet")
-                return
-
-            # Methode 2: Fallback mit Region
-            self._apply_region_rounded_corners(hwnd)
-
-        except Exception as e:
-            logger.warning(f"Fehler bei abgerundeten Ecken: {e}")
-
-    def _try_dwm_rounded_corners(self, hwnd):
-        """Versucht Windows 11 DWM API für runde Ecken."""
-        if not ctypes:
-            return False
-        try:
-            DWMWA_WINDOW_CORNER_PREFERENCE = 33
-            DWMWCP_ROUND = 2
-
-            dwmapi = ctypes.windll.dwmapi
-            preference = ctypes.c_int(DWMWCP_ROUND)
-            result = dwmapi.DwmSetWindowAttribute(
-                hwnd,
-                DWMWA_WINDOW_CORNER_PREFERENCE,
-                ctypes.byref(preference),
-                ctypes.sizeof(preference),
-            )
-            return result == 0
-        except Exception:
-            return False
-
-    def _apply_region_rounded_corners(self, hwnd):
-        """Wendet abgerundete Ecken via Window Region an."""
-        try:
-            rect = win32gui.GetWindowRect(hwnd)
-            width = rect[2] - rect[0]
-            height = rect[3] - rect[1]
-
-            radius = 20
-            hrgn = win32gui.CreateRoundRectRgn(
-                0, 0, width + 1, height + 1, radius, radius
-            )
-
-            if win32gui.SetWindowRgn(hwnd, hrgn, True):
-                logger.debug("Region runde Ecken angewendet")
-        except Exception as e:
-            logger.warning(f"Region Fehler: {e}")
-
-    def on_mode_change(self, *args):
-        """Wird aufgerufen, wenn der Modus geändert wird."""
-        if self.mode_var.get() == "1":
-            # Vorhanden: Pfad zum existierenden Ordner
-            self.pfad_label.config(text=get_text("gui.create_dialog.label_path_existing"))
+    def on_mode_change(self):
+        if self.radio_existing.isChecked():
+            self.label_path.setText(get_text("gui.create_dialog.label_path_existing"))
+            self.path_entry.setEnabled(True)
+            self.btn_browse.setEnabled(True)
         else:
-            # Neu erstellen: Pfad wo der neue Ordner erstellt werden soll
-            self.pfad_label.config(
-                text=get_text("gui.create_dialog.label_path_new")
-            )
-
-    def close_window(self):
-        """Schließt das Fenster mit Slide-Out-Animation."""
-        if self.is_closing:
-            return
-
-        self.is_closing = True
-        self.is_animating = False
-
-        if self._animation_id:
-            try:
-                self.root.after_cancel(self._animation_id)
-            except Exception:
-                pass
-            self._animation_id = None
-
-        self.animate_slide_out_to_right()
-
-    def animate_slide_out_to_right(self):
-        """Animiert das Fenster nach rechts aus dem Bildschirm."""
-        if not self.is_closing:
-            return
-
-        try:
-            if not self.root.winfo_exists():
-                self._final_cleanup()
-                return
-        except tk.TclError:
-            self._final_cleanup()
-            return
-
-        delay_ms = 10
-        ease_factor = 0.20
-
-        if self.current_x >= self.screen_width:
-            self._final_cleanup()
-        else:
-            distance_to_go = self.screen_width - self.current_x
-            step = max(3, int(distance_to_go * ease_factor))
-            self.current_x += step
-            self._set_geometry(self.current_x)
-            self.root.after(delay_ms, self.animate_slide_out_to_right)
-
-    def _final_cleanup(self):
-        """Räumt auf und schließt das Fenster."""
-        try:
-            self.root.quit()
-            self.root.destroy()
-        except Exception:
-            pass
-
-    def animate_slide_in_from_right(self):
-        """Animiert das Fenster von rechts herein."""
-        if not self.is_animating or self.is_closing:
-            return
-
-        try:
-            if not self.root.winfo_exists():
-                return
-        except tk.TclError:
-            return
-
-        delay_ms = 10
-        ease_factor = 0.20
-        distance_to_go = self.current_x - self.target_x
-
-        if distance_to_go <= 1:
-            self.current_x = self.target_x
-            self.is_animating = False
-            self._set_geometry(self.target_x)
-            self._animation_id = None
-        else:
-            step = max(1, int(distance_to_go * ease_factor))
-            self.current_x -= step
-            self._set_geometry(self.current_x)
-            self._animation_id = self.root.after(
-                delay_ms, self.animate_slide_in_from_right
-            )
-
-    def _set_geometry(self, x_pos):
-        """Setzt die Fensterposition sicher."""
-        try:
-            x = max(0, int(x_pos))
-            y = max(0, int(self.y_pos))
-            self.root.geometry(f"{self.window_width}x{self.window_height}+{x}+{y}")
-        except tk.TclError:
-            pass
-        except Exception as e:
-            logger.debug(f"Geometry-Fehler: {e}")
-
+            self.label_path.setText(get_text("gui.create_dialog.label_path_new"))
+            self.path_entry.setEnabled(True)
+            self.btn_browse.setEnabled(True)
+    
     def browse_folder(self):
-        # Ändert den Titel je nach Modus
-        if self.mode_var.get() == "2":
-            title = get_text("gui.create_dialog.browse_title_parent")
-        else:
-            title = get_text("gui.create_dialog.browse_title_existing")
-
-        folder = filedialog.askdirectory(title=title)
-
+        title = (
+            get_text("gui.create_dialog.browse_title_parent") 
+            if self.radio_new.isChecked() 
+            else get_text("gui.create_dialog.browse_title_existing")
+        )
+        folder = QFileDialog.getExistingDirectory(self, title)
         if folder:
-            self.path_entry.delete(0, tk.END)
-            self.path_entry.insert(0, folder)
+            self.path_entry.setText(folder)
 
     def create_desktop(self):
-        """Ruft den desktop_handler auf, anstatt die Logik selbst auszuführen."""
-        name = self.name_entry.get().strip()
-        path = self.path_entry.get().strip().strip('"')
-        mode = self.mode_var.get()
+        name = self.name_entry.text().strip()
+        path = self.path_entry.text().strip().strip('"')
 
         if not name:
-            messagebox.showerror(
-                get_text("gui.common.error_title"), get_text("gui.create_dialog.error_no_name")
-            )
+            QMessageBox.critical(self, get_text("gui.common.error_title"), get_text("gui.create_dialog.error_no_name"))
             return
-
         if not path:
-            messagebox.showerror(
-                get_text("gui.common.error_title"),
-                get_text("gui.create_dialog.error_no_path"),
-            )
+            QMessageBox.critical(self, get_text("gui.common.error_title"), get_text("gui.create_dialog.error_no_path"))
             return
 
         path = os.path.normpath(path)
-
         if not os.path.isabs(path):
-            messagebox.showerror(
-                get_text("gui.common.error_title"),
-                get_text("gui.create_dialog.error_path_not_absolute", path=path),
-            )
+            QMessageBox.critical(self, get_text("gui.common.error_title"), get_text("gui.create_dialog.error_path_not_absolute", path=path))
             return
 
-        # Modus "Neu erstellen" = True, "Vorhanden" = False
-        create_if_missing = mode == "2"
+        create_if_missing = self.radio_new.isChecked()
+        final_path = os.path.join(path, name) if create_if_missing else path
 
-        # --- KORREKTUR: Bei Modus 2 den finalen Pfad erstellen ---
-        if create_if_missing:
-            # Bei "Neu erstellen": Hänge den Namen an den übergeordneten Pfad
-            final_path = os.path.join(path, name)
-        else:
-            # Bei "Vorhanden": Der Pfad ist bereits der finale Ordner
-            final_path = path
-
-        success = desktop_handler.create_desktop(
+        success = desktop_service.create_desktop(
             name,
-            final_path,  # <-- Jetzt korrekt: finaler Pfad
+            final_path,
             create_if_missing=create_if_missing,
         )
 
         if success:
-            messagebox.showinfo(
-                get_text("gui.create_dialog.success_creation", name=name),
-                f"{get_text('gui.create_dialog.new_path_location', path=final_path)}",
-            )
-            self.root.quit()
+            QMessageBox.information(self, get_text("gui.create_dialog.success_creation", name=name),
+                                    get_text('gui.create_dialog.new_path_location', path=final_path))
+            self.close()
         else:
-            messagebox.showerror(
-                get_text("gui.common.error_title"),
-                get_text("gui.create_dialog.error_creation_failed")
-            )
+            QMessageBox.critical(self, get_text("gui.common.error_title"), get_text("gui.create_dialog.error_creation_failed"))
 
 
 def show_create_desktop_window():
-    """Hauptfunktion zum Starten der Tkinter-App."""
-    try:
-        root = tk.Tk()
-        DesktopCreatorGUI(root)
-        root.mainloop()
-    except tk.TclError as e:
-        logger.error(f"Tkinter-Fehler: {e}")
-    except Exception as e:
-        logger.error(f"Fehler beim Starten: {e}")
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
+    
+    window = CreateDesktopWindow()
+    window.show()
+    app.exec()
 
 
-# Zum direkten Testen dieser Datei
 if __name__ == "__main__":
-    logger.info("Starte GUI im Testmodus...")
+    logger.info("Starte Create Desktop GUI im Testmodus...")
     show_create_desktop_window()

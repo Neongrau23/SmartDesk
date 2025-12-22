@@ -71,11 +71,6 @@ try:
     from smartdesk.shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN
     from smartdesk.hotkeys import listener as hotkey_listener
 
-    # --- NEUE IMPORTS FÜR DIE STILLE GUI ---
-    from smartdesk.interfaces.gui import ui_manager
-    from contextlib import redirect_stdout, redirect_stderr
-    import io
-
     # --- ENDE NEUE IMPORTS ---
 except ImportError as e:
     try:
@@ -119,33 +114,8 @@ if __name__ == "__main__":
     # Ansonsten, verarbeite das übergebene Kommando.
     command = args[0].lower() if args else "start-tray"
 
-    # --- BEFEHL: create-gui (Von Tray Icon aufgerufen) ---
-    if command == "create-gui":
-        # (Diese Sektion gibt absichtlich nichts aus, da sie still im Hintergrund läuft)
-        # 1. Starte den GUI-Dialog
-        result_data = ui_manager.launch_create_desktop_dialog()
-
-        # 2. Prüfen, ob der Benutzer "Abbrechen" geklickt hat
-        if result_data is None:
-            pass  # Einfach still beenden
-        else:
-            # 3. Daten extrahieren
-            name = result_data["name"]
-            path = result_data["path"]
-            create_if_missing = result_data["create_if_missing"]
-
-            # 4. Den Desktop-Handler "still" aufrufen (ohne Konsolenausgabe)
-            f_stdout = io.StringIO()
-            f_stderr = io.StringIO()
-            with redirect_stdout(f_stdout), redirect_stderr(f_stderr):
-                try:
-                    desktop_handler.create_desktop(name, path, create_if_missing)
-                except Exception:
-                    # Fehler werden still ignoriert, wenn sie von der GUI kommen
-                    pass
-
     # --- BEFEHL: start-listener ---
-    elif command == "start-listener":
+    if command == "start-listener":
         # Dieser Befehl wird vom hotkey_manager als separater Prozess aufgerufen
         import os
         from smartdesk.shared.config import DATA_DIR
@@ -190,7 +160,7 @@ if __name__ == "__main__":
             process = subprocess.Popen(
                 [pythonw_executable, tray_icon_path],
                 cwd=project_root,
-                creationflags=(subprocess.CREATE_NEW_CONSOLE if sys.platform == 'win32' else 0),
+                creationflags=(subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0),
             )
 
             from smartdesk.core.utils.registry_operations import save_tray_pid

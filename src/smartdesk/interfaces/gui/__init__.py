@@ -1,8 +1,8 @@
-# SmartDesk GUI Interface
-from .gui_main import SmartDeskGUI, launch_gui
-from .gui_create import DesktopCreatorGUI, show_create_desktop_window
-from .control_panel import SmartDeskControlPanel, show_control_panel
-from .ui_manager import launch_create_desktop_dialog
+# src/smartdesk/interfaces/gui/__init__.py
+
+# Dieser Ordner enthält die grafischen Benutzeroberflächen.
+# __init__.py macht ihn zu einem Python-Paket.
+
 
 __all__ = [
     'SmartDeskGUI',

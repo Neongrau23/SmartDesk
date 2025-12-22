@@ -399,8 +399,24 @@ TEXT = {
             "copy": "Hintergrundbild kopiert nach: {path}",
         },
     },
+    "tray": {
+        "menu": {
+            "control_panel": "Control Panel",
+            "manager": "SmartDesk Manager",
+            "activate": "Aktivieren",
+            "deactivate": "Deaktivieren",
+            "quit": "Beenden"
+        }
+    }
 }
 
+
+def init_localization():
+    """
+    Stellt sicher, dass das Modul und seine Daten geladen sind.
+    Wird explizit aufgerufen, um die Import-Reihenfolge zu erzwingen.
+    """
+    pass
 
 # Diese Funktion wird von allen anderen Modulen importiert
 def get_text(key: str, **kwargs) -> str:

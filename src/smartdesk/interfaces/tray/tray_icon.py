@@ -1,278 +1,145 @@
-"""
-SmartDesk Tray Icon
-Benötigt: pip install pystray pillow
-"""
-
 import sys
 import os
 import logging
+import threading
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon, QAction
+from PySide6.QtWidgets import QSystemTrayIcon, QMenu
+from PIL import Image
 
-# Einfaches Logging für Tray (vor allen anderen Imports)
-logging.basicConfig(
-    level=logging.DEBUG if os.environ.get('SMARTDESK_DEBUG') else logging.WARNING,
-    format='[%(levelname)s] %(message)s',
-)
+# --- Grundlegendes Logging ---
+logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(message)s')
 logger = logging.getLogger('smartdesk.tray')
 
+# --- Path Hack ---
 try:
-    # Pfad zur Datei: .../src/smartdesk/interfaces/tray/tray_icon.py
     current_file_path = os.path.abspath(__file__)
     tray_dir = os.path.dirname(current_file_path)
     interfaces_dir = os.path.dirname(tray_dir)
     smartdesk_dir = os.path.dirname(interfaces_dir)
     src_dir = os.path.dirname(smartdesk_dir)
-
     if src_dir not in sys.path:
         sys.path.append(src_dir)
-        logger.debug("'src' Verzeichnis zum Pfad hinzugefügt: %s", src_dir)
 except Exception as e:
-    logger.error("FEHLER im Path Hack: %s", e)
+    logger.error(f"FEHLER im Path Hack: {e}")
     sys.exit(1)
 
-import pystray
-from PIL import Image
-import threading
-import time
-import psutil
+# --- Projekt-Imports ---
 from smartdesk.hotkeys import hotkey_manager
-import subprocess
+from smartdesk.interfaces.gui.control_panel import SmartDeskControlPanel
+from smartdesk.shared.localization import get_text, init_localization
 
-try:
-    PID_FILE_DIR = os.path.join(os.environ['APPDATA'], 'SmartDesk')
-    PID_FILE_PATH = os.path.join(PID_FILE_DIR, 'listener.pid')
-    CONTROL_PANEL_PID_PATH = os.path.join(PID_FILE_DIR, 'control_panel.pid')
-    logger.debug("Überwache PID-Datei: %s", PID_FILE_PATH)
-    logger.debug("Control Panel PID: %s", CONTROL_PANEL_PID_PATH)
-except Exception as e:
-    logger.error("Konnte APPDATA-Pfad nicht finden: %s", e)
-    PID_FILE_PATH = None
-    CONTROL_PANEL_PID_PATH = None
+# --- PID-Management ---
+PID_FILE_DIR = os.path.join(os.environ.get('APPDATA', ''), 'SmartDesk')
+LISTENER_PID_FILE = os.path.join(PID_FILE_DIR, 'listener.pid')
 
+class SmartDeskTrayApp(QApplication):
+    def __init__(self, argv):
+        super().__init__(argv)
+        self.setQuitOnLastWindowClosed(False) 
 
-def load_icon(filepath):
-    """Lädt ein Icon aus einer Datei"""
-    logger.debug("Versuche Icon zu laden: %s", filepath)
-    try:
-        if os.path.exists(filepath):
-            logger.debug("Datei gefunden: %s", filepath)
-            image = Image.open(filepath)
-            image = image.resize((64, 64), Image.Resampling.LANCZOS)
-            logger.debug("Icon erfolgreich geladen und skaliert")
-            return image
-        else:
-            logger.warning("Icon nicht gefunden: %s", filepath)
-            return create_fallback_icon()
-    except Exception as e:
-        logger.error("Fehler beim Laden des Icons: %s", e)
-        return create_fallback_icon()
+        # Lade explizit die Lokalisierung, bevor UI-Elemente erstellt werden
+        init_localization()
 
-
-def create_fallback_icon(color="gray"):
-    """Fallback wenn Datei nicht gefunden wird"""
-    image = Image.new('RGB', (64, 64), color)
-    return image
-
-
-class StatusMonitor:
-    def __init__(self, active_icon_path, idle_icon_path):
-        self.is_active = False
-        self.active_icon = load_icon(active_icon_path)
-        self.idle_icon = load_icon(idle_icon_path)
-
-    def set_active(self):
-        self.is_active = True
-
-    def set_idle(self):
-        self.is_active = False
-
-    def get_current_icon(self):
-        return self.active_icon if self.is_active else self.idle_icon
-
-
-# Icon-Pfade relativ zur neuen Struktur
-ICONS_DIR = os.path.join(smartdesk_dir, 'shared', 'icons')
-ACTIVE_ICON = os.path.join(ICONS_DIR, 'activ_icon.png')
-IDLE_ICON = os.path.join(ICONS_DIR, 'idle_icon.png')
-
-# Fallback zu alter Struktur falls nicht vorhanden
-if not os.path.exists(ACTIVE_ICON):
-    OLD_ICONS_DIR = os.path.join(smartdesk_dir, 'icons')
-    ACTIVE_ICON = os.path.join(OLD_ICONS_DIR, 'activ_icon.png')
-    IDLE_ICON = os.path.join(OLD_ICONS_DIR, 'idle_icon.png')
-
-status = StatusMonitor(ACTIVE_ICON, IDLE_ICON)
-
-
-def update_icon(icon):
-    """Aktualisiert das Icon basierend auf der Existenz der listener.pid"""
-    logger.debug("Update-Thread (PID-Überwachung) gestartet")
-
-    if not PID_FILE_PATH:
-        logger.error("PID_FILE_PATH ist nicht gesetzt.")
-        return
-
-    while True:
-        try:
-            old_state = status.is_active
-
-            if os.path.exists(PID_FILE_PATH):
-                status.set_active()
-            else:
-                status.set_idle()
-
-            icon.icon = status.get_current_icon()
-
-            if status.is_active:
-                icon.title = "SmartDesk (Aktiv)"
-            else:
-                icon.title = "SmartDesk (Inaktiv)"
-
-            if old_state != status.is_active:
-                new_status = "AKTIV" if status.is_active else "INAKTIV"
-                logger.debug("Status geändert: %s", new_status)
-
-        except Exception as e:
-            logger.error("Fehler im Update-Thread: %s", e)
-
-        time.sleep(1)
-
-def set_active(icon, item):
-    logger.debug("'Aktivieren' geklickt.")
-    hotkey_manager.start_listener()
-
-
-def set_inactiv(icon, item):
-    logger.debug("'Deaktivieren' geklickt.")
-    hotkey_manager.stop_listener()
-
-
-def open_smart_desk(icon, item):
-    """Öffnet das Control Panel und verhindert Duplikate."""
-    logger.debug("'SmartDesk Manager öffnen' geklickt.")
-
-    # Prüfen, ob eine Instanz bereits läuft
-    try:
-        if os.path.exists(CONTROL_PANEL_PID_PATH):
-            with open(CONTROL_PANEL_PID_PATH, 'r') as f:
-                pid = int(f.read().strip())
-            if psutil.pid_exists(pid):
-                logger.warning("Control Panel (PID: %d) läuft bereits.", pid)
-                # Optional: Fenster in den Vordergrund bringen
-                return
-    except (FileNotFoundError, ValueError, psutil.NoSuchProcess):
-        pass  # PID-Datei ist alt oder Prozess existiert nicht mehr
-
-    # Starte das Control Panel
-    try:
-        pythonw_executable = sys.executable
-        if "python.exe" in pythonw_executable.lower():
-            pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
-
-        # Pfad zur gui_main.py
-        gui_main_py = os.path.join(smartdesk_dir, 'interfaces', 'gui', 'gui_main.py')
-        logger.debug("Starte Control Panel: %s %s", pythonw_executable, gui_main_py)
-
-        # Starte den Prozess
-        proc = subprocess.Popen(
-            [pythonw_executable, gui_main_py],
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
-
-        # Speichere die neue PID
-        if not os.path.exists(PID_FILE_DIR):
-            os.makedirs(PID_FILE_DIR)
-        with open(CONTROL_PANEL_PID_PATH, 'w') as f:
-            f.write(str(proc.pid))
-        logger.debug("Control Panel PID %d gespeichert.", proc.pid)
-
-    except Exception as e:
-        logger.error("Fehler beim Öffnen des Control Panels: %s", e)
-
-
-def open_control_panel(icon, item):
-    """Öffnet das kleine Control Panel und verhindert Duplikate."""
-    logger.debug("'Control Panel öffnen' geklickt (default action).")
-
-    # Prüfen, ob eine Instanz bereits läuft
-    try:
-        if os.path.exists(CONTROL_PANEL_PID_PATH):
-            with open(CONTROL_PANEL_PID_PATH, 'r') as f:
-                pid = int(f.read().strip())
-            if psutil.pid_exists(pid):
-                logger.warning("Control Panel (PID: %d) läuft bereits.", pid)
-                # Sende ein "Schließ dich" Signal, damit ein neues geöffnet werden kann
-                # oder bringe es in den Vordergrund (komplexer).
-                # Einfacher: Verhindere doppeltes Öffnen.
-                # Signal an das Panel senden, sich zu schließen
-                close_signal_file = CONTROL_PANEL_PID_PATH + '.close'
-                with open(close_signal_file, 'w') as f:
-                    f.write('1')
-                time.sleep(0.5) # Kurze Pause, damit das alte Panel sich schließen kann
+        self.control_panel = None
         
-    except (FileNotFoundError, ValueError, psutil.NoSuchProcess):
-        pass  # PID-Datei ist alt oder Prozess existiert nicht mehr
-    except Exception as e:
-        logger.error(f"Fehler beim Prüfen des Control Panels: {e}")
+        # --- Icons Laden ---
+        icon_path = os.path.join(smartdesk_dir, 'icons')
+        self.idle_icon = QIcon(os.path.join(icon_path, 'idle_icon.png'))
+        self.active_icon = QIcon(os.path.join(icon_path, 'activ_icon.png'))
+
+        # --- Tray Icon Erstellen ---
+        self.tray_icon = QSystemTrayIcon(self.idle_icon, self)
+        self.tray_icon.setToolTip("SmartDesk")
+        
+        # --- Menü Erstellen ---
+        menu = QMenu()
+        
+        open_panel_action = QAction(get_text("tray.menu.control_panel"), self)
+        open_panel_action.triggered.connect(self.open_control_panel)
+        menu.addAction(open_panel_action)
+
+        # Platzhalter für "SmartDesk Manager öffnen"
+        open_manager_action = QAction(get_text("tray.menu.manager"), self)
+        open_manager_action.triggered.connect(self.open_manager_placeholder)
+        menu.addAction(open_manager_action)
+        
+        menu.addSeparator()
+
+        self.activate_action = QAction(get_text("tray.menu.activate"), self)
+        self.activate_action.triggered.connect(self.activate_hotkeys)
+        menu.addAction(self.activate_action)
+        
+        self.deactivate_action = QAction(get_text("tray.menu.deactivate"), self)
+        self.deactivate_action.triggered.connect(self.deactivate_hotkeys)
+        menu.addAction(self.deactivate_action)
+        
+        menu.addSeparator()
+        
+        quit_action = QAction(get_text("tray.menu.quit"), self)
+        quit_action.triggered.connect(self.quit)
+        menu.addAction(quit_action)
+        
+        self.tray_icon.setContextMenu(menu)
+        # Linksklick-Aktion hinzufügen
+        self.tray_icon.activated.connect(self.on_tray_activated)
+        self.tray_icon.show()
+
+        # --- Status-Überwachung ---
+        self.status_thread = threading.Thread(target=self.monitor_status, daemon=True)
+        self.status_thread.start()
+
+    def on_tray_activated(self, reason):
+        """Wird aufgerufen, wenn auf das Tray-Icon geklickt wird."""
+        if reason == QSystemTrayIcon.ActivationReason.Trigger: # Trigger ist der normale Linksklick
+            self.open_control_panel()
+
+    def open_control_panel(self):
+        if self.control_panel is None or not self.control_panel.isVisible():
+            self.control_panel = SmartDeskControlPanel()
+            self.control_panel.show_animated()
+            # Verbinde das "destroyed"-Signal, um die Referenz zu löschen
+            self.control_panel.destroyed.connect(self.on_panel_closed)
+
+    def on_panel_closed(self):
+        self.control_panel = None
+
+    def open_manager_placeholder(self):
+        # Hier kann später die Logik für den Manager implementiert werden
+        logger.info("Funktion 'SmartDesk Manager öffnen' ist noch nicht implementiert.")
+        pass
+
+    def activate_hotkeys(self):
+        hotkey_manager.start_listener()
+
+    def deactivate_hotkeys(self):
+        hotkey_manager.stop_listener()
+        
+    def monitor_status(self):
+        while True:
+            if os.path.exists(LISTENER_PID_FILE):
+                self.tray_icon.setIcon(self.active_icon)
+                self.tray_icon.setToolTip("SmartDesk (Aktiv)")
+                self.activate_action.setEnabled(False)
+                self.deactivate_action.setEnabled(True)
+            else:
+                self.tray_icon.setIcon(self.idle_icon)
+                self.tray_icon.setToolTip("SmartDesk (Inaktiv)")
+                self.activate_action.setEnabled(True)
+                self.deactivate_action.setEnabled(False)
+            threading.Event().wait(1)
 
 
-    # Starte das Control Panel
+if __name__ == '__main__':
     try:
-        pythonw_executable = sys.executable
-        if "python.exe" in pythonw_executable.lower():
-            pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
-
-        # Pfad zur control_panel.py
-        control_panel_py = os.path.join(smartdesk_dir, 'interfaces', 'gui', 'control_panel.py')
-        logger.debug("Starte Control Panel: %s %s", pythonw_executable, control_panel_py)
-
-        # Starte den Prozess
-        proc = subprocess.Popen(
-            [pythonw_executable, control_panel_py],
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
-
-        # Speichere die neue PID
-        if not os.path.exists(PID_FILE_DIR):
-            os.makedirs(PID_FILE_DIR)
-        with open(CONTROL_PANEL_PID_PATH, 'w') as f:
-            f.write(str(proc.pid))
-        logger.debug("Control Panel PID %d gespeichert.", proc.pid)
-
-    except Exception as e:
-        logger.error("Fehler beim Öffnen des Control Panels: %s", e)
-
-
-def stop_smartdesk(icon, item):
-    logger.debug("'Beenden' geklickt.")
-
-    try:
-        from smartdesk.core.utils.registry_operations import cleanup_tray_pid
-
+        from smartdesk.core.utils.registry_operations import save_tray_pid, cleanup_tray_pid
+        save_tray_pid(os.getpid())
+        
+        app = SmartDeskTrayApp(sys.argv)
+        exit_code = app.exec()
+        
         cleanup_tray_pid()
-        logger.debug("Tray-PID aus Registry entfernt")
+        sys.exit(exit_code)
     except Exception as e:
-        logger.debug("Fehler beim Cleanup: %s", e)
-
-    icon.stop()
-
-
-icon = pystray.Icon(
-    "smartdesk_tray",
-    status.get_current_icon(),
-    "SmartDesk",
-    menu=pystray.Menu(
-        pystray.MenuItem("Control Panel", open_control_panel, default=True),
-        pystray.MenuItem("SmartDesk Manager öffnen", open_smart_desk),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Aktivieren", set_active),
-        pystray.MenuItem("Deaktivieren", set_inactiv),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Beenden", stop_smartdesk),
-    ),
-)
-
-update_thread = threading.Thread(target=update_icon, args=(icon,), daemon=True)
-update_thread.start()
-
-logger.debug("Starte Tray-Icon...")
-icon.run()
+        logger.error(f"Fehler beim Starten der Tray-Anwendung: {e}")
+        sys.exit(1)
