@@ -11,9 +11,6 @@
     - Führt First-Run-Setup durch
     - Startet SmartDesk
 
-.PARAMETER Cli
-    Startet das CLI-Menü statt des Tray-Icons
-
 .PARAMETER NoStart
     Führt nur die Installation durch, ohne SmartDesk zu starten
 
@@ -25,16 +22,11 @@
     Vollständige Installation und Start des Tray-Icons
 
 .EXAMPLE
-    .\install.ps1 -Cli
-    Installation und Start des CLI-Menüs
-
-.EXAMPLE
     .\install.ps1 -NoStart
     Nur Installation, kein automatischer Start
 #>
 
 param(
-    [switch]$Cli,
     [switch]$NoStart,
     [switch]$Check
 )
@@ -229,23 +221,15 @@ for d in desktops:
 
 # SmartDesk starten
 function Start-SmartDesk {
-    param([switch]$UseCli)
-    
     $pythonPath = Join-Path $VenvDir "Scripts\python.exe"
     $mainScript = Join-Path $SrcDir "smartdesk\main.py"
     
     Set-Location $ProjectRoot
     
-    if ($UseCli) {
-        Write-Info "Starte SmartDesk CLI..."
-        & $pythonPath $mainScript
-    }
-    else {
-        Write-Info "Starte SmartDesk Tray-Icon..."
-        Start-Process -FilePath $pythonPath -ArgumentList $mainScript, "start-tray" -WindowStyle Hidden
-        Write-Success "Tray-Icon gestartet"
-        Write-Info "SmartDesk läuft jetzt im System Tray (neben der Uhr)"
-    }
+    Write-Info "Starte SmartDesk Tray-Icon..."
+    Start-Process -FilePath $pythonPath -ArgumentList $mainScript, "start-tray" -WindowStyle Hidden
+    Write-Success "Tray-Icon gestartet"
+    Write-Info "SmartDesk läuft jetzt im System Tray (neben der Uhr)"
 }
 
 # Hauptlogik
@@ -322,12 +306,10 @@ function Main {
         return 0
     }
     
-    Start-SmartDesk -UseCli:$Cli
+    Start-SmartDesk
     
-    if (-not $Cli) {
-        Write-Host ""
-        Read-Host "Drücken Sie Enter zum Beenden"
-    }
+    Write-Host ""
+    Read-Host "Drücken Sie Enter zum Beenden"
     
     return 0
 }

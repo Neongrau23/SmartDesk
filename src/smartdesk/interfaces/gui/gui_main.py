@@ -74,7 +74,7 @@ class SmartDeskGUI(ctk.CTk):
         super().__init__()
 
         # Fenster-Konfiguration
-        self.title("SmartDesk Manager")
+        self.title(get_text("gui.main.title"))
         self.geometry("1200x750")
         self.minsize(1000, 650)
 
@@ -106,14 +106,14 @@ class SmartDeskGUI(ctk.CTk):
         # Logo
         self.logo_label = ctk.CTkLabel(
             self.sidebar_frame,
-            text="🖥️ SmartDesk",
+            text=get_text("gui.main.sidebar_logo"),
             font=ctk.CTkFont(size=28, weight="bold"),
         )
         self.logo_label.grid(row=0, column=0, padx=20, pady=(30, 10))
 
         self.subtitle_label = ctk.CTkLabel(
             self.sidebar_frame,
-            text="Desktop Manager",
+            text=get_text("gui.main.sidebar_subtitle"),
             font=ctk.CTkFont(size=12),
             text_color="gray",
         )
@@ -123,13 +123,13 @@ class SmartDeskGUI(ctk.CTk):
         self.nav_buttons = {}
 
         nav_items = [
-            ("dashboard", "📊 Dashboard", self.show_dashboard),
-            ("desktops", "💻 Desktops", self.show_desktops),
-            ("create", "➕ Neu erstellen", self.show_create),
-            ("wallpaper", "🖼️ Wallpaper", self.show_wallpaper),
-            ("hotkeys", "⌨️ Hotkeys", self.show_hotkeys),
-            ("tray", "📌 Tray Icon", self.show_tray),
-            ("settings", "⚙️ Einstellungen", self.show_settings),
+            ("dashboard", get_text("gui.main.nav_dashboard"), self.show_dashboard),
+            ("desktops", get_text("gui.main.nav_desktops"), self.show_desktops),
+            ("create", get_text("gui.main.nav_create"), self.show_create),
+            ("wallpaper", get_text("gui.main.nav_wallpaper"), self.show_wallpaper),
+            ("hotkeys", get_text("gui.main.nav_hotkeys"), self.show_hotkeys),
+            ("tray", get_text("gui.main.nav_tray"), self.show_tray),
+            ("settings", get_text("gui.main.nav_settings"), self.show_settings),
         ]
 
         for idx, (key, text, command) in enumerate(nav_items, start=2):
@@ -149,18 +149,18 @@ class SmartDeskGUI(ctk.CTk):
 
         # Theme Toggle (unten)
         self.theme_label = ctk.CTkLabel(
-            self.sidebar_frame, text="Theme:", font=ctk.CTkFont(size=12)
+            self.sidebar_frame, text=get_text("gui.main.sidebar_theme"), font=ctk.CTkFont(size=12)
         )
         self.theme_label.grid(row=9, column=0, padx=20, pady=(20, 5))
 
         self.theme_menu = ctk.CTkOptionMenu(
             self.sidebar_frame,
-            values=["Dark", "Light", "System"],
+            values=[get_text("gui.main.theme_dark"), get_text("gui.main.theme_light"), get_text("gui.main.theme_system")],
             command=self.change_theme,
             width=200,
         )
         self.theme_menu.grid(row=10, column=0, padx=20, pady=(0, 30))
-        self.theme_menu.set("Dark")
+        self.theme_menu.set(get_text("gui.main.theme_dark"))
 
     def clear_main_frame(self):
         """Löscht den Hauptinhalt"""
@@ -189,7 +189,7 @@ class SmartDeskGUI(ctk.CTk):
         # Header
         header = ctk.CTkLabel(
             self.main_frame,
-            text="📊 Dashboard",
+            text=get_text("gui.main.dashboard.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, columnspan=3, padx=20, pady=(0, 30), sticky="w")
@@ -204,10 +204,10 @@ class SmartDeskGUI(ctk.CTk):
             total, active, inactive = 0, 0, 0
 
         self.create_stat_card(
-            self.main_frame, 1, 0, "Gesamt Desktops", str(total), "💻"
+            self.main_frame, 1, 0, get_text("gui.main.dashboard.stat_total"), str(total), "💻"
         )
-        self.create_stat_card(self.main_frame, 1, 1, "Aktiv", str(active), "✓")
-        self.create_stat_card(self.main_frame, 1, 2, "Inaktiv", str(inactive), "○")
+        self.create_stat_card(self.main_frame, 1, 1, get_text("gui.main.dashboard.stat_active"), str(active), "✓")
+        self.create_stat_card(self.main_frame, 1, 2, get_text("gui.main.dashboard.stat_inactive"), str(inactive), "○")
 
         # Quick Actions Frame
         actions_frame = ctk.CTkFrame(self.main_frame)
@@ -215,7 +215,7 @@ class SmartDeskGUI(ctk.CTk):
 
         actions_title = ctk.CTkLabel(
             actions_frame,
-            text="Schnellaktionen",
+            text=get_text("gui.main.dashboard.quick_actions_title"),
             font=ctk.CTkFont(size=18, weight="bold"),
         )
         actions_title.pack(padx=20, pady=(20, 10), anchor="w")
@@ -225,9 +225,9 @@ class SmartDeskGUI(ctk.CTk):
         btn_frame.pack(padx=20, pady=(0, 20), fill="x")
 
         quick_actions = [
-            ("➕ Neuer Desktop", self.show_create),
-            ("🔄 Icons speichern", self.save_icons_action),
-            ("🔁 Explorer neustarten", self.restart_explorer_action),
+            (get_text("gui.main.dashboard.action_create"), self.show_create),
+            (get_text("gui.main.dashboard.action_save_icons"), self.save_icons_action),
+            (get_text("gui.main.dashboard.action_restart_explorer"), self.restart_explorer_action),
         ]
 
         for idx, (text, command) in enumerate(quick_actions):
@@ -249,7 +249,7 @@ class SmartDeskGUI(ctk.CTk):
         self.main_frame.grid_rowconfigure(3, weight=1)
 
         status_title = ctk.CTkLabel(
-            status_frame, text="System Status", font=ctk.CTkFont(size=18, weight="bold")
+            status_frame, text=get_text("gui.main.dashboard.status_title"), font=ctk.CTkFont(size=18, weight="bold")
         )
         status_title.pack(padx=20, pady=(20, 10), anchor="w")
 
@@ -272,28 +272,28 @@ class SmartDeskGUI(ctk.CTk):
             # Hotkey Status
             hotkey_pid = hotkey_manager.get_listener_pid()
             hotkey_status = (
-                f"✓ Aktiv (PID: {hotkey_pid})" if hotkey_pid else "○ Inaktiv"
+                get_text("gui.main.dashboard.status_active_pid", pid=hotkey_pid) if hotkey_pid else get_text("gui.main.dashboard.status_inactive")
             )
 
             # Tray Status
             tray_running, tray_pid = tray_manager.get_tray_status()
-            tray_status = f"✓ Aktiv (PID: {tray_pid})" if tray_running else "○ Inaktiv"
+            tray_status = get_text("gui.main.dashboard.status_active_pid", pid=tray_pid) if tray_running else get_text("gui.main.dashboard.status_inactive")
 
             # Aktiver Desktop
             desktops = desktop_handler.get_all_desktops()
             active_desktop = next(
-                (d.name for d in desktops if d.is_active), "Kein aktiver Desktop"
+                (d.name for d in desktops if d.is_active), get_text("gui.main.dashboard.status_no_active_desktop")
             )
 
-            info = f"""Hotkey-Listener: {hotkey_status}
-Tray-Icon: {tray_status}
-Aktiver Desktop: {active_desktop}
-Daten-Verzeichnis: {DATA_DIR}
+            info = f"""{get_text("gui.main.dashboard.status_label_hotkey")} {hotkey_status}
+{get_text("gui.main.dashboard.status_label_tray")} {tray_status}
+{get_text("gui.main.dashboard.status_label_active_desktop")} {active_desktop}
+{get_text("gui.main.dashboard.status_label_data_dir")} {DATA_DIR}
 """
             self.status_text.insert("0.0", info)
         except Exception as e:
             self.status_text.insert(
-                "0.0", f"Fehler beim Laden der Status-Informationen: {e}"
+                "0.0", get_text("gui.main.dashboard.status_error_loading", e=e)
             )
 
     def create_stat_card(self, parent, row, col, title, value, icon):
@@ -327,18 +327,18 @@ Daten-Verzeichnis: {DATA_DIR}
 
         header = ctk.CTkLabel(
             header_frame,
-            text="💻 Desktop-Verwaltung",
+            text=get_text("gui.main.desktops.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, sticky="w")
 
         refresh_btn = ctk.CTkButton(
-            header_frame, text="🔄 Aktualisieren", command=self.show_desktops, width=150
+            header_frame, text=get_text("gui.common.button_refresh"), command=self.show_desktops, width=150
         )
         refresh_btn.grid(row=0, column=1, padx=10)
 
         # Desktop-Liste
-        list_frame = ctk.CTkScrollableFrame(self.main_frame, label_text="Alle Desktops")
+        list_frame = ctk.CTkScrollableFrame(self.main_frame, label_text=get_text("gui.main.desktops.list_label"))
         list_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
         self.main_frame.grid_rowconfigure(1, weight=1)
 
@@ -348,7 +348,7 @@ Daten-Verzeichnis: {DATA_DIR}
             if not desktops:
                 no_data = ctk.CTkLabel(
                     list_frame,
-                    text="Keine Desktops gefunden.\nErstelle einen neuen Desktop!",
+                    text=get_text("gui.main.desktops.none_found"),
                     font=ctk.CTkFont(size=16),
                     text_color="gray",
                 )
@@ -358,7 +358,7 @@ Daten-Verzeichnis: {DATA_DIR}
                     self.create_desktop_card(list_frame, desktop)
         except Exception as e:
             error_label = ctk.CTkLabel(
-                list_frame, text=f"Fehler beim Laden: {e}", text_color="red"
+                list_frame, text=get_text("gui.main.desktops.error_loading", e=e), text_color="red"
             )
             error_label.pack(pady=20)
 
@@ -418,7 +418,7 @@ Daten-Verzeichnis: {DATA_DIR}
         if not desktop.is_active:
             switch_btn = ctk.CTkButton(
                 btn_frame,
-                text="Wechseln",
+                text=get_text("gui.main.desktops.button_switch"),
                 command=lambda d=desktop: self.switch_desktop(d.name),
                 width=100,
                 fg_color="green",
@@ -430,7 +430,7 @@ Daten-Verzeichnis: {DATA_DIR}
         if not desktop.is_active:
             delete_btn = ctk.CTkButton(
                 btn_frame,
-                text="Löschen",
+                text=get_text("gui.common.button_delete"),
                 command=lambda d=desktop: self.delete_desktop(d.name),
                 width=100,
                 fg_color="red",
@@ -441,20 +441,20 @@ Daten-Verzeichnis: {DATA_DIR}
     def switch_desktop(self, name):
         """Wechselt zu einem Desktop"""
         if messagebox.askyesno(
-            "Desktop wechseln",
-            f"Möchtest du zu '{name}' wechseln?\n\nDer Explorer wird neu gestartet.",
+            get_text("gui.main.desktops.msgbox_switch_title"),
+            get_text("gui.main.desktops.msgbox_switch_text", name=name),
         ):
             try:
                 if desktop_handler.switch_to_desktop(name):
                     system_manager.restart_explorer()
-                    messagebox.showinfo("Erfolg", f"Desktop '{name}' wurde aktiviert!")
+                    messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.main.desktops.msgbox_switch_success", name=name))
                     self.show_desktops()
                 else:
                     messagebox.showerror(
-                        "Fehler", "Desktop konnte nicht gewechselt werden."
+                        get_text("gui.common.error_title"), get_text("gui.main.desktops.msgbox_switch_error")
                     )
             except Exception as e:
-                messagebox.showerror("Fehler", f"Fehler beim Wechseln: {e}")
+                messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.switch", e=e))
 
     def delete_desktop(self, name):
         """Löscht einen Desktop"""
@@ -465,12 +465,8 @@ Daten-Verzeichnis: {DATA_DIR}
             return
 
         result = messagebox.askyesnocancel(
-            "Desktop löschen",
-            f"Desktop '{name}' löschen?\n\n"
-            f"Pfad: {desktop.path}\n\n"
-            f"Ja = Nur Eintrag löschen\n"
-            f"Nein = Eintrag + Ordner löschen\n"
-            f"Abbrechen = Nichts tun",
+            get_text("gui.main.desktops.msgbox_delete_title"),
+            get_text("gui.main.desktops.msgbox_delete_text", name=name, path=desktop.path)
         )
 
         if result is None:  # Abbrechen
@@ -480,10 +476,10 @@ Daten-Verzeichnis: {DATA_DIR}
 
         try:
             desktop_handler.delete_desktop(name, delete_folder=delete_folder)
-            messagebox.showinfo("Erfolg", f"Desktop '{name}' wurde gelöscht.")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.main.desktops.msgbox_delete_success", name=name))
             self.show_desktops()
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Löschen: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.delete", e=e))
 
     # --- DESKTOP ERSTELLEN ---
     def show_create(self):
@@ -495,7 +491,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Header
         header = ctk.CTkLabel(
             self.main_frame,
-            text="➕ Neuen Desktop erstellen",
+            text=get_text("gui.main.create.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, padx=20, pady=(0, 30), sticky="w")
@@ -506,13 +502,13 @@ Daten-Verzeichnis: {DATA_DIR}
 
         # Name
         name_label = ctk.CTkLabel(
-            form_frame, text="Desktop-Name:", font=ctk.CTkFont(size=16, weight="bold")
+            form_frame, text=get_text("gui.main.create.label_name"), font=ctk.CTkFont(size=16, weight="bold")
         )
         name_label.grid(row=0, column=0, padx=20, pady=(20, 5), sticky="w")
 
         self.create_name_entry = ctk.CTkEntry(
             form_frame,
-            placeholder_text="z.B. Arbeit, Gaming, Privat",
+            placeholder_text=get_text("gui.main.create.placeholder_name"),
             height=40,
             font=ctk.CTkFont(size=14),
         )
@@ -522,7 +518,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Modus-Auswahl
         mode_label = ctk.CTkLabel(
             form_frame,
-            text="Modus auswählen:",
+            text=get_text("gui.main.create.label_mode"),
             font=ctk.CTkFont(size=16, weight="bold"),
         )
         mode_label.grid(row=2, column=0, padx=20, pady=(10, 5), sticky="w")
@@ -534,7 +530,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         existing_radio = ctk.CTkRadioButton(
             mode_frame,
-            text="Vorhandenen Ordner verwenden",
+            text=get_text("gui.main.create.radio_existing"),
             variable=self.create_mode,
             value="existing",
             font=ctk.CTkFont(size=14),
@@ -544,7 +540,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         new_radio = ctk.CTkRadioButton(
             mode_frame,
-            text="Neuen Ordner erstellen",
+            text=get_text("gui.main.create.radio_new"),
             variable=self.create_mode,
             value="new",
             font=ctk.CTkFont(size=14),
@@ -554,7 +550,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         # Pfad-Eingabe
         path_label = ctk.CTkLabel(
-            form_frame, text="Pfad:", font=ctk.CTkFont(size=16, weight="bold")
+            form_frame, text=get_text("gui.main.create.label_path"), font=ctk.CTkFont(size=16, weight="bold")
         )
         path_label.grid(row=4, column=0, padx=20, pady=(10, 5), sticky="w")
 
@@ -564,7 +560,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         self.create_path_entry = ctk.CTkEntry(
             path_frame,
-            placeholder_text="Ordner-Pfad auswählen",
+            placeholder_text=get_text("gui.main.create.placeholder_path"),
             height=40,
             font=ctk.CTkFont(size=14),
         )
@@ -572,7 +568,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         browse_btn = ctk.CTkButton(
             path_frame,
-            text="📁 Durchsuchen",
+            text=get_text("gui.main.create.button_browse"),
             command=self.browse_folder,
             width=150,
             height=40,
@@ -582,7 +578,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Hinweis-Text
         self.create_hint = ctk.CTkLabel(
             form_frame,
-            text="Wähle einen vorhandenen Ordner aus",
+            text=get_text("gui.main.create.hint_existing"),
             font=ctk.CTkFont(size=12),
             text_color="gray",
         )
@@ -594,7 +590,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         create_btn = ctk.CTkButton(
             btn_frame,
-            text="✓ Desktop erstellen",
+            text=get_text("gui.main.create.button_create"),
             command=self.create_desktop_action,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
@@ -605,7 +601,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         cancel_btn = ctk.CTkButton(
             btn_frame,
-            text="✕ Abbrechen",
+            text=get_text("gui.common.button_cancel"),
             command=self.show_dashboard,
             height=50,
             font=ctk.CTkFont(size=16),
@@ -617,15 +613,15 @@ Daten-Verzeichnis: {DATA_DIR}
     def update_create_mode(self):
         """Aktualisiert die Hinweise basierend auf dem gewählten Modus"""
         if self.create_mode.get() == "existing":
-            self.create_hint.configure(text="Wähle einen vorhandenen Ordner aus")
+            self.create_hint.configure(text=get_text("gui.main.create.hint_existing"))
         else:
             self.create_hint.configure(
-                text="Wähle einen übergeordneten Ordner, in dem der neue Ordner erstellt wird"
+                text=get_text("gui.main.create.hint_new")
             )
 
     def browse_folder(self):
         """Öffnet einen Ordner-Browser"""
-        folder = filedialog.askdirectory(title="Ordner auswählen")
+        folder = filedialog.askdirectory(title=get_text("gui.main.create.placeholder_path"))
         if folder:
             self.create_path_entry.delete(0, "end")
             self.create_path_entry.insert(0, folder)
@@ -636,11 +632,11 @@ Daten-Verzeichnis: {DATA_DIR}
         path = self.create_path_entry.get().strip()
 
         if not name:
-            messagebox.showerror("Fehler", "Bitte gib einen Namen ein!")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.create.error_name_missing"))
             return
 
         if not path:
-            messagebox.showerror("Fehler", "Bitte wähle einen Pfad aus!")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.create.error_path_missing"))
             return
 
         try:
@@ -648,7 +644,7 @@ Daten-Verzeichnis: {DATA_DIR}
                 # Vorhandener Ordner
                 if not os.path.exists(path):
                     messagebox.showerror(
-                        "Fehler", "Der ausgewählte Ordner existiert nicht!"
+                        get_text("gui.common.error_title"), get_text("gui.main.create.error_path_not_exists")
                     )
                     return
                 desktop_handler.create_desktop(name, path, create_if_missing=False)
@@ -657,10 +653,10 @@ Daten-Verzeichnis: {DATA_DIR}
                 final_path = os.path.join(path, name)
                 desktop_handler.create_desktop(name, final_path, create_if_missing=True)
 
-            messagebox.showinfo("Erfolg", f"Desktop '{name}' wurde erstellt!")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("desktop_handler.success.create", name=name))
             self.show_desktops()
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Erstellen: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), f"{get_text('desktop_handler.error.create_failed', e=e)}")
 
     # --- WALLPAPER ANSICHT ---
     def show_wallpaper(self):
@@ -672,7 +668,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Header
         header = ctk.CTkLabel(
             self.main_frame,
-            text="🖼️ Wallpaper-Verwaltung",
+            text=get_text("gui.main.wallpaper.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, padx=20, pady=(0, 30), sticky="w")
@@ -683,7 +679,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         select_label = ctk.CTkLabel(
             select_frame,
-            text="Desktop auswählen:",
+            text=get_text("gui.main.wallpaper.label_select"),
             font=ctk.CTkFont(size=16, weight="bold"),
         )
         select_label.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="w")
@@ -696,7 +692,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         if not desktop_names:
             no_desktop = ctk.CTkLabel(
-                select_frame, text="Keine Desktops vorhanden", text_color="gray"
+                select_frame, text=get_text("gui.main.wallpaper.none_found"), text_color="gray"
             )
             no_desktop.grid(row=1, column=0, padx=20, pady=(0, 20))
             return
@@ -715,7 +711,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Wallpaper-Datei
         file_label = ctk.CTkLabel(
             select_frame,
-            text="Wallpaper-Datei:",
+            text=get_text("gui.main.wallpaper.label_file"),
             font=ctk.CTkFont(size=16, weight="bold"),
         )
         file_label.grid(row=2, column=0, padx=20, pady=(10, 10), sticky="w")
@@ -727,7 +723,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         self.wallpaper_path_entry = ctk.CTkEntry(
             file_frame,
-            placeholder_text="Wallpaper auswählen (JPG, PNG, BMP)",
+            placeholder_text=get_text("gui.main.wallpaper.placeholder_path"),
             height=40,
             font=ctk.CTkFont(size=14),
         )
@@ -735,7 +731,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         browse_btn = ctk.CTkButton(
             file_frame,
-            text="📁 Durchsuchen",
+            text=get_text("gui.main.create.button_browse"),
             command=self.browse_wallpaper,
             width=150,
             height=40,
@@ -745,7 +741,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Button
         assign_btn = ctk.CTkButton(
             select_frame,
-            text="✓ Wallpaper zuweisen",
+            text=get_text("gui.main.wallpaper.button_assign"),
             command=self.assign_wallpaper_action,
             height=50,
             font=ctk.CTkFont(size=16, weight="bold"),
@@ -755,8 +751,8 @@ Daten-Verzeichnis: {DATA_DIR}
     def browse_wallpaper(self):
         """Öffnet einen Datei-Browser für Wallpaper"""
         file = filedialog.askopenfilename(
-            title="Wallpaper auswählen",
-            filetypes=[("Bilder", "*.jpg *.jpeg *.png *.bmp"), ("Alle Dateien", "*.*")],
+            title=get_text("gui.main.wallpaper.browse_title"),
+            filetypes=[(get_text("gui.main.wallpaper.file_types"), "*.jpg *.jpeg *.png *.bmp"), (get_text("gui.main.wallpaper.all_files"), "*.*")],
         )
         if file:
             self.wallpaper_path_entry.delete(0, "end")
@@ -768,21 +764,21 @@ Daten-Verzeichnis: {DATA_DIR}
         wallpaper_path = self.wallpaper_path_entry.get().strip()
 
         if not wallpaper_path:
-            messagebox.showerror("Fehler", "Bitte wähle eine Wallpaper-Datei aus!")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.wallpaper.error_no_file"))
             return
 
         if not os.path.exists(wallpaper_path):
-            messagebox.showerror("Fehler", "Die ausgewählte Datei existiert nicht!")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.wallpaper.error_file_not_exists"))
             return
 
         try:
             desktop_handler.assign_wallpaper(desktop_name, wallpaper_path)
             messagebox.showinfo(
-                "Erfolg", f"Wallpaper wurde '{desktop_name}' zugewiesen!"
+                get_text("gui.common.success_title"), get_text("gui.main.wallpaper.success_assign", name=desktop_name)
             )
             self.wallpaper_path_entry.delete(0, "end")
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Zuweisen: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.assign", e=e))
 
     # --- HOTKEYS ANSICHT ---
     def show_hotkeys(self):
@@ -794,7 +790,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Header
         header = ctk.CTkLabel(
             self.main_frame,
-            text="⌨️ Hotkey-Verwaltung",
+            text=get_text("gui.main.hotkeys.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, padx=20, pady=(0, 30), sticky="w")
@@ -806,16 +802,16 @@ Daten-Verzeichnis: {DATA_DIR}
         try:
             pid = hotkey_manager.get_listener_pid()
             is_active = pid is not None
-            status_text = f"✓ Aktiv (PID: {pid})" if is_active else "○ Inaktiv"
+            status_text = get_text("gui.main.dashboard.status_active_pid", pid=pid) if is_active else get_text("gui.main.dashboard.status_inactive")
             status_color = "green" if is_active else "gray"
         except:
-            status_text = "○ Status unbekannt"
+            status_text = get_text("gui.main.dashboard.status_unknown")
             status_color = "gray"
             is_active = False
 
         status_label = ctk.CTkLabel(
             status_frame,
-            text=f"Status: {status_text}",
+            text=f"{get_text('gui.main.hotkeys.label_status')} {status_text}",
             font=ctk.CTkFont(size=18),
             text_color=status_color,
         )
@@ -828,7 +824,7 @@ Daten-Verzeichnis: {DATA_DIR}
         if is_active:
             stop_btn = ctk.CTkButton(
                 btn_frame,
-                text="⏹️ Listener stoppen",
+                text=get_text("gui.main.hotkeys.button_stop"),
                 command=self.stop_hotkeys,
                 height=50,
                 font=ctk.CTkFont(size=16),
@@ -839,7 +835,7 @@ Daten-Verzeichnis: {DATA_DIR}
         else:
             start_btn = ctk.CTkButton(
                 btn_frame,
-                text="▶️ Listener starten",
+                text=get_text("gui.main.hotkeys.button_start"),
                 command=self.start_hotkeys,
                 height=50,
                 font=ctk.CTkFont(size=16),
@@ -850,7 +846,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         log_btn = ctk.CTkButton(
             btn_frame,
-            text="📋 Log anzeigen",
+            text=get_text("gui.main.hotkeys.button_log"),
             command=self.show_hotkey_log,
             height=50,
             font=ctk.CTkFont(size=16),
@@ -859,7 +855,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         refresh_btn = ctk.CTkButton(
             btn_frame,
-            text="🔄 Status aktualisieren",
+            text=get_text("gui.common.button_refresh"),
             command=self.show_hotkeys,
             height=50,
             font=ctk.CTkFont(size=16),
@@ -872,31 +868,31 @@ Daten-Verzeichnis: {DATA_DIR}
         """Startet den Hotkey-Listener"""
         try:
             hotkey_manager.start_listener()
-            messagebox.showinfo("Erfolg", "Hotkey-Listener wurde gestartet!")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.main.hotkeys.success_start"))
             self.show_hotkeys()
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Starten: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.start", e=e))
 
     def stop_hotkeys(self):
         """Stoppt den Hotkey-Listener"""
         try:
             hotkey_manager.stop_listener()
-            messagebox.showinfo("Erfolg", "Hotkey-Listener wurde gestoppt!")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.main.hotkeys.success_stop"))
             self.show_hotkeys()
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Stoppen: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.stop", e=e))
 
     def show_hotkey_log(self):
         """Zeigt das Hotkey-Log"""
         log_file = os.path.join(DATA_DIR, "listener.log")
 
         if not os.path.exists(log_file):
-            messagebox.showinfo("Info", "Keine Log-Datei gefunden.")
+            messagebox.showinfo(get_text("gui.common.info_title"), get_text("gui.main.hotkeys.log_no_file"))
             return
 
         # Log-Fenster
         log_window = ctk.CTkToplevel(self)
-        log_window.title("Hotkey-Log")
+        log_window.title(get_text("gui.main.hotkeys.log_title"))
         log_window.geometry("800x600")
 
         log_text = ctk.CTkTextbox(
@@ -909,7 +905,7 @@ Daten-Verzeichnis: {DATA_DIR}
                 content = f.read()
                 log_text.insert("0.0", content)
         except Exception as e:
-            log_text.insert("0.0", f"Fehler beim Lesen: {e}")
+            log_text.insert("0.0", f"{get_text('gui.main.generic_errors.load', e=e)}")
 
     # --- TRAY ANSICHT ---
     def show_tray(self):
@@ -921,7 +917,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Header
         header = ctk.CTkLabel(
             self.main_frame,
-            text="📌 Tray Icon-Verwaltung",
+            text=get_text("gui.main.tray.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, padx=20, pady=(0, 30), sticky="w")
@@ -932,16 +928,16 @@ Daten-Verzeichnis: {DATA_DIR}
 
         try:
             is_running, pid = tray_manager.get_tray_status()
-            status_text = f"✓ Aktiv (PID: {pid})" if is_running else "○ Inaktiv"
+            status_text = get_text("gui.main.dashboard.status_active_pid", pid=pid) if is_running else get_text("gui.main.dashboard.status_inactive")
             status_color = "green" if is_running else "gray"
         except:
-            status_text = "○ Status unbekannt"
+            status_text = get_text("gui.main.dashboard.status_unknown")
             status_color = "gray"
             is_running = False
 
         status_label = ctk.CTkLabel(
             status_frame,
-            text=f"Status: {status_text}",
+            text=f"{get_text('gui.main.tray.label_status')} {status_text}",
             font=ctk.CTkFont(size=18),
             text_color=status_color,
         )
@@ -954,7 +950,7 @@ Daten-Verzeichnis: {DATA_DIR}
         if is_running:
             stop_btn = ctk.CTkButton(
                 btn_frame,
-                text="⏹️ Tray Icon stoppen",
+                text=get_text("gui.main.tray.button_stop"),
                 command=self.stop_tray,
                 height=50,
                 font=ctk.CTkFont(size=16),
@@ -965,7 +961,7 @@ Daten-Verzeichnis: {DATA_DIR}
         else:
             start_btn = ctk.CTkButton(
                 btn_frame,
-                text="▶️ Tray Icon starten",
+                text=get_text("gui.main.tray.button_start"),
                 command=self.start_tray,
                 height=50,
                 font=ctk.CTkFont(size=16),
@@ -976,7 +972,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         refresh_btn = ctk.CTkButton(
             btn_frame,
-            text="🔄 Status aktualisieren",
+            text=get_text("gui.common.button_refresh"),
             command=self.show_tray,
             height=50,
             font=ctk.CTkFont(size=16),
@@ -989,19 +985,19 @@ Daten-Verzeichnis: {DATA_DIR}
         """Startet das Tray Icon"""
         try:
             tray_manager.start_tray()
-            messagebox.showinfo("Erfolg", "Tray Icon wurde gestartet!")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.main.tray.success_start"))
             self.show_tray()
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Starten: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.start", e=e))
 
     def stop_tray(self):
         """Stoppt das Tray Icon"""
         try:
             tray_manager.stop_tray()
-            messagebox.showinfo("Erfolg", "Tray Icon wurde gestoppt!")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.main.tray.success_stop"))
             self.show_tray()
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Stoppen: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.stop", e=e))
 
     # --- EINSTELLUNGEN ANSICHT ---
     def show_settings(self):
@@ -1013,7 +1009,7 @@ Daten-Verzeichnis: {DATA_DIR}
         # Header
         header = ctk.CTkLabel(
             self.main_frame,
-            text="⚙️ Einstellungen",
+            text=get_text("gui.main.settings.title"),
             font=ctk.CTkFont(size=32, weight="bold"),
         )
         header.grid(row=0, column=0, padx=20, pady=(0, 30), sticky="w")
@@ -1025,19 +1021,19 @@ Daten-Verzeichnis: {DATA_DIR}
 
         settings_actions = [
             (
-                "🔄 Icons speichern",
+                get_text("gui.main.settings.action_save_icons"),
                 self.save_icons_action,
-                "Speichert die aktuelle Icon-Position",
+                get_text("gui.main.settings.action_save_icons_desc"),
             ),
             (
-                "🔁 Explorer neustarten",
+                get_text("gui.main.settings.action_restart_explorer"),
                 self.restart_explorer_action,
-                "Startet den Windows Explorer neu",
+                get_text("gui.main.settings.action_restart_explorer_desc"),
             ),
             (
-                "🔧 Registry wiederherstellen",
+                get_text("gui.main.settings.action_restore_registry"),
                 self.restore_registry_action,
-                "Stellt Registry-Pfade wieder her",
+                get_text("gui.main.settings.action_restore_registry_desc"),
             ),
         ]
 
@@ -1069,7 +1065,7 @@ Daten-Verzeichnis: {DATA_DIR}
 
         info_label = ctk.CTkLabel(
             info_frame,
-            text=f"Daten-Verzeichnis:\n{DATA_DIR}",
+            text=get_text("gui.main.settings.info_data_dir", path=DATA_DIR),
             font=ctk.CTkFont(size=12),
             text_color="gray",
         )
@@ -1079,34 +1075,34 @@ Daten-Verzeichnis: {DATA_DIR}
         """Speichert die aktuellen Desktop-Icons"""
         try:
             desktop_handler.save_current_desktop_icons()
-            messagebox.showinfo("Erfolg", "Desktop-Icons wurden gespeichert!")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("desktop_handler.success.save_icons"))
         except Exception as e:
-            messagebox.showerror("Fehler", f"Fehler beim Speichern: {e}")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.save", e=e))
 
     def restart_explorer_action(self):
         """Startet den Explorer neu"""
         if messagebox.askyesno(
-            "Explorer neustarten",
-            "Möchtest du den Windows Explorer wirklich neu starten?",
+            get_text("gui.main.dashboard.action_restart_explorer"),
+            get_text("gui.main.settings.msgbox_restart_explorer_text"),
         ):
             try:
                 system_manager.restart_explorer()
-                messagebox.showinfo("Erfolg", "Explorer wurde neu gestartet!")
+                messagebox.showinfo(get_text("gui.common.success_title"), get_text("system.info.restarted"))
             except Exception as e:
-                messagebox.showerror("Fehler", f"Fehler beim Neustart: {e}")
+                messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.restart", e=e))
 
     def restore_registry_action(self):
         """Stellt die Registry wieder her"""
         if messagebox.askyesno(
-            "Registry wiederherstellen",
-            "Möchtest du die Registry-Pfade wirklich wiederherstellen?",
+            get_text("gui.main.settings.action_restore_registry"),
+            get_text("gui.main.settings.msgbox_restore_registry_text"),
         ):
             try:
                 import subprocess
                 import platform
 
                 if platform.system() != "Windows":
-                    messagebox.showerror("Fehler", "Nur unter Windows verfügbar!")
+                    messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.not_on_windows"))
                     return
 
                 script_path = os.path.abspath(
@@ -1122,16 +1118,16 @@ Daten-Verzeichnis: {DATA_DIR}
 
                 if not os.path.exists(script_path):
                     messagebox.showerror(
-                        "Fehler", f"Skript nicht gefunden:\n{script_path}"
+                        get_text("gui.common.error_title"), get_text("gui.main.settings.error_script_not_found", path=script_path)
                     )
                     return
 
                 subprocess.call(['cmd', '/c', script_path])
                 messagebox.showinfo(
-                    "Erfolg", "Registry-Wiederherstellung abgeschlossen!"
+                    get_text("gui.common.success_title"), get_text("gui.main.settings.success_restore")
                 )
             except Exception as e:
-                messagebox.showerror("Fehler", f"Fehler bei der Wiederherstellung: {e}")
+                messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.restore", e=e))
 
 
 def launch_gui():

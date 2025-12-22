@@ -1,6 +1,4 @@
 # Dateipfad: src/smartdesk/localization.py
-# (Vollständig, mit Hotkey-Texten UND Tray-Icon-Texten UND GUI-Texten)
-
 """
 Zentrale Datei für alle Texte der Benutzeroberfläche (Internationalisierung).
 Alle von Benutzern gesehenen Texte sollten hier definiert werden.
@@ -8,179 +6,221 @@ Alle von Benutzern gesehenen Texte sollten hier definiert werden.
 
 # TEXT Dictionary muss ZUERST definiert werden
 TEXT = {
-    "logo": {
-        "ascii": r""" ___                _   ___         _   
-/ __|_ __  __ _ _ _| |_|   \ ___ __| |__
-\__ \ '  \/ _` | '_|  _| |) / -_|_-< / /
-|___/_|_|_\__,_|_|  \__|___/\___/__/_\_\ """
-    },
-    "ui": {
-        "menu": {
-            "main": {
-                "separator": "-----------------------------------------",
-                "switch": "Desktop wechseln",
-                "create": "Neuen Desktop erstellen",
-                "settings": "Einstellungen",
-                "exit": "Beenden",
-            },
-            # --- UNTERMENÜ ENTFERNT ---
-            "settings": {
-                "header": "        --- Einstellungen ---        ",
-                "list": "Alle Desktops anzeigen",
-                "delete": "Desktop löschen",
-                "save_icons": "Aktuelle Icon-Positionen speichern",
-                "wallpaper": "Hintergrundbild zuweisen",
-                "restart": "Explorer manuell neu starten",
-                "hotkeys": "Hotkey-Listener verwalten",
-                "tray": "Tray-Icon verwalten",
-                "restore_registry": "Registry-Pfade wiederherstellen",
-                "back": "Zurück",
-            },
-            # --- NEUER ABSCHNITT FÜR HOTKEY-MENÜ ---
-            "hotkeys": {
-                "manage": "1. Listener verwalten (Start/Stop)",
-                "debug": "2. Debug-Log anzeigen",
-            },
-            # --- NEUER ABSCHNITT FÜR TRAY-MENÜ ---
-            "tray": {
-                "manage": "1. Tray-Icon verwalten (Start/Stop)",
-            },
-        },
-        "prompts": {
-            "choose": "\nBitte wählen: ",
-            "continue": "\n--- Drücke Enter, um fortzufahren ---",
-            "cancel": "0. Abbrechen",
-            "choose_number": "\nNummer eingeben: ",
-            "desktop_name": "Name des neuen Desktops: ",
-            "folder_mode": "\nWie soll der Ordner gewählt werden?",
-            "folder_mode_1": "1. Einen existierenden Ordner verwenden",
-            "folder_mode_2": "2. Einen neuen Ordner erstellen",
-            "choose_1_or_2": "Auswahl (1/2): ",
-            "existing_path": r"Bitte vollen Pfad eingeben (z.B. F:\SmartDesk\Work): ",
-            "new_path_parent": r"In welchem Verzeichnis soll der Ordner erstellt werden? (z.B. F:\SmartDesk): ",
-            "delete_folder_confirm": "Soll der Ordner '{path}' auch physisch gelöscht werden? (y/n): ",
-            "wallpaper_path": "Pfad zum Hintergrundbild (leer = abbrechen): ",
-            # --- NEUER ABSCHNITT FÜR HOTKEY-MENÜ ---
-            "hotkeys": {"start": "1. Listener starten", "stop": "2. Listener stoppen"},
-            # --- NEUER ABSCHNITT FÜR TRAY-MENÜ ---
-            "tray": {"start": "1. Tray-Icon starten", "stop": "2. Tray-Icon stoppen"},
-            "parent_dir_menu": {
-                "not_found": "! Warnung: Das Basis-Verzeichnis '{path}' existiert nicht.",
-                "title": "\nWas möchten Sie tun?",
-                "create": "1. Das Verzeichnis '{path}' erstellen",
-                "reenter": "2. Ein anderes Verzeichnis eingeben",
-                "abort": "0. Abbrechen",
-            },
-            "path_error_menu": {
-                "title": "1. Anderen Pfad eingeben",
-                "abort": "2. Zurück zum Hauptmenü",
-            },
-        },
-        "status": {
-            "active": "AKTIV",
-            "inactive": "      ",
-            "active_short": "Aktiv",
-            "wallpaper": "Hintergrund",
-            "wallpaper_none": "Kein Hintergrundbild",
-            # --- NEUE TEXTE FÜR HOTKEY-STATUS ---
-            "hotkeys_status": "Status:",
-            "hotkeys_on": "Aktiv",
-            "hotkeys_off": "Gestoppt",
-            # --- NEUE TEXTE FÜR TRAY-STATUS ---
-            "tray_status": "Status:",
-            "tray_on": "Aktiv",
-            "tray_off": "Gestoppt",
-        },
-        "headings": {
-            "delete": "\n--- Desktop löschen ---",
-            "create": "\n--- Neuen Desktop anlegen ---",
-            # --- ÜBERSCHRIFT ENTFERNT ---
-            "wallpaper": "\n--- Hintergrundbild zuweisen ---",
-            "which_desktop_delete": "\n--- Welchen Desktop löschen? ---",
-            "which_desktop_switch": "\n--- Zu welchem Desktop wechseln? ---",
-            "which_desktop_wallpaper": "\n--- Welchem Desktop ein Hintergrundbild zuweisen? ---",
-            # --- NEUE TEXTE FÜR HOTKEY-MENÜ ---
-            "hotkeys": "\n--- Hotkey-Listener ---",
-            "hotkeys_manage": "\n--- Listener verwalten ---",
-            "hotkeys_debug": "\n--- Hotkey Debug-Log (Letzte 20 Zeilen) ---",
-            # --- NEUE TEXTE FÜR TRAY-MENÜ ---
-            "tray": "\n--- Tray-Icon ---",
-            "tray_manage": "\n--- Tray-Icon verwalten ---",
-            "restore_registry": "\n--- Registry Wiederherstellung ---",
-        },
-        "messages": {
-            "exit": "Auf Wiedersehen!",
-            "no_desktops": "Keine Desktops vorhanden.",
-            "no_desktops_create_first": "Keine Desktops vorhanden. Bitte erstelle zuerst einen.",
-            "new_path_location": "Der neue Desktop wird hier erstellt: {path}",
-            "registry_set_success": "Registry erfolgreich auf '{name}' gesetzt.",
-            "restarting_explorer": "Starte Explorer neu, um Änderungen anzuwenden...",
-            "waiting_for_explorer": "Explorer wurde neu gestartet. Warte 1 Sekunde auf Initialisierung...",
-            "syncing_icons": "Synchronisiere Status und stelle Icons wieder her...",
-            "switch_success": "Wechsel zu '{name}' abgeschlossen.",
-            "aborted_no_path": "Vorgang abgebrochen (kein Pfad angegeben).",
-            "parent_created": "✓ Basis-Verzeichnis '{path}' erfolgreich erstellt.",
-            # --- NEUE TEXTE FÜR GUI-INTEGRATION ---
-            "aborted_by_user": "Vorgang vom Benutzer abgebrochen.",
-            "processing_gui_input": "Verarbeite Eingaben aus der GUI...",
-            # --- NEUE TEXTE FÜR HOTKEY-MENÜ ---
-            "log_empty": "(Log-Datei ist leer)",
-            "log_not_found": "(Log-Datei nicht gefunden)",
-            "path_was": "Pfad war",  # Hilfstext
-            "running_restore": "Starte Wiederherstellung der Registry-Pfade...",
-            "restore_finished": "Wiederherstellung abgeschlossen.",
-        },
-        "errors": {
-            "invalid_input": "Ungültige Eingabe.",
-            "invalid_number": "Bitte eine gültige Zahl eingeben.",
-            "name_empty": "Der Name darf nicht leer sein.",
-            "base_dir_empty": "Basis-Verzeichnis darf nicht leer sein.",
-            "invalid_choice": "Ungültige Auswahl.",
-            "path_not_absolute": "Der Pfad '{path}' ist kein absoluter Pfad.",
-            "path_not_found": "Pfad nicht gefunden: {path}",
-            "not_windows": "Diese Funktion ist nur unter Windows verfügbar.",
-            "restore_failed": "Fehler bei der Wiederherstellung: {e}",
-            # --- NEUER TEXT FÜR GUI-INTEGRATION ---
-            "gui_create_failed": "Der Desktop konnte nicht erstellt werden. (Siehe Fehler oben)",
-            # --- NEUER TEXT FÜR HOTKEY-MENÜ ---
-            "log_read_failed": "Log-Datei konnte nicht gelesen werden: {e}",
-        },
-    },
-    # --- NEUER ABSCHNITT FÜR DIE TKINTER GUI ---
+    # =============================================================================
+    # GUI TEXTE
+    # =============================================================================
     "gui": {
-        "create": {
+        "common": {
+            "error_title": "Fehler",
+            "success_title": "Erfolg",
+            "info_title": "Info",
+            "confirm_title": "Bestätigen",
+            "button_cancel": "Abbrechen",
+            "button_create": "Erstellen",
+            "button_browse": "...",
+            "button_delete": "Löschen",
+            "button_save": "Speichern",
+            "button_close": "Schließen",
+            "button_refresh": "🔄 Aktualisieren",
+            "status_active": " (Aktiv)",
+            "status_protected": " (Geschützt)",
+        },
+        "create_dialog": {
             "title": "SmartDesk - Desktop erstellen",
+            "header": "SmartDesk - Desktop erstellen",
             "label_name": "Name",
-            "label_path": "Pfad",
+            "label_path_existing": "Pfad zum vorhandenen Ordner:",
+            "label_path_new": "Übergeordneter Pfad (Ordner wird hier erstellt):",
             "radio_existing": "Vorhanden",
             "radio_new": "Neu erstellen",
-            "button_create": "Erstellen",
-            "button_cancel": "Abbrechen",
-            "button_browse": "...",
-            "browse_title": "Ordner auswählen",
-            "error_title": "Fehler",
+            "browse_title_parent": "Übergeordneten Ordner auswählen",
+            "browse_title_existing": "Vorhandenen Ordner auswählen",
             "error_no_name": "Bitte geben Sie einen Desktop-Namen ein!",
             "error_no_path": "Bitte geben Sie einen Pfad an!",
             "error_path_not_absolute": "Der Pfad ist nicht absolut: {path}",
-        }
+            "error_creation_failed": "Desktop konnte nicht erstellt werden.\n\nMögliche Gründe:\n- Der Name ist bereits vergeben.\n- Der Pfad ist ungültig.\n- Der Ordner existiert nicht (im 'Vorhanden'-Modus).\n- Fehlende Berechtigungen.",
+            "success_creation": "Desktop '{name}' wurde erfolgreich erstellt.",
+            "new_path_location": "Der neue Desktop wird hier erstellt: {path}",
+        },
+        "control_panel": {
+            "title": "SmartDesk Control",
+            "header": "Control Panel",
+            "desktop_label_template": "Desktop: {name}",
+            "desktop_label_none": "Desktop: -",
+            "desktop_label_error": "Desktop: ?",
+            "button_open": "📂 SmartDesk Öffnen",
+            "button_create": "➕ Desktop Erstellen",
+            "button_manage": "Desktops verwalten",
+            "button_hotkey_activate": "Hotkey Aktivieren",
+            "button_hotkey_deactivate": "Hotkey Deaktivieren",
+            "error_activation_failed": "SmartDesk konnte nicht aktiviert werden:\n{e}",
+            "error_deactivation_failed": "SmartDesk konnte nicht deaktiviert werden:\n{e}",
+            "error_open_gui_failed": "SmartDesk GUI konnte nicht geöffnet werden:\n{e}",
+            "error_create_gui_failed": "Desktop-Erstellung konnte nicht gestartet werden:\n{e}",
+            "error_manage_gui_failed": "Desktop-Verwaltung konnte nicht gestartet werden:\n{e}",
+        },
+        "main": {
+            "title": "SmartDesk Manager",
+            "sidebar_logo": "🖥️ SmartDesk",
+            "sidebar_subtitle": "Desktop Manager",
+            "nav_dashboard": "📊 Dashboard",
+            "nav_desktops": "💻 Desktops",
+            "nav_create": "➕ Neu erstellen",
+            "nav_wallpaper": "🖼️ Wallpaper",
+            "nav_hotkeys": "⌨️ Hotkeys",
+            "nav_tray": "📌 Tray Icon",
+            "nav_settings": "⚙️ Einstellungen",
+            "sidebar_theme": "Theme:",
+            "theme_dark": "Dark",
+            "theme_light": "Light",
+            "theme_system": "System",
+            "dashboard": {
+                "title": "📊 Dashboard",
+                "stat_total": "Gesamt Desktops",
+                "stat_active": "Aktiv",
+                "stat_inactive": "Inaktiv",
+                "quick_actions_title": "Schnellaktionen",
+                "action_create": "➕ Neuer Desktop",
+                "action_save_icons": "🔄 Icons speichern",
+                "action_restart_explorer": "🔁 Explorer neustarten",
+                "status_title": "System Status",
+                "status_active_pid": "✓ Aktiv (PID: {pid})",
+                "status_inactive": "○ Inaktiv",
+                "status_unknown": "○ Status unbekannt",
+                "status_no_active_desktop": "Kein aktiver Desktop",
+                "status_label_hotkey": "Hotkey-Listener:",
+                "status_label_tray": "Tray-Icon:",
+                "status_label_active_desktop": "Aktiver Desktop:",
+                "status_label_data_dir": "Daten-Verzeichnis:",
+                "status_error_loading": "Fehler beim Laden der Status-Informationen: {e}",
+            },
+            "desktops": {
+                "title": "💻 Desktop-Verwaltung",
+                "list_label": "Alle Desktops",
+                "none_found": "Keine Desktops gefunden.\nErstelle einen neuen Desktop!",
+                "error_loading": "Fehler beim Laden: {e}",
+                "button_switch": "Wechseln",
+                "msgbox_switch_title": "Desktop wechseln",
+                "msgbox_switch_text": "Möchtest du zu '{name}' wechseln?\n\nDer Explorer wird neu gestartet.",
+                "msgbox_switch_success": "Desktop '{name}' wurde aktiviert!",
+                "msgbox_switch_error": "Desktop konnte nicht gewechselt werden.",
+                "msgbox_delete_title": "Desktop löschen",
+                "msgbox_delete_text": "Desktop '{name}' löschen?\n\nPfad: {path}\n\nJa = Nur Eintrag löschen\nNein = Eintrag + Ordner löschen\nAbbrechen = Nichts tun",
+                "msgbox_delete_success": "Desktop '{name}' wurde gelöscht.",
+            },
+            "create": {
+                "title": "➕ Neuen Desktop erstellen",
+                "label_name": "Desktop-Name:",
+                "placeholder_name": "z.B. Arbeit, Gaming, Privat",
+                "label_mode": "Modus auswählen:",
+                "radio_existing": "Vorhandenen Ordner verwenden",
+                "radio_new": "Neuen Ordner erstellen",
+                "label_path": "Pfad:",
+                "placeholder_path": "Ordner-Pfad auswählen",
+                "button_browse": "📁 Durchsuchen",
+                "hint_existing": "Wähle einen vorhandenen Ordner aus",
+                "hint_new": "Wähle einen übergeordneten Ordner, in dem der neue Ordner erstellt wird",
+                "button_create": "✓ Desktop erstellen",
+                "error_name_missing": "Bitte gib einen Namen ein!",
+                "error_path_missing": "Bitte wähle einen Pfad aus!",
+                "error_path_not_exists": "Der ausgewählte Ordner existiert nicht!",
+            },
+            "wallpaper": {
+                "title": "🖼️ Wallpaper-Verwaltung",
+                "label_select": "Desktop auswählen:",
+                "none_found": "Keine Desktops vorhanden",
+                "label_file": "Wallpaper-Datei:",
+                "placeholder_path": "Wallpaper auswählen (JPG, PNG, BMP)",
+                "button_assign": "✓ Wallpaper zuweisen",
+                "browse_title": "Wallpaper auswählen",
+                "file_types": "Bilder",
+                "all_files": "Alle Dateien",
+                "error_no_file": "Bitte wähle eine Wallpaper-Datei aus!",
+                "error_file_not_exists": "Die ausgewählte Datei existiert nicht!",
+                "success_assign": "Wallpaper wurde '{name}' zugewiesen!",
+            },
+            "hotkeys": {
+                "title": "⌨️ Hotkey-Verwaltung",
+                "label_status": "Status:",
+                "button_stop": "⏹️ Listener stoppen",
+                "button_start": "▶️ Listener starten",
+                "button_log": "📋 Log anzeigen",
+                "success_start": "Hotkey-Listener wurde gestartet!",
+                "success_stop": "Hotkey-Listener wurde gestoppt!",
+                "log_title": "Hotkey-Log",
+                "log_no_file": "Keine Log-Datei gefunden.",
+            },
+            "tray": {
+                "title": "📌 Tray Icon-Verwaltung",
+                "label_status": "Status:",
+                "button_stop": "⏹️ Tray Icon stoppen",
+                "button_start": "▶️ Tray Icon starten",
+                "success_start": "Tray Icon wurde gestartet!",
+                "success_stop": "Tray Icon wurde gestoppt!",
+            },
+            "settings": {
+                "title": "⚙️ Einstellungen",
+                "action_save_icons": "🔄 Icons speichern",
+                "action_restart_explorer": "🔁 Explorer neustarten",
+                "action_restore_registry": "🔧 Registry wiederherstellen",
+                "action_save_icons_desc": "Speichert die aktuelle Icon-Position",
+                "action_restart_explorer_desc": "Startet den Windows Explorer neu",
+                "action_restore_registry_desc": "Stellt Registry-Pfade wieder her",
+                "msgbox_restart_explorer_text": "Möchtest du den Windows Explorer wirklich neu starten?",
+                "msgbox_restore_registry_text": "Möchtest du die Registry-Pfade wirklich wiederherstellen?",
+                "error_script_not_found": "Skript nicht gefunden:\n{path}",
+                "success_restore": "Registry-Wiederherstellung abgeschlossen!",
+                "info_data_dir": "Daten-Verzeichnis:\n{path}",
+            },
+             "generic_errors": {
+                "save": "Fehler beim Speichern: {e}",
+                "start": "Fehler beim Starten: {e}",
+                "stop": "Fehler beim Stoppen: {e}",
+                "load": "Fehler beim Laden: {e}",
+                "delete": "Fehler beim Löschen: {e}",
+                "assign": "Fehler beim Zuweisen: {e}",
+                "switch": "Fehler beim Wechseln: {e}",
+                "restart": "Fehler beim Neustart: {e}",
+                "restore": "Fehler bei der Wiederherstellung: {e}",
+                "not_on_windows": "Nur unter Windows verfügbar!",
+            }
+        },
+        "manage_dialog": {
+            "title": "SmartDesk - Desktops verwalten",
+            "header": "Desktops verwalten",
+            "list_label": "Verfügbare Desktops",
+            "details_name": "Name",
+            "details_path": "Pfad",
+            "details_wallpaper": "Hintergrundbild",
+            "wallpaper_none": "Kein Bild ausgewählt",
+            "button_change": "Ändern...",
+            "msgbox_delete_confirm_text": "Möchten Sie den Desktop '{name}' wirklich löschen?",
+            "error_delete_active": "Aktiver Desktop kann nicht gelöscht werden.",
+            "error_delete_protected": "Geschützter Desktop kann nicht gelöscht werden.",
+            "error_not_found": "Desktop nicht gefunden.",
+            "error_empty_name": "Name darf nicht leer sein.",
+            "success_save": "Änderungen gespeichert.",
+            "error_save": "Änderungen konnten nicht gespeichert werden.",
+            "success_wallpaper": "Hintergrundbild wurde aktualisiert.",
+            "error_wallpaper": "Hintergrundbild konnte nicht gesetzt werden.",
+        },
     },
-    # ... (alle anderen Sektionen wie desktop_handler, icon_manager, etc. bleiben hier) ...
+    # =============================================================================
+    # BACKEND / CORE TEXTE
+    # =============================================================================
     "desktop_handler": {
         "error": {
             "path_invalid": "Pfad '{path}' ist ungültig oder konnte nicht erstellt werden.",
             "path_not_found_or_not_dir": "Pfad '{path}' existiert nicht oder ist kein Verzeichnis.",
             "name_exists": "Desktop '{name}' existiert bereits.",
-            "desktop_not_found": "Desktop '{name}' nicht gefunden.",  # <-- Name geändert (war 'not_found')
-            "not_found": "Desktop '{name}' nicht gefunden.",  # <-- Behalte 'not_found' für update_desktop
-            "not_found_delete": "Desktop '{name}' nicht gefunden.",  # <-- Eindeutiger Schlüssel
-            "new_name_exists": "Der neue Name '{name}' existiert bereits.",  # <-- Name geändert (war 'new_name_exists')
+            "desktop_not_found": "Desktop '{name}' nicht gefunden.",
+            "new_name_exists": "Der neue Name '{name}' existiert bereits.",
             "folder_move": "Ordner konnte nicht verschoben werden: {e}",
             "new_path_create": "Neuer Pfad '{path}' konnte nicht erstellt werden.",
             "delete_active": "Der aktive Desktop '{name}' kann nicht gelöscht werden. Wechseln Sie zuerst zu einem anderen Desktop.",
             "delete_critical": "FEHLER: Der zu löschende Pfad '{path}' ist immer noch in der Registry als aktiv eingetragen.",
             "delete_denied": "Löschen aus Sicherheitsgründen verweigert.",
             "folder_delete": "Ordner konnte nicht gelöscht werden: {e}",
-            "switch_no_desktops": "Keine Desktops verfügbar.",  # <-- Veraltet?
             "switch_not_found": "Desktop '{name}' wurde nicht gefunden.",
             "registry_update_failed": "Registry-Update fehlgeschlagen.",
             "recreating_folder": "Fehler beim erneuten Erstellen des Ordners.",
@@ -188,7 +228,6 @@ TEXT = {
             "sync_no_active": "Synchronisierungsfehler: Kein Desktop ist als aktiv markiert.",
             "save_icons": "Fehler beim Speichern der Icon-Positionen: {e}",
             "save_icons_no_active": "Fehler: Kein aktiver Desktop gefunden.",
-            "wallpaper_assign_failed": "Fehler beim Zuweisen des Hintergrundbilds.",  # <-- Veraltet?
             "protected_delete": "Desktop '{name}' ist geschützt und kann nicht gelöscht werden.",
             "protected_edit": "Desktop '{name}' ist geschützt und kann nicht bearbeitet werden.",
         },
@@ -201,8 +240,8 @@ TEXT = {
             "recreating_folder": "Ordner erfolgreich neu erstellt.",
             "removing_config": "Desktop '{name}' wurde entfernt.",
             "db_update": "Datenbank-Update erfolgreich.",
-            "save_icons": "Icon-Positionen für '{name}' gespeichert.",  # <-- Angepasst
-            "wallpaper_assigned": "Hintergrundbild erfolgreich {name} zugewiesen.",  # <-- Name geändert
+            "save_icons": "Icon-Positionen für '{name}' gespeichert.",
+            "wallpaper_assigned": "Hintergrundbild erfolgreich {name} zugewiesen.",
         },
         "info": {
             "delete_aborted": "Löschvorgang abgebrochen.",
@@ -235,16 +274,7 @@ TEXT = {
             "sync_path_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
             "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
         },
-        "prompts": {
-            "delete_confirm": "Desktop '{name}' wirklich löschen? (y/n): ",
-            "path_not_found_title": "Was möchten Sie tun?",
-            "path_recreate": "1. Den Ordner neu erstellen und fortfahren.",
-            "path_remove": "2. Den (ungültigen) Desktop-Eintrag entfernen.",
-            "path_abort": "0. (oder Jede andere Taste) Vorgang abbrechen.",
-            "your_choice": "Ihre Wahl: ",
-        },
     },
-    # --- (Hier icon_manager, system, main, storage, path_validator einfügen) ---
     "icon_manager": {
         "error": {"fatal_commctrl": "FATAL: 'commctrl' nicht gefunden."},
         "info": {"reading": "[IconManager] Lese Icon-Positionen..."},
@@ -256,52 +286,35 @@ TEXT = {
             "restarting": "[SYSTEM] Starte Windows Explorer neu...",
             "restarted": "[SYSTEM] Explorer neu gestartet.",
         },
-        "warning": {  # <-- Hinzugefügt
+        "warning": {
             "explorer_not_running": "Explorer läuft nicht, starte ihn...",
             "explorer_timeout": "Explorer konnte nicht beendet werden (Timeout).",
             "kill_failed": "taskkill war nicht erfolgreich (ignoriert).",
         },
-        "error": {  # <-- Hinzugefügt
+        "error": {
             "restart_failed": "Explorer konnte nicht neu gestartet werden.",
             "restart_exception": "Fehler bei Explorer-Neustart: {error}",
         },
     },
     "main": {
-        "error": {
+         "error": {
             "import": "Import Fehler: {e}",
-            "import_hint_1": "Stelle sicher...",
-            "import_hint_2": "...",
-            "handler_call_failed": "{name} konnte nicht geladen werden!",
-            "name_missing": "Desktop-Name fehlt.",
+            "import_hint_1": "Stelle sicher, dass du das Skript aus dem Projekt-Root ausführst.",
+            "import_hint_2": "Und stelle sicher, dass die virtuelle Umgebung (.venv) aktiviert ist.",
             "unknown_command": "Unbekannter Befehl: {command}",
-            # --- HINZUGEFÜGT ---
             "tray_not_found": "Tray-Icon Skript nicht gefunden unter: {path}",
             "tray_failed": "Fehler beim Starten des Tray-Icons: {e}",
         },
         "warn": {
-            "handler_load_failed": "{handler} konnte nicht geladen werden.",
-            "tray_already_running": "Tray-Icon läuft bereits (PID: {pid}).",  # <-- Hinzugefügt
+            "tray_already_running": "Tray-Icon läuft bereits (PID: {pid}).",
         },
         "info": {
-            "starting_interactive": "Starte interaktives Menü...",
-            "switching_to": "Versuche...",
-            "restarting_explorer": "Starte Explorer neu...",
-            "waiting_explorer": "Warte...",
-            "list_header": "\nVerfügbare Desktops:",
-            "available_commands": "Verfügbare Befehle: delete, switch, list",
-            "hint_interactive": "Oder starte ohne Argumente...",
-            "starting_create_menu": "Starte Menü zum Erstellen (Text)...",  # <-- Text angepasst
-            "starting_create_gui": "Starte grafische Oberfläche (GUI)...",  # <-- NEU
-            "starting_listener": "Starte Listener...",  # <-- Hinzugefügt
-            # --- HINZUGEFÜGT ---
+            "available_commands": "Verfügbare Befehle:",
             "starting_tray": "Starte das SmartDesk Tray-Icon...",
         },
         "success": {
-            "switch": "Wechsel zu '{name}' abgeschlossen.",
-            # --- HINZUGEFÜGT ---
             "tray_started": "Tray-Icon wurde erfolgreich gestartet.",
         },
-        "usage": {"delete": "Verwendung: ...", "switch": "Verwendung: ..."},
     },
     "storage": {
         "error": {
@@ -313,7 +326,6 @@ TEXT = {
     "path_validator": {
         "error": {"create_dir": "Fehler beim Erstellen des Verzeichnisses {path}: {e}"}
     },
-    # --- NEUER ABSCHNITT FÜR DEN HOTKEY MANAGER ---
     "hotkey_manager": {
         "error": {
             "read_pid": "Fehler beim Lesen der PID-Datei: {e}",
@@ -331,15 +343,11 @@ TEXT = {
             "force_kill": "Prozess {pid} reagiert nicht, erzwinge Beendigung...",
         },
         "info": {
-            "starting": "Starte Hotkey-Listener im Hintergrund...",
             "start_success": "Listener erfolgreich gestartet (PID: {pid}).",
-            "stopping": "Versuche, Prozess mit PID {pid} zu beenden...",
-            "signal_sent": "Signal zum Beenden an PID {pid} gesendet.",
             "stop_success": "Prozess {pid} erfolgreich beendet.",
             "pid_cleaned": "PID-Datei aufgeräumt.",
         },
     },
-    # --- NEUER ABSCHNITT FÜR DEN TRAY MANAGER ---
     "tray_manager": {
         "warn": {
             "not_running": "Tray-Icon läuft derzeit nicht.",
@@ -359,12 +367,7 @@ TEXT = {
             "pid_clean_failed": "Warnung: PID-Datei konnte nicht bereinigt werden: {e}"
         },
         "info": {
-            "abort_invalid_key": "-> Abgebrochen. (Alt + ungültige Taste gedrückt)",
-            "abort_alt_released": "-> Abgebrochen. (Alt losgelassen)",
-            "wait_for_alt_num": "\nStrg+Shift erkannt. Warte auf Alt + (1-9)...",
             "starting": "Hotkey-Listener wird gestartet...",
-            "instructions": "Drücke 'Strg+Shift' (eine der Tasten loslassen) und dann Alt + (1-9).",
-            "instructions_stop": "Drücke 'Strg+C' im Terminal, um das Skript zu beenden.",
             "pid_cleaned": "PID-Datei bereinigt.",
             "stopped_user": "\nListener durch Benutzer (Strg+C) gestoppt.",
             "stopping": "Listener wird beendet.",

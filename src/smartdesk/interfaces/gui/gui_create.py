@@ -53,7 +53,7 @@ except ImportError as e:
 class DesktopCreatorGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title(get_text("ui.headings.create"))
+        self.root.title(get_text("gui.create_dialog.title"))
 
         # Fenster initial verstecken für die Animation
         self.root.withdraw()
@@ -120,7 +120,7 @@ class DesktopCreatorGUI:
         # Titel
         title = tk.Label(
             main_frame,
-            text="SmartDesk - Desktop erstellen",
+            text=get_text("gui.create_dialog.header"),
             font=('Segoe UI', 11),
             bg=self.bg_dark,
             fg=self.fg_primary,
@@ -131,7 +131,7 @@ class DesktopCreatorGUI:
         # Name Label
         name_label = tk.Label(
             main_frame,
-            text="Name",
+            text=get_text("gui.create_dialog.label_name"),
             font=('Segoe UI', 9),
             bg=self.bg_dark,
             fg=self.fg_label,
@@ -154,7 +154,7 @@ class DesktopCreatorGUI:
         # Pfad Label - dynamisch je nach Modus
         self.pfad_label = tk.Label(
             main_frame,
-            text="Pfad zum vorhandenen Ordner:",
+            text=get_text("gui.create_dialog.label_path_existing"),
             font=('Segoe UI', 9),
             bg=self.bg_dark,
             fg=self.fg_label,
@@ -179,7 +179,7 @@ class DesktopCreatorGUI:
 
         browse_btn = tk.Button(
             pfad_container,
-            text="...",
+            text=get_text("gui.common.button_browse"),
             font=('Segoe UI', 10),
             bg=self.bg_input,
             fg=self.fg_primary,
@@ -206,7 +206,7 @@ class DesktopCreatorGUI:
 
         rb1 = tk.Radiobutton(
             radio_frame,
-            text="Vorhanden",
+            text=get_text("gui.create_dialog.radio_existing"),
             variable=self.mode_var,
             value="1",
             font=('Segoe UI', 9),
@@ -222,7 +222,7 @@ class DesktopCreatorGUI:
 
         rb2 = tk.Radiobutton(
             radio_frame,
-            text="Neu erstellen",
+            text=get_text("gui.create_dialog.radio_new"),
             variable=self.mode_var,
             value="2",
             font=('Segoe UI', 9),
@@ -242,7 +242,7 @@ class DesktopCreatorGUI:
 
         create_btn = tk.Button(
             button_frame,
-            text="Erstellen",
+            text=get_text("gui.common.button_create"),
             font=('Segoe UI', 9),
             bg=self.accent,
             fg="#ffffff",
@@ -259,7 +259,7 @@ class DesktopCreatorGUI:
 
         cancel_btn = tk.Button(
             button_frame,
-            text="Abbrechen",
+            text=get_text("gui.common.button_cancel"),
             font=('Segoe UI', 9),
             bg=self.button_bg,
             fg=self.fg_primary,
@@ -371,11 +371,11 @@ class DesktopCreatorGUI:
         """Wird aufgerufen, wenn der Modus geändert wird."""
         if self.mode_var.get() == "1":
             # Vorhanden: Pfad zum existierenden Ordner
-            self.pfad_label.config(text="Pfad zum vorhandenen Ordner:")
+            self.pfad_label.config(text=get_text("gui.create_dialog.label_path_existing"))
         else:
             # Neu erstellen: Pfad wo der neue Ordner erstellt werden soll
             self.pfad_label.config(
-                text="Übergeordneter Pfad (Ordner wird hier erstellt):"
+                text=get_text("gui.create_dialog.label_path_new")
             )
 
     def close_window(self):
@@ -470,13 +470,9 @@ class DesktopCreatorGUI:
     def browse_folder(self):
         # Ändert den Titel je nach Modus
         if self.mode_var.get() == "2":
-            title = get_text(
-                "gui.create.browse_title_parent", "Übergeordneten Ordner auswählen"
-            )
+            title = get_text("gui.create_dialog.browse_title_parent")
         else:
-            title = get_text(
-                "gui.create.browse_title_existing", "Vorhandenen Ordner auswählen"
-            )
+            title = get_text("gui.create_dialog.browse_title_existing")
 
         folder = filedialog.askdirectory(title=title)
 
@@ -492,14 +488,14 @@ class DesktopCreatorGUI:
 
         if not name:
             messagebox.showerror(
-                get_text("ui.errors.invalid_input"), get_text("ui.errors.name_empty")
+                get_text("gui.common.error_title"), get_text("gui.create_dialog.error_no_name")
             )
             return
 
         if not path:
             messagebox.showerror(
-                get_text("ui.errors.invalid_input"),
-                get_text("ui.messages.aborted_no_path"),
+                get_text("gui.common.error_title"),
+                get_text("gui.create_dialog.error_no_path"),
             )
             return
 
@@ -507,8 +503,8 @@ class DesktopCreatorGUI:
 
         if not os.path.isabs(path):
             messagebox.showerror(
-                get_text("ui.errors.invalid_input"),
-                get_text("ui.errors.path_not_absolute", path=path),
+                get_text("gui.common.error_title"),
+                get_text("gui.create_dialog.error_path_not_absolute", path=path),
             )
             return
 
@@ -531,18 +527,14 @@ class DesktopCreatorGUI:
 
         if success:
             messagebox.showinfo(
-                get_text("desktop_handler.success.create", name=name),
-                f"{get_text('ui.messages.new_path_location', path=final_path)}",
+                get_text("gui.create_dialog.success_creation", name=name),
+                f"{get_text('gui.create_dialog.new_path_location', path=final_path)}",
             )
             self.root.quit()
         else:
             messagebox.showerror(
-                get_text("ui.errors.invalid_input", "Fehler"),
-                "Desktop konnte nicht erstellt werden.\n\nMögliche Gründe:\n"
-                "- Der Name ist bereits vergeben.\n"
-                "- Der Pfad ist ungültig.\n"
-                "- Der Ordner existiert nicht (im 'Vorhanden'-Modus).\n"
-                "- Fehlende Berechtigungen.",
+                get_text("gui.common.error_title"),
+                get_text("gui.create_dialog.error_creation_failed")
             )
 
 

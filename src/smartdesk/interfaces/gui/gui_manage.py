@@ -48,7 +48,7 @@ except ImportError as e:
 class DesktopManagerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("SmartDesk - Desktops verwalten")
+        self.root.title(get_text("gui.manage_dialog.title"))
         
         # Fenster initial verstecken für die Animation
         self.root.withdraw()
@@ -128,7 +128,7 @@ class DesktopManagerGUI:
         
         tk.Label(
             title_frame, 
-            text="Desktops verwalten", 
+            text=get_text("gui.manage_dialog.header"), 
             font=('Segoe UI', 14, 'bold'),
             bg=self.bg_dark, 
             fg=self.fg_primary
@@ -145,7 +145,7 @@ class DesktopManagerGUI:
 
         tk.Label(
             left_frame,
-            text="Verfügbare Desktops",
+            text=get_text("gui.manage_dialog.list_label"),
             font=('Segoe UI', 9, 'bold'),
             bg=self.bg_dark,
             fg=self.fg_secondary,
@@ -177,7 +177,7 @@ class DesktopManagerGUI:
         # Name
         tk.Label(
             self.details_container,
-            text="Name",
+            text=get_text("gui.manage_dialog.details_name"),
             font=('Segoe UI', 9),
             bg=self.bg_dark,
             fg=self.fg_secondary,
@@ -198,7 +198,7 @@ class DesktopManagerGUI:
         # Pfad (Read-only Info)
         tk.Label(
             self.details_container,
-            text="Pfad",
+            text=get_text("gui.manage_dialog.details_path"),
             font=('Segoe UI', 9),
             bg=self.bg_dark,
             fg=self.fg_secondary,
@@ -220,7 +220,7 @@ class DesktopManagerGUI:
         # Wallpaper
         tk.Label(
             self.details_container,
-            text="Hintergrundbild",
+            text=get_text("gui.manage_dialog.details_wallpaper"),
             font=('Segoe UI', 9),
             bg=self.bg_dark,
             fg=self.fg_secondary,
@@ -232,7 +232,7 @@ class DesktopManagerGUI:
 
         self.wallpaper_path_label = tk.Label(
             wallpaper_frame,
-            text="Kein Bild ausgewählt",
+            text=get_text("gui.manage_dialog.wallpaper_none"),
             font=('Segoe UI', 9, 'italic'),
             bg=self.bg_dark,
             fg=self.fg_secondary,
@@ -243,7 +243,7 @@ class DesktopManagerGUI:
 
         tk.Button(
             wallpaper_frame,
-            text="Ändern...",
+            text=get_text("gui.manage_dialog.button_change"),
             font=('Segoe UI', 9),
             bg=self.button_bg,
             fg=self.fg_primary,
@@ -262,7 +262,7 @@ class DesktopManagerGUI:
         # Delete Button (Links)
         self.delete_btn = tk.Button(
             button_frame,
-            text="Löschen",
+            text=get_text("gui.common.button_delete"),
             font=('Segoe UI', 9),
             bg=self.accent_red,
             fg="#ffffff",
@@ -280,7 +280,7 @@ class DesktopManagerGUI:
         # Save & Close Buttons (Rechts)
         tk.Button(
             button_frame,
-            text="Schließen",
+            text=get_text("gui.common.button_close"),
             font=('Segoe UI', 9),
             bg=self.button_bg,
             fg=self.fg_primary,
@@ -296,7 +296,7 @@ class DesktopManagerGUI:
 
         self.save_btn = tk.Button(
             button_frame,
-            text="Speichern",
+            text=get_text("gui.common.button_save"),
             font=('Segoe UI', 9),
             bg=self.accent,
             fg="#ffffff",
@@ -317,16 +317,16 @@ class DesktopManagerGUI:
         for d in self.desktops:
             name = d.name
             if d.is_active:
-                name += " (Aktiv)"
+                name += get_text("gui.common.status_active")
             if d.protected:
-                name += " (Geschützt)"
+                name += get_text("gui.common.status_protected")
             self.desktop_listbox.insert(tk.END, name)
         
         # Reset UI
         self.current_desktop = None
         self.name_entry.delete(0, tk.END)
         self.path_label.config(text="-")
-        self.wallpaper_path_label.config(text="Kein Bild ausgewählt")
+        self.wallpaper_path_label.config(text=get_text("gui.manage_dialog.wallpaper_none"))
         self.save_btn.config(state=tk.DISABLED, bg=self.button_bg)
         self.delete_btn.config(state=tk.DISABLED, bg=self.button_bg)
 
@@ -347,7 +347,7 @@ class DesktopManagerGUI:
         if wp and os.path.exists(wp):
             self.wallpaper_path_label.config(text=os.path.basename(wp))
         else:
-            self.wallpaper_path_label.config(text="Kein Bild ausgewählt")
+            self.wallpaper_path_label.config(text=get_text("gui.manage_dialog.wallpaper_none"))
 
         # Enable Buttons
         self.save_btn.config(state=tk.NORMAL, bg=self.accent)
@@ -367,8 +367,8 @@ class DesktopManagerGUI:
             return
             
         file_path = filedialog.askopenfilename(
-            title="Hintergrundbild auswählen",
-            filetypes=[("Bilder", "*.jpg *.jpeg *.png *.bmp")]
+            title=get_text("gui.main.wallpaper.browse_title"),
+            filetypes=[(get_text("gui.main.wallpaper.file_types"), "*.jpg *.jpeg *.png *.bmp")]
         )
         
         if file_path:
@@ -383,9 +383,9 @@ class DesktopManagerGUI:
                         self.desktop_listbox.selection_set(i)
                         self.on_desktop_select(None)
                         break
-                messagebox.showinfo("Erfolg", "Hintergrundbild wurde aktualisiert.")
+                messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.manage_dialog.success_wallpaper"))
             else:
-                messagebox.showerror("Fehler", "Hintergrundbild konnte nicht gesetzt werden.")
+                messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_wallpaper"))
 
     def save_changes(self):
         if not self.current_desktop:
@@ -393,7 +393,7 @@ class DesktopManagerGUI:
             
         new_name = self.name_entry.get().strip()
         if not new_name:
-            messagebox.showerror("Fehler", "Name darf nicht leer sein.")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_empty_name"))
             return
             
         if new_name == self.current_desktop.name:
@@ -406,26 +406,26 @@ class DesktopManagerGUI:
         )
         
         if success:
-            messagebox.showinfo("Erfolg", "Änderungen gespeichert.")
+            messagebox.showinfo(get_text("gui.common.success_title"), get_text("gui.manage_dialog.success_save"))
             self.load_desktops()
         else:
-            messagebox.showerror("Fehler", "Änderungen konnten nicht gespeichert werden.")
+            messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_save"))
 
     def delete_desktop(self):
         if not self.current_desktop:
             return
             
-        if messagebox.askyesno("Löschen bestätigen", f"Möchten Sie den Desktop '{self.current_desktop.name}' wirklich löschen?"):
+        if messagebox.askyesno(get_text("gui.common.confirm_title"), get_text("gui.manage_dialog.msgbox_delete_confirm_text", name=self.current_desktop.name)):
             # Wir nutzen hier eine angepasste Logik, da desktop_service.delete_desktop input() verwendet
             try:
                 # 1. Check Active
                 if self.current_desktop.is_active:
-                    messagebox.showerror("Fehler", "Aktiver Desktop kann nicht gelöscht werden.")
+                    messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_delete_active"))
                     return
 
                 # 2. Check Protected
                 if self.current_desktop.protected:
-                    messagebox.showerror("Fehler", "Geschützter Desktop kann nicht gelöscht werden.")
+                    messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_delete_protected"))
                     return
 
                 # 3. Delete Wallpaper
@@ -442,14 +442,14 @@ class DesktopManagerGUI:
                 if target:
                     desktops.remove(target)
                     save_desktops(desktops)
-                    messagebox.showinfo("Erfolg", "Desktop wurde gelöscht.")
+                    messagebox.showinfo(get_text("gui.common.success_title"), get_text("desktop_handler.success.delete", name=target.name))
                     self.load_desktops()
                 else:
-                    messagebox.showerror("Fehler", "Desktop nicht gefunden.")
+                    messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_not_found"))
 
             except Exception as e:
                 logger.error(f"Fehler beim Löschen: {e}")
-                messagebox.showerror("Fehler", f"Fehler beim Löschen: {e}")
+                messagebox.showerror(get_text("gui.common.error_title"), get_text("gui.main.generic_errors.delete", e=e))
 
     # --- Animation & Window Management (Copy-Paste from gui_create.py) ---
     def _request_focus(self):

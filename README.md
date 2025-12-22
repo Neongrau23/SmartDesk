@@ -13,12 +13,11 @@ SmartDesk ist ein Tool zur Verwaltung mehrerer Desktops unter Windows. Wechseln 
 ## ✨ Features
 
 - 🖼️ **Mehrere Desktop-Profile** – Erstellen und verwalten Sie verschiedene Desktop-Konfigurationen
-- 🔄 **Schneller Desktop-Wechsel** – Wechseln Sie per CLI, GUI oder Hotkeys zwischen Desktops
+- 🔄 **Schneller Desktop-Wechsel** – Wechseln Sie per GUI oder Hotkeys zwischen Desktops
 - 🎨 **Wallpaper-Verwaltung** – Eigene Hintergrundbilder für jeden Desktop
 - 📍 **Icon-Positionen** – Automatisches Speichern und Wiederherstellen der Desktop-Icon-Anordnung
 - ⌨️ **Globale Hotkeys** – Schnelles Umschalten mit Tastenkombinationen
 - 🔔 **System Tray Integration** – Zugriff auf alle Funktionen über das Tray-Icon
-- 💻 **CLI & GUI** – Volle Kontrolle über Kommandozeile oder grafische Oberfläche
 
 ---
 
@@ -73,7 +72,7 @@ Falls Sie die Installation manuell durchführen möchten:
    pip install -r requirements.txt
    ```
 
-4. Erster Start (erstellt Original Desktop):
+4. Erster Start (erstellt Original Desktop und startet Tray-Icon):
    ```powershell
    python src/smartdesk/main.py
    ```
@@ -92,42 +91,14 @@ SmartDesk nutzt ein zweistufiges System, um versehentliche Eingaben zu verhinder
    - Alle verfügbaren Desktops
    - Welcher Desktop aktuell aktiv ist
 
-### Interaktives CLI-Menü
+### Steuerung per Tray-Icon
 
-```powershell
-python src/smartdesk/main.py
-```
-
-Das Hauptmenü bietet folgende Optionen:
-- **Desktop wechseln** – Zwischen gespeicherten Desktops umschalten
-- **Desktop erstellen** – Neue Desktop-Konfiguration anlegen
-- **Einstellungen** – Desktops verwalten, Hotkeys, Tray-Icon etc.
-
-### Kommandozeilen-Befehle
-```powershell
-# Alle Desktops auflisten
-python src/smartdesk/main.py list
-
-# Zu einem Desktop wechseln
-python src/smartdesk/main.py switch <name>
-
-# Neuen Desktop erstellen (CLI-Dialog)
-python src/smartdesk/main.py create
-
-# Neuen Desktop erstellen (GUI-Dialog)
-python src/smartdesk/main.py create-gui
-
-# Desktop löschen
-python src/smartdesk/main.py delete <name>
-python src/smartdesk/main.py delete <name> --delete-folder
-
-# Hotkey-Listener starten/stoppen
-python src/smartdesk/main.py start-listener
-python src/smartdesk/main.py stop-listener
-
-# Tray-Icon starten
-python src/smartdesk/main.py start-tray
-```
+Die gesamte Verwaltung von SmartDesk erfolgt über das Icon im System-Tray (neben der Uhr). Ein Rechtsklick auf das Icon öffnet das Hauptmenü, mit dem Sie:
+- Zwischen Desktops wechseln
+- Neue Desktops erstellen
+- Bestehende Desktops verwalten (umbenennen, löschen etc.)
+- Die Hotkey-Überwachung (Listener) starten oder stoppen
+- Die Anwendung beenden können
 
 ---
 
@@ -158,7 +129,6 @@ SmartDesk/
 │   │   └── utils/           # Hilfsfunktionen (Registry, Backup, Validierung)
 │   ├── hotkeys/             # Globale Hotkey-Verwaltung
 │   ├── interfaces/
-│   │   ├── cli/             # Kommandozeilen-Interface
 │   │   ├── gui/             # Grafische Oberfläche (CustomTkinter)
 │   │   └── tray/            # System Tray Integration
 │   └── shared/              # Geteilte Module (Config, Lokalisierung, Style)
@@ -231,15 +201,12 @@ python scripts/uninstall.py --force       # Keine Bestätigungen
 Falls das Skript nicht funktioniert:
 
 1. **Original-Desktop aktivieren** (wichtig!):
-   - Öffnen Sie SmartDesk (CLI oder Tray)
+   - Öffnen Sie SmartDesk über das Tray-Icon
    - Wechseln Sie zum Desktop **"🔒 Original (Datum)"**
 
 2. **Dienste stoppen & Daten löschen**:
-   ```powershell
-   python src/smartdesk/main.py stop-listener
-   python src/smartdesk/main.py stop-tray
-   Remove-Item -Recurse "$env:APPDATA\SmartDesk"
-   ```
+   - Beenden Sie die Anwendung über das Tray-Menü ("Beenden").
+   - Löschen Sie den Konfigurationsordner: `Remove-Item -Recurse "$env:APPDATA\SmartDesk"`
 
 > **💡 Tipp:** Durch das Aktivieren des Original-Desktops wird sichergestellt, dass alle Registry-Einträge auf den ursprünglichen Zustand zurückgesetzt werden.
 

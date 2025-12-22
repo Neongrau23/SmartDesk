@@ -136,27 +136,6 @@ def update_icon(icon):
 
         time.sleep(1)
 
-
-def create_desktop(icon, item):
-    """Startet die GUI-Version ('create-gui') ohne Konsole."""
-    logger.debug("'Desktop Erstellen' geklickt (GUI-Version).")
-    try:
-        pythonw_executable = sys.executable
-        if "python.exe" in pythonw_executable.lower():
-            pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
-
-        main_py = os.path.join(smartdesk_dir, 'main.py')
-
-        logger.debug("Starte: %s %s create-gui", pythonw_executable, main_py)
-
-        subprocess.Popen(
-            [pythonw_executable, main_py, "create-gui"],
-            creationflags=subprocess.CREATE_NO_WINDOW,
-        )
-    except Exception as e:
-        logger.error("Fehler beim Erstellen der GUI: %s", e)
-
-
 def set_active(icon, item):
     logger.debug("'Aktivieren' geklickt.")
     hotkey_manager.start_listener()
@@ -167,91 +146,100 @@ def set_inactiv(icon, item):
     hotkey_manager.stop_listener()
 
 
-def is_control_panel_running():
-    """Prüft ob das Control Panel läuft anhand der PID-Datei."""
-    if not CONTROL_PANEL_PID_PATH:
-        return False
+def open_smart_desk(icon, item):
+    """Öffnet das Control Panel und verhindert Duplikate."""
+    logger.debug("'SmartDesk Manager öffnen' geklickt.")
+
+    # Prüfen, ob eine Instanz bereits läuft
     try:
         if os.path.exists(CONTROL_PANEL_PID_PATH):
             with open(CONTROL_PANEL_PID_PATH, 'r') as f:
                 pid = int(f.read().strip())
             if psutil.pid_exists(pid):
-                proc = psutil.Process(pid)
-                if proc.is_running() and proc.status() != psutil.STATUS_ZOMBIE:
-                    return True
-            os.remove(CONTROL_PANEL_PID_PATH)
-    except Exception as e:
-        logger.debug("Fehler beim Prüfen der Control Panel PID: %s", e)
-    return False
+                logger.warning("Control Panel (PID: %d) läuft bereits.", pid)
+                # Optional: Fenster in den Vordergrund bringen
+                return
+    except (FileNotFoundError, ValueError, psutil.NoSuchProcess):
+        pass  # PID-Datei ist alt oder Prozess existiert nicht mehr
 
-
-def close_control_panel():
-    """Sendet ein Schließ-Signal an das Control Panel."""
-    if not CONTROL_PANEL_PID_PATH:
-        return False
-    try:
-        if os.path.exists(CONTROL_PANEL_PID_PATH):
-            signal_file = CONTROL_PANEL_PID_PATH + '.close'
-            with open(signal_file, 'w') as f:
-                f.write('close')
-            logger.debug("Schließ-Signal an Control Panel gesendet")
-            return True
-    except Exception as e:
-        logger.error("Fehler beim Senden des Schließ-Signals: %s", e)
-    return False
-
-
-def on_primary_click(icon, item):
-    """Toggle: Öffnet oder schließt das Control Panel."""
-    logger.debug("Primär-Klick erkannt...")
-
-    if is_control_panel_running():
-        logger.debug("Control Panel läuft - schließe es...")
-        close_control_panel()
-        return
-
-    logger.debug("Öffne Control Panel...")
+    # Starte das Control Panel
     try:
         pythonw_executable = sys.executable
         if "python.exe" in pythonw_executable.lower():
             pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
 
-        control_panel_py = os.path.join(interfaces_dir, 'gui', 'control_panel.py')
+        # Pfad zur gui_main.py
+        gui_main_py = os.path.join(smartdesk_dir, 'interfaces', 'gui', 'gui_main.py')
+        logger.debug("Starte Control Panel: %s %s", pythonw_executable, gui_main_py)
 
-        logger.debug("Starte: %s %s", pythonw_executable, control_panel_py)
-
+        # Starte den Prozess
         proc = subprocess.Popen(
-            [pythonw_executable, control_panel_py],
+            [pythonw_executable, gui_main_py],
             creationflags=subprocess.CREATE_NO_WINDOW,
         )
 
-        if CONTROL_PANEL_PID_PATH:
-            os.makedirs(PID_FILE_DIR, exist_ok=True)
-            with open(CONTROL_PANEL_PID_PATH, 'w') as f:
-                f.write(str(proc.pid))
-            logger.debug("Control Panel PID gespeichert: %s", proc.pid)
+        # Speichere die neue PID
+        if not os.path.exists(PID_FILE_DIR):
+            os.makedirs(PID_FILE_DIR)
+        with open(CONTROL_PANEL_PID_PATH, 'w') as f:
+            f.write(str(proc.pid))
+        logger.debug("Control Panel PID %d gespeichert.", proc.pid)
 
     except Exception as e:
         logger.error("Fehler beim Öffnen des Control Panels: %s", e)
 
 
-def open_smart_desk(icon, item):
-    """Startet das Haupt-CLI-Menü in einer NEUEN Konsole."""
-    logger.debug("'SmartDesk Öffnen' geklickt")
+def open_control_panel(icon, item):
+    """Öffnet das kleine Control Panel und verhindert Duplikate."""
+    logger.debug("'Control Panel öffnen' geklickt (default action).")
+
+    # Prüfen, ob eine Instanz bereits läuft
     try:
-        main_py = os.path.join(smartdesk_dir, 'main.py')
-
-        python_executable = sys.executable
-        if "pythonw.exe" in python_executable.lower():
-            python_executable = python_executable.replace("pythonw.exe", "python.exe")
-
-        logger.debug("Starte: %s %s in neuer Konsole", python_executable, main_py)
-
-        subprocess.Popen(
-            [python_executable, main_py], creationflags=subprocess.CREATE_NEW_CONSOLE
-        )
+        if os.path.exists(CONTROL_PANEL_PID_PATH):
+            with open(CONTROL_PANEL_PID_PATH, 'r') as f:
+                pid = int(f.read().strip())
+            if psutil.pid_exists(pid):
+                logger.warning("Control Panel (PID: %d) läuft bereits.", pid)
+                # Sende ein "Schließ dich" Signal, damit ein neues geöffnet werden kann
+                # oder bringe es in den Vordergrund (komplexer).
+                # Einfacher: Verhindere doppeltes Öffnen.
+                # Signal an das Panel senden, sich zu schließen
+                close_signal_file = CONTROL_PANEL_PID_PATH + '.close'
+                with open(close_signal_file, 'w') as f:
+                    f.write('1')
+                time.sleep(0.5) # Kurze Pause, damit das alte Panel sich schließen kann
+        
+    except (FileNotFoundError, ValueError, psutil.NoSuchProcess):
+        pass  # PID-Datei ist alt oder Prozess existiert nicht mehr
     except Exception as e:
-        logger.error("Fehler beim Öffnen: %s", e)
+        logger.error(f"Fehler beim Prüfen des Control Panels: {e}")
+
+
+    # Starte das Control Panel
+    try:
+        pythonw_executable = sys.executable
+        if "python.exe" in pythonw_executable.lower():
+            pythonw_executable = pythonw_executable.replace("python.exe", "pythonw.exe")
+
+        # Pfad zur control_panel.py
+        control_panel_py = os.path.join(smartdesk_dir, 'interfaces', 'gui', 'control_panel.py')
+        logger.debug("Starte Control Panel: %s %s", pythonw_executable, control_panel_py)
+
+        # Starte den Prozess
+        proc = subprocess.Popen(
+            [pythonw_executable, control_panel_py],
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+        # Speichere die neue PID
+        if not os.path.exists(PID_FILE_DIR):
+            os.makedirs(PID_FILE_DIR)
+        with open(CONTROL_PANEL_PID_PATH, 'w') as f:
+            f.write(str(proc.pid))
+        logger.debug("Control Panel PID %d gespeichert.", proc.pid)
+
+    except Exception as e:
+        logger.error("Fehler beim Öffnen des Control Panels: %s", e)
 
 
 def stop_smartdesk(icon, item):
@@ -269,16 +257,12 @@ def stop_smartdesk(icon, item):
 
 
 icon = pystray.Icon(
-    "status_indicator",
+    "smartdesk_tray",
     status.get_current_icon(),
-    "○ Bereit",
+    "SmartDesk",
     menu=pystray.Menu(
-        pystray.MenuItem(
-            "Primary Action", on_primary_click, default=True, visible=False
-        ),
-        pystray.MenuItem("SmartDesk Öffnen", open_smart_desk),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Desktop Erstellen", create_desktop),
+        pystray.MenuItem("Control Panel", open_control_panel, default=True),
+        pystray.MenuItem("SmartDesk Manager öffnen", open_smart_desk),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Aktivieren", set_active),
         pystray.MenuItem("Deaktivieren", set_inactiv),

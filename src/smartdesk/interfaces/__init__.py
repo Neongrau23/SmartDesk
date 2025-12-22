@@ -1,8 +1,7 @@
 # SmartDesk Interfaces
-# Enthält alle Benutzeroberflächen: CLI, Tray, GUI
+# Enthält alle Benutzeroberflächen: Tray, GUI
 
-from . import cli
 from . import tray
 from . import gui
 
-__all__ = ['cli', 'tray', 'gui']
+__all__ = ['tray', 'gui']

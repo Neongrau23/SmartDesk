@@ -83,7 +83,7 @@ def cleanup_control_panel_pid():
 class SmartDeskControlPanel:
     def __init__(self, root):
         self.root = root
-        self.root.title("SmartDesk Control")
+        self.root.title(get_text("gui.control_panel.title"))
 
         # Fenster initial verstecken für die Animation
         self.root.withdraw()
@@ -162,7 +162,7 @@ class SmartDeskControlPanel:
         # Title "Control Panel"
         tk.Label(
             header_frame,
-            text="Control Panel",
+            text=get_text("gui.control_panel.header"),
             font=('Segoe UI', 12),
             bg=self.bg_dark,
             fg=self.fg_primary,
@@ -172,7 +172,7 @@ class SmartDeskControlPanel:
         # Desktop Name "Desktop: ..."
         self.desktop_name_label = tk.Label(
             header_frame,
-            text="Desktop: ...",
+            text=get_text("gui.control_panel.desktop_label_none"),
             font=('Segoe UI', 12),
             bg=self.bg_dark,
             fg=self.fg_primary,
@@ -203,7 +203,7 @@ class SmartDeskControlPanel:
         # 1. SmartDesk Öffnen
         self.btn_open = tk.Button(
             grid_frame,
-            text="📂 SmartDesk Öffnen",
+            text=get_text("gui.control_panel.button_open"),
             bg=self.button_bg,
             fg=self.fg_primary,
             activebackground=self.button_hover,
@@ -216,7 +216,7 @@ class SmartDeskControlPanel:
         # 2. Desktop Erstellen
         self.btn_create = tk.Button(
             grid_frame,
-            text="+ Desktop Erstellen",
+            text=get_text("gui.control_panel.button_create"),
             bg=self.button_bg,
             fg=self.fg_primary,
             activebackground=self.button_hover,
@@ -229,7 +229,7 @@ class SmartDeskControlPanel:
         # 3. Desktops Verwalten
         self.btn_manage = tk.Button(
             grid_frame,
-            text="Desktops verwalten",
+            text=get_text("gui.control_panel.button_manage"),
             bg=self.button_bg,
             fg=self.fg_primary,
             activebackground=self.button_hover,
@@ -244,7 +244,7 @@ class SmartDeskControlPanel:
         # 1. Hotkey Toggle
         self.toggle_btn = tk.Button(
             grid_frame,
-            text="Hotkey Aktivieren",
+            text=get_text("gui.control_panel.button_hotkey_activate"),
             bg=self.button_bg, # Initial color, will be updated
             fg=self.fg_primary,
             activebackground=self.button_hover,
@@ -475,7 +475,7 @@ class SmartDeskControlPanel:
                 # Toggle Button auf "Deaktivieren" setzen
                 if hasattr(self, 'toggle_btn'):
                     self.toggle_btn.config(
-                        text="Hotkey Deaktivieren",
+                        text=get_text("gui.control_panel.button_hotkey_deactivate"),
                         bg=self.accent_red,
                         activebackground=self.accent_red_hover,
                     )
@@ -484,7 +484,7 @@ class SmartDeskControlPanel:
                 # Toggle Button auf "Aktivieren" setzen
                 if hasattr(self, 'toggle_btn'):
                     self.toggle_btn.config(
-                        text="Hotkey Aktivieren",
+                        text=get_text("gui.control_panel.button_hotkey_activate"),
                         bg=self.button_bg,
                         activebackground=self.button_hover,
                     )
@@ -499,12 +499,12 @@ class SmartDeskControlPanel:
             desktops = desktop_service.get_all_desktops()
             active_desktop = next((d for d in desktops if d.is_active), None)
             if active_desktop:
-                self.desktop_name_label.config(text=f"Desktop: {active_desktop.name}")
+                self.desktop_name_label.config(text=get_text("gui.control_panel.desktop_label_template", name=active_desktop.name))
             else:
-                self.desktop_name_label.config(text="Desktop: -")
+                self.desktop_name_label.config(text=get_text("gui.control_panel.desktop_label_none"))
         except Exception as e:
             logger.error(f"Fehler beim Abrufen des Desktops: {e}")
-            self.desktop_name_label.config(text="Desktop: ?")
+            self.desktop_name_label.config(text=get_text("gui.control_panel.desktop_label_error"))
 
     def toggle_smartdesk(self):
         """Toggle zwischen Aktivieren und Deaktivieren."""
@@ -522,7 +522,7 @@ class SmartDeskControlPanel:
         except Exception as e:
             logger.error(f"Fehler beim Aktivieren: {e}")
             messagebox.showerror(
-                "Fehler", f"SmartDesk konnte nicht aktiviert werden:\n{e}"
+                get_text("gui.common.error_title"), get_text("gui.control_panel.error_activation_failed", e=e)
             )
 
     def deactivate_smartdesk(self):
@@ -534,7 +534,7 @@ class SmartDeskControlPanel:
         except Exception as e:
             logger.error(f"Fehler beim Deaktivieren: {e}")
             messagebox.showerror(
-                "Fehler", f"SmartDesk konnte nicht deaktiviert werden:\n{e}"
+                get_text("gui.common.error_title"), get_text("gui.control_panel.error_deactivation_failed", e=e)
             )
 
     def open_smartdesk(self):
@@ -609,7 +609,7 @@ class SmartDeskControlPanel:
         except Exception as e:
             logger.error(f"Fehler beim Öffnen: {e}")
             messagebox.showerror(
-                "Fehler", f"SmartDesk GUI konnte nicht geöffnet werden:\n{e}"
+                get_text("gui.common.error_title"), get_text("gui.control_panel.error_open_gui_failed", e=e)
             )
 
     def create_desktop(self):
@@ -641,7 +641,7 @@ class SmartDeskControlPanel:
         except Exception as e:
             logger.error(f"Fehler beim Erstellen der GUI: {e}")
             messagebox.showerror(
-                "Fehler", f"Desktop-Erstellung konnte nicht gestartet werden:\n{e}"
+                get_text("gui.common.error_title"), get_text("gui.control_panel.error_create_gui_failed", e=e)
             )
 
     def manage_desktops(self):
@@ -673,7 +673,7 @@ class SmartDeskControlPanel:
         except Exception as e:
             logger.error(f"Fehler beim Starten der Verwaltung: {e}")
             messagebox.showerror(
-                "Fehler", f"Desktop-Verwaltung konnte nicht gestartet werden:\n{e}"
+                get_text("gui.common.error_title"), get_text("gui.control_panel.error_manage_gui_failed", e=e)
             )
 
     def close_panel(self):

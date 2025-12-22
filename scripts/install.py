@@ -8,11 +8,10 @@ Dieses Skript führt eine vollständige Einrichtung durch:
 2. Erstellt/Aktiviert Virtual Environment
 3. Installiert alle Abhängigkeiten
 4. Führt First-Run-Setup durch (Original Desktop, Registry-Backup)
-5. Startet SmartDesk (Tray oder CLI)
+5. Startet SmartDesk (Tray-Icon)
 
 Verwendung:
-    python scripts/install.py              # Installation + Start Tray
-    python scripts/install.py --cli        # Installation + Start CLI
+    python scripts/install.py              # Installation + Start Tray-Icon
     python scripts/install.py --no-start   # Nur Installation
     python scripts/install.py --check      # Nur Prüfung
 """
@@ -308,19 +307,6 @@ def start_tray() -> bool:
     return True
 
 
-def start_cli():
-    """Startet das CLI-Menü."""
-    python_path = get_venv_python()
-    main_script = SRC_DIR / "smartdesk" / "main.py"
-    
-    print_info("Starte SmartDesk CLI...")
-    print()
-    
-    # Starte interaktiv
-    os.chdir(PROJECT_ROOT)
-    os.execv(str(python_path), [str(python_path), str(main_script)])
-
-
 # =============================================================================
 # Hauptfunktion
 # =============================================================================
@@ -330,8 +316,6 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='SmartDesk Installation')
-    parser.add_argument('--cli', action='store_true',
-                        help='Startet CLI statt Tray nach Installation')
     parser.add_argument('--no-start', action='store_true',
                         help='Nur Installation, kein Start')
     parser.add_argument('--check', action='store_true',
@@ -408,13 +392,10 @@ def main():
     print("=" * 60)
     print()
     
-    if args.cli:
-        start_cli()  # Kehrt nicht zurück
-    else:
-        start_tray()
-        print()
-        print("Drücken Sie Enter zum Beenden...")
-        input()
+    start_tray()
+    print()
+    print("Drücken Sie Enter zum Beenden...")
+    input()
     
     return 0
 
