@@ -1,0 +1,137 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.env/
+.venv_backup/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+*.lnk
+
+
+# Test/Cache/Tools
+.pytest_cache/
+htmlcov/
+.mypy_cache/
+__pypackages__/
+.cache/
+*.tmp
+*.temp
+
+# Project specific
+data/
+*.log
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Databases
+*.sqlite3
+*.db
+*.sql
+
+# Caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.cache/
+.hypothesis/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing & Coverage
+htmlcov/
+.tox/
+.nox/
+nosetests.xml
+coverage/
+*.cover
+.coverage.*
+
+# Documentation
+docs/_build/
+site/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Distribution / Packaging
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Type stubs
+.pyi
+
+# pyenv
+.python-version
+
+# Backup & Temp files
+*.bak
+*.tmp
+*.temp
+*.orig
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Local configuration
+local_settings.py
+*.local
+
+# Compiled files
+*.exe
+*.dll
+*.pyd
