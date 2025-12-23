@@ -57,7 +57,7 @@ __pypackages__/
 
 # Project specific
 data/
-*.log
+# *.log
 .coverage
 coverage.xml
 *.cover
@@ -124,7 +124,7 @@ pip-delete-this-directory.txt
 
 # Logs
 logs/
-*.log
+# *.log
 npm-debug.log*
 
 # Local configuration

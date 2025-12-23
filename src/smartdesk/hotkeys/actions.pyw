@@ -47,62 +47,74 @@ def _switch_to_desktop_by_index(desktop_index: int):
     """
     import sys
     import os
+    import traceback
+    log_file = os.path.join(r'C:\Users\leonp\.gemini\tmp\4b9b30c558e150c7ad00633726cd40cd860454fcba01690f0a0481ff9b34e30e', 'actions.log')
 
     try:
-        # Unterdrücke alle Ausgaben (auch von desktop_handler)
-        devnull = open(os.devnull, 'w', encoding='utf-8')
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = devnull
-        sys.stderr = devnull
+        with open(log_file, 'a', encoding='utf-8') as log:
+            old_stdout = sys.stdout
+            old_stderr = sys.stderr
+            sys.stdout = log
+            sys.stderr = log
 
-        try:
-            # 1. Alle Desktops laden
-            desktops = desktop_handler.get_all_desktops()
+            try:
+                log.write(f"--- Switching to desktop {desktop_index} ---\n")
+                # 1. Alle Desktops laden
+                desktops = desktop_handler.get_all_desktops()
+                log.write(f"Found {len(desktops)} desktops.\n")
 
-            if not desktops:
-                return
+                if not desktops:
+                    return
 
-            # 2. Prüfen, ob der Index gültig ist
-            if 0 <= desktop_index < len(desktops):
-                target_desktop = desktops[desktop_index]
+                # 2. Prüfen, ob der Index gültig ist
+                if 0 <= desktop_index < len(desktops):
+                    target_desktop = desktops[desktop_index]
+                    log.write(f"Target desktop: {target_desktop.name}\n")
 
-                # 3. Zum Desktop wechseln
-                if desktop_handler.switch_to_desktop(target_desktop.name):
-                    system_manager.restart_explorer()
-                    time.sleep(0.5)
-                    desktop_handler.sync_desktop_state_and_apply_icons()
-        finally:
-            # Stelle stdout/stderr wieder her
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-            devnull.close()
-    except Exception:
-        # Fehler ignorieren, um Listener nicht zu crashen
-        pass
+                    # 3. Zum Desktop wechseln
+                    if desktop_handler.switch_to_desktop(target_desktop.name):
+                        log.write("Switched to desktop successfully.\n")
+                        system_manager.restart_explorer()
+                        log.write("Restarted explorer.\n")
+                        time.sleep(0.5)
+                        desktop_handler.sync_desktop_state_and_apply_icons()
+                        log.write("Synced desktop state and applied icons.\n")
+            finally:
+                # Stelle stdout/stderr wieder her
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+    except Exception as e:
+        with open(log_file, 'a', encoding='utf-8') as log:
+            log.write(f"Error in _switch_to_desktop_by_index: {e}\n")
+            log.write(traceback.format_exc())
+            log.write("\n")
 
 
 def _save_icons():
     """Speichert die aktuellen Icon-Positionen."""
     import sys
     import os
+    import traceback
+    log_file = os.path.join(r'C:\Users\leonp\.gemini\tmp\4b9b30c558e150c7ad00633726cd40cd860454fcba01690f0a0481ff9b34e30e', 'actions.log')
 
     try:
-        # Unterdrücke alle Ausgaben
-        devnull = open(os.devnull, 'w', encoding='utf-8')
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
-        sys.stdout = devnull
-        sys.stderr = devnull
-
-        try:
-            desktop_handler.save_current_desktop_icons()
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-            devnull.close()
-    except Exception:
-        pass
+        with open(log_file, 'a', encoding='utf-8') as log:
+            old_stdout = sys.stdout
+            old_stderr = sys.stderr
+            sys.stdout = log
+            sys.stderr = log
+            try:
+                log.write("--- Saving icons ---\n")
+                desktop_handler.save_current_desktop_icons()
+                log.write("Saved icons successfully.\n")
+            finally:
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+    except Exception as e:
+        with open(log_file, 'a', encoding='utf-8') as log:
+            log.write(f"Error in _save_icons: {e}\n")
+            log.write(traceback.format_exc())
+            log.write("\n")
 
 
 # --- 3. Zentrale Aktions-Definitionen (Die "Übersetzung") ---

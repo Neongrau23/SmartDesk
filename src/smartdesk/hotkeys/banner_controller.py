@@ -21,7 +21,7 @@ class BannerState(Enum):
 
 @dataclass
 class BannerConfig:
-    hold_duration_sec: float = 0.3
+    hold_duration_sec: float = 0.1
     arm_timeout_sec: float = 5.0
     check_interval_ms: int = 50
 
