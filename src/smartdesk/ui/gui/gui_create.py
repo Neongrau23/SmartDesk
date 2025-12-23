@@ -82,7 +82,7 @@ class CreateDesktopWindow(QWidget):
     def load_ui(self):
         loader = QUiLoader()
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_file_path = os.path.join(current_dir, "smartdesk_create.ui")
+        ui_file_path = os.path.join(current_dir, "designer", "smartdesk_create.ui")
         ui_file = QFile(ui_file_path)
 
         if not ui_file.open(QIODevice.ReadOnly):

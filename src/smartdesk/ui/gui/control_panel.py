@@ -104,7 +104,7 @@ class SmartDeskControlPanel(QWidget):
     def load_ui(self):
         loader = QUiLoader()
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_file_path = os.path.join(current_dir, "control_panel.ui")
+        ui_file_path = os.path.join(current_dir, "designer", "control_panel.ui")
         ui_file = QFile(ui_file_path)
         if not ui_file.open(QIODevice.ReadOnly): sys.exit(-1)
         container_widget = loader.load(ui_file)

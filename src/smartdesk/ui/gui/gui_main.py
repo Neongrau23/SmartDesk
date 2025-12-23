@@ -31,7 +31,7 @@ try:
     from smartdesk.core.services import desktop_service
     from smartdesk.core.services import system_service
     from smartdesk.hotkeys import hotkey_manager
-    from smartdesk.interfaces.tray import tray_manager
+    from smartdesk.ui.tray import tray_manager
     from smartdesk.shared.config import DATA_DIR
     from smartdesk.shared.localization import get_text
     from smartdesk.shared.style import PREFIX_ERROR, PREFIX_OK, PREFIX_WARN

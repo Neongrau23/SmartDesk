@@ -14,7 +14,7 @@ except Exception as e:
 
 # --- DEBUG & APPLICATION LAUNCH ---
 try:
-    from smartdesk.interfaces.tray.tray_icon import SmartDeskTrayApp
+    from smartdesk.ui.tray.tray_icon import SmartDeskTrayApp
     app = SmartDeskTrayApp(sys.argv)
     sys.exit(app.exec())
 

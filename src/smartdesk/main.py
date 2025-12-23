@@ -150,7 +150,7 @@ if __name__ == "__main__":
             smartdesk_dir = os.path.dirname(os.path.abspath(__file__))
             src_dir = os.path.dirname(smartdesk_dir)
             project_root = os.path.dirname(src_dir)
-            tray_icon_path = os.path.join(smartdesk_dir, 'interfaces', 'tray', 'tray_icon.py')
+            tray_icon_path = os.path.join(smartdesk_dir, 'ui', 'tray', 'tray_icon.py')
 
             if not os.path.exists(tray_icon_path):
                 print(f"{PREFIX_ERROR} {get_text('main.error.tray_not_found', path=tray_icon_path)}")

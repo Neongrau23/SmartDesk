@@ -26,7 +26,7 @@ except Exception as e:
 
 # --- Projekt-Imports ---
 from smartdesk.hotkeys import hotkey_manager
-from smartdesk.interfaces.gui.control_panel import SmartDeskControlPanel
+from smartdesk.ui.gui.control_panel import SmartDeskControlPanel
 from smartdesk.shared.localization import get_text, init_localization
 
 # --- PID-Management ---

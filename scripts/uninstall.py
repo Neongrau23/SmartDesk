@@ -152,7 +152,7 @@ def stop_services() -> bool:
     
     # Tray stoppen
     try:
-        from smartdesk.interfaces.tray.tray_manager import stop_tray
+        from smartdesk.ui.tray.tray_manager import stop_tray
         
         print_info("Stoppe Tray-Icon...")
         if stop_tray():
