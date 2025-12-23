@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>120</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>300</width>
+    <height>120</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>120</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>SmartDesk Banner</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">#Form {
+    background-color: #2b2b2b;
+    border: 1px solid #454545;
+    border-radius: 15px;
+}
+
+QWidget {
+    color: #ffffff;
+}
+
+QListWidget {
+    background-color: transparent;
+    border: none;
+    outline: 0;
+}
+
+QListWidget::item {
+    background-color: #3c3c3c;
+    border-radius: 6px;
+    color: #ffffff;
+    padding: 5px;
+}
+
+QListWidget::item:selected {
+    background-color: #14a085;
+    border: 1px solid #14a085;
+}
+
+QListWidget::item:hover {
+    background-color: #4a4a4a;
+}</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <property name="leftMargin">
+    <number>20</number>
+   </property>
+   <property name="topMargin">
+    <number>10</number>
+   </property>
+   <property name="rightMargin">
+    <number>20</number>
+   </property>
+   <property name="bottomMargin">
+    <number>10</number>
+   </property>
+   <item>
+    <widget class="QListWidget" name="list_desktops_grid">
+     <property name="font">
+      <font>
+       <family>Segoe UI</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="movement">
+      <enum>QListView::Movement::Static</enum>
+     </property>
+     <property name="flow">
+      <enum>QListView::Flow::LeftToRight</enum>
+     </property>
+     <property name="isWrapping" stdset="0">
+      <bool>false</bool>
+     </property>
+     <property name="resizeMode">
+      <enum>QListView::ResizeMode::Adjust</enum>
+     </property>
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <property name="gridSize">
+      <size>
+       <width>110</width>
+       <height>90</height>
+      </size>
+     </property>
+     <property name="viewMode">
+      <enum>QListView::ViewMode::IconMode</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
