@@ -26,8 +26,12 @@
    <string>SmartDesk - Desktop erstellen</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QWidget {
+   <string notr="true">#Form {
     background-color: #2b2b2b;
+    border-radius: 10px;
+}
+
+QWidget {
     color: #ffffff;
 }
 

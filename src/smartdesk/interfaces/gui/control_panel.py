@@ -6,7 +6,6 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxL
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, QTimer, QPropertyAnimation, QEasingCurve, QRect, Qt
 
-# Versuche Import, Fallback für Standalone-Test
 try:
     from .gui_create import CreateDesktopWindow
 except ImportError:
@@ -20,16 +19,29 @@ except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
-# --- Dummy Services/Imports ---
+# --- Projekt-Imports & Mocking ---
 try:
     from smartdesk.core.services import desktop_service
     from smartdesk.hotkeys import hotkey_manager
     from smartdesk.shared.localization import get_text
 except ImportError:
-    def get_text(key, **kwargs): return key.split('.')[-1]
+    # Verbesserter Mock für Texte
+    def get_text(key, **kwargs): 
+        return key.split('.')[-1].replace('_', ' ').title()
+    
     class FakeHotkeys:
-        def start_listener(self): pass
-        def stop_listener(self): pass
+        def start_listener(self): 
+            # Simuliere Starten durch Erstellen der PID Datei für Tests
+            pid_path = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk', 'listener.pid')
+            with open(pid_path, 'w') as f: f.write("1234")
+            logger.info("Mock: Listener gestartet")
+
+        def stop_listener(self): 
+            # Simuliere Stoppen
+            pid_path = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk', 'listener.pid')
+            if os.path.exists(pid_path): os.remove(pid_path)
+            logger.info("Mock: Listener gestoppt")
+
     hotkey_manager = FakeHotkeys()
     class FakeDesktopService:
         def get_all_desktops(self): return []
@@ -38,6 +50,7 @@ except ImportError:
 # --- PID Paths ---
 PID_FILE_DIR = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk')
 CONTROL_PANEL_PID_PATH = os.path.join(PID_FILE_DIR, 'control_panel.pid')
+PID_FILE_PATH = os.path.join(PID_FILE_DIR, 'listener.pid') # WICHTIG: Pfad wieder hinzugefügt
 
 def cleanup_control_panel_pid():
     try:
@@ -48,20 +61,18 @@ def cleanup_control_panel_pid():
 class SmartDeskControlPanel(QWidget):
     def __init__(self):
         super().__init__()
-        self.is_active = False
+        self.is_active = False # Interner Status
         self.is_closing = False
         self.animation = None
         self.create_window = None 
 
         self.load_ui()
 
-        # Fensterkonfiguration
         self.setWindowTitle("Control Panel")
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # UI-Elemente
         self.desktop_name_label = self.findChild(QLabel, "label_desktop_name")
         self.btn_open = self.findChild(QPushButton, "btn_gui_main")
         self.btn_create = self.findChild(QPushButton, "btn_gui_create")
@@ -82,10 +93,13 @@ class SmartDeskControlPanel(QWidget):
 
         self.setup_positioning()
         
+        # Timer prüft regelmäßig den Status (falls Hotkey extern beendet wird)
         self.status_timer = QTimer(self)
         self.status_timer.timeout.connect(self.update_status)
+        self.status_timer.timeout.connect(self.update_active_desktop_label)
         self.status_timer.start(500)
         self.update_status()
+        self.update_active_desktop_label()
 
     def load_ui(self):
         loader = QUiLoader()
@@ -93,11 +107,8 @@ class SmartDeskControlPanel(QWidget):
         ui_file_path = os.path.join(current_dir, "control_panel.ui")
         ui_file = QFile(ui_file_path)
         if not ui_file.open(QIODevice.ReadOnly): sys.exit(-1)
-        
-        # WICHTIG: Kein Parent (self) beim Laden übergeben, sonst doppeltes Layout
         container_widget = loader.load(ui_file)
         ui_file.close()
-        
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(container_widget)
@@ -107,17 +118,14 @@ class SmartDeskControlPanel(QWidget):
         screen = QApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         self.adjustSize()
-        
-        self.window_width = 420  # Fixe Breite aus UI
-        self.window_height = 294 # Fixe Höhe aus UI
+        self.window_width = 420
+        self.window_height = 294
         self.resize(self.window_width, self.window_height)
-        
         padding_x = 20
-        padding_y = 60
+        padding_y = 20
         self.target_x = screen_geometry.width() - self.window_width - padding_x
         self.target_y = screen_geometry.height() - self.window_height - padding_y
         self.start_x = screen_geometry.width()
-        
         self.setGeometry(self.start_x, self.target_y, self.window_width, self.window_height)
 
     def enterEvent(self, event):
@@ -135,6 +143,9 @@ class SmartDeskControlPanel(QWidget):
 
     def show_animated(self):
         self.show()
+        self.raise_()
+        self.activateWindow()
+        self.setFocus()
         self.is_closing = False
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(300)
@@ -144,12 +155,8 @@ class SmartDeskControlPanel(QWidget):
         self.animation.start()
 
     def close_panel(self):
-        """Normales Schließen (z.B. Fokusverlust)"""
         if self.is_closing: return
-        # Wenn Create Window offen ist, CP nicht schließen (es ist eh hidden)
-        if self.create_window and self.create_window.isVisible():
-            return
-            
+        if self.create_window and self.create_window.isVisible(): return
         self.animate_out(callback=self.close)
 
     def animate_out(self, callback=None):
@@ -165,11 +172,8 @@ class SmartDeskControlPanel(QWidget):
 
     def event(self, event):
         if event.type() == event.Type.WindowDeactivate and not self.is_closing:
-             # Nicht schließen, wenn wir zum Create-Fenster wechseln
-             if self.create_window and self.create_window.isVisible():
-                 pass 
-             else:
-                 self.close_panel()
+             if self.create_window and self.create_window.isVisible(): pass 
+             else: self.close_panel()
         return super().event(event)
     
     def closeEvent(self, event):
@@ -177,14 +181,60 @@ class SmartDeskControlPanel(QWidget):
         cleanup_control_panel_pid()
         super().closeEvent(event)
 
-    # --- Actions ---
+    # --- WIEDERHERGESTELLTE LOGIK ---
+
     def update_status(self):
-        # Dummy Status Update
-        pass 
+        """Prüft PID Datei und aktualisiert Button."""
+        if not self.toggle_btn: return
+
+        # Prüfen ob listener.pid existiert
+        if PID_FILE_PATH and os.path.exists(PID_FILE_PATH):
+            # Läuft (Aktiv)
+            if not self.is_active:
+                self.is_active = True
+                self.toggle_btn.setText("Hotkey Deaktivieren") 
+                self.toggle_btn.setStyleSheet(self.active_style)
+        else:
+            # Läuft nicht (Inaktiv)
+            if self.is_active:
+                self.is_active = False
+                self.toggle_btn.setText("Hotkey Aktivieren")
+                self.toggle_btn.setStyleSheet(self.inactive_style)
+                
+        # Fallback für Initialzustand
+        if self.toggle_btn.text() == "Hotkey Aktivieren" and self.is_active:
+             self.toggle_btn.setText("Hotkey Deaktivieren")
+             self.toggle_btn.setStyleSheet(self.active_style)
 
     def toggle_smartdesk(self):
-        self.is_active = not self.is_active
-        self.update_status()
+        """Schaltet den Listener an oder aus."""
+        if self.is_active:
+            self.deactivate_smartdesk()
+        else:
+            self.activate_smartdesk()
+
+    def activate_smartdesk(self):
+        logger.info("Aktiviere SmartDesk...")
+        hotkey_manager.start_listener()
+        # Timer updated UI, aber wir erzwingen ein kurzes Update für Responsivität
+        QTimer.singleShot(100, self.update_status)
+
+    def deactivate_smartdesk(self):
+        logger.info("Deaktiviere SmartDesk...")
+        hotkey_manager.stop_listener()
+        QTimer.singleShot(100, self.update_status)
+
+    def update_active_desktop_label(self):
+        if not self.desktop_name_label: return
+        try:
+            desktops = desktop_service.get_all_desktops()
+            active_desktop = next((d for d in desktops if d.is_active), None)
+            if active_desktop:
+                self.desktop_name_label.setText(f"Desktop: {active_desktop.name}")
+            else:
+                self.desktop_name_label.setText("Desktop: -")
+        except Exception:
+            self.desktop_name_label.setText("Desktop: Fehler")
 
     def open_smartdesk(self):
         self._run_gui_script('gui_main.py')
@@ -198,41 +248,31 @@ class SmartDeskControlPanel(QWidget):
         subprocess.Popen([pythonw, script], creationflags=subprocess.CREATE_NO_WINDOW)
         self.close_panel()
 
-    # --- TRANSITION LOGIC ---
+    # --- Transition Logic ---
     def transition_to_create_desktop(self):
-        """Startet den Wechsel: CP raus, Create rein."""
         if self.create_window is None:
             self.create_window = CreateDesktopWindow()
             self.create_window.closed.connect(self.on_create_window_closed)
-
-        # CP raus animieren, DANN finish_transition aufrufen
+            self.create_window.go_back.connect(self.on_create_window_back)
         self.animate_out(callback=self.finish_transition_to_create)
 
     def finish_transition_to_create(self):
-        """Wird aufgerufen, wenn CP draußen ist."""
-        # WICHTIG: self.hide() statt self.close()!
-        # Wenn wir close() rufen, wird 'self' zerstört und damit auch 'self.create_window'.
         self.hide()
-        
-        # Jetzt das andere Fenster reinholen
         if self.create_window:
             self.create_window.show_animated()
 
+    def on_create_window_back(self):
+        self.show_animated()
+
     def on_create_window_closed(self):
-        """Wenn das Create-Fenster geschlossen wurde."""
         self.create_window = None
-        # Wenn CP versteckt ist und Create zugeht, ist die Interaktion vorbei -> App zu.
         if self.isHidden():
             self.close()
 
 def show_control_panel():
-    app = QApplication.instance()
-    if app is None:
-        app = QApplication(sys.argv)
-    
+    app = QApplication.instance() or QApplication(sys.argv)
     panel = SmartDeskControlPanel()
     panel.show_animated()
-    
     app.exec()
 
 if __name__ == "__main__":
