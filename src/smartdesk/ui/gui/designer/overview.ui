@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>120</height>
+    <height>70</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>300</width>
-    <height>120</height>
+    <height>70</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>16777215</width>
-    <height>120</height>
+    <height>70</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
     background-color: #2b2b2b;
     border: 1px solid #454545;
     border-radius: 15px;
-}
+} 
 
 QWidget {
     color: #ffffff;
