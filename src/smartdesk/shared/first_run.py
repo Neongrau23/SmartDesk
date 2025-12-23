@@ -250,7 +250,6 @@ def run_first_time_setup(silent: bool = False) -> bool:
 
     # 4. Setup als abgeschlossen markieren
     setup_info['first_run_completed'] = True
-    setup_info['setup_date'] = datetime.now().isoformat()
     setup_info['setup_version'] = '1.0.0'
 
     if errors:

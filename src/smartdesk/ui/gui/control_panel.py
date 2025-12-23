@@ -6,12 +6,17 @@ from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QLabel, QVBoxL
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, QTimer, QPropertyAnimation, QEasingCurve, QRect, Qt
 
+# --- Imports & Mocking (wie im Original) ---
 try:
     from .gui_create import CreateDesktopWindow
 except ImportError:
-    from gui_create import CreateDesktopWindow
+    # Dummy-Klasse, falls Datei fehlt
+    class CreateDesktopWindow(QWidget):
+        from PySide6.QtCore import Signal
+        closed = Signal()
+        go_back = Signal()
+        def show_animated(self): self.show()
 
-# --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
     logger = get_logger(__name__)
@@ -19,25 +24,18 @@ except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
-# --- Projekt-Imports & Mocking ---
 try:
     from smartdesk.core.services import desktop_service
     from smartdesk.hotkeys import hotkey_manager
-    from smartdesk.shared.localization import get_text
 except ImportError:
-    # Verbesserter Mock für Texte
-    def get_text(key, **kwargs): 
-        return key.split('.')[-1].replace('_', ' ').title()
-    
+    # Mocking für Tests ohne Backend
     class FakeHotkeys:
-        def start_listener(self): 
-            # Simuliere Starten durch Erstellen der PID Datei für Tests
+        def start_listener(self):
             pid_path = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk', 'listener.pid')
+            os.makedirs(os.path.dirname(pid_path), exist_ok=True)
             with open(pid_path, 'w') as f: f.write("1234")
             logger.info("Mock: Listener gestartet")
-
-        def stop_listener(self): 
-            # Simuliere Stoppen
+        def stop_listener(self):
             pid_path = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk', 'listener.pid')
             if os.path.exists(pid_path): os.remove(pid_path)
             logger.info("Mock: Listener gestoppt")
@@ -50,7 +48,7 @@ except ImportError:
 # --- PID Paths ---
 PID_FILE_DIR = os.path.join(os.environ.get('APPDATA', '.'), 'SmartDesk')
 CONTROL_PANEL_PID_PATH = os.path.join(PID_FILE_DIR, 'control_panel.pid')
-PID_FILE_PATH = os.path.join(PID_FILE_DIR, 'listener.pid') # WICHTIG: Pfad wieder hinzugefügt
+PID_FILE_PATH = os.path.join(PID_FILE_DIR, 'listener.pid')
 
 def cleanup_control_panel_pid():
     try:
@@ -61,31 +59,27 @@ def cleanup_control_panel_pid():
 class SmartDeskControlPanel(QWidget):
     def __init__(self):
         super().__init__()
-        self.is_active = False # Interner Status
+        self.is_active = False 
         self.is_closing = False
         self.animation = None
         self.create_window = None 
 
         self.load_ui()
+        self.load_stylesheet() # NEU: Lädt das CSS
 
         self.setWindowTitle("Control Panel")
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
+        # UI Elemente finden
         self.desktop_name_label = self.findChild(QLabel, "label_desktop_name")
         self.btn_open = self.findChild(QPushButton, "btn_gui_main")
         self.btn_create = self.findChild(QPushButton, "btn_gui_create")
         self.btn_manage = self.findChild(QPushButton, "btn_gui_manage")
         self.toggle_btn = self.findChild(QPushButton, "btn_toggle_hotkey")
 
-        # Styles
-        self.active_style = "background-color: #d9534f; color: white;"
-        self.inactive_style = "background-color: #3c3c3c; color: white;"
-        self.hover_active_style = "background-color: #c9302c; color: white;"
-        self.hover_inactive_style = "background-color: #4a4a4a; color: white;"
-
-        # Signale
+        # Signale verbinden
         if self.btn_open: self.btn_open.clicked.connect(self.open_smartdesk)
         if self.btn_create: self.btn_create.clicked.connect(self.transition_to_create_desktop)
         if self.btn_manage: self.btn_manage.clicked.connect(self.manage_desktops)
@@ -93,26 +87,47 @@ class SmartDeskControlPanel(QWidget):
 
         self.setup_positioning()
         
-        # Timer prüft regelmäßig den Status (falls Hotkey extern beendet wird)
+        # Timer
         self.status_timer = QTimer(self)
         self.status_timer.timeout.connect(self.update_status)
         self.status_timer.timeout.connect(self.update_active_desktop_label)
         self.status_timer.start(500)
+        
+        # Initialer Check
         self.update_status()
         self.update_active_desktop_label()
 
     def load_ui(self):
         loader = QUiLoader()
+        # Pfad flexibel halten
         current_dir = os.path.dirname(os.path.abspath(__file__))
         ui_file_path = os.path.join(current_dir, "designer", "control_panel.ui")
+        
+        # Fallback falls "designer" Unterordner nicht existiert (für flache Struktur)
+        if not os.path.exists(ui_file_path):
+            ui_file_path = os.path.join(current_dir, "control_panel.ui")
+
         ui_file = QFile(ui_file_path)
-        if not ui_file.open(QIODevice.ReadOnly): sys.exit(-1)
+        if not ui_file.open(QIODevice.ReadOnly):
+            logger.error(f"UI Datei nicht gefunden: {ui_file_path}")
+            sys.exit(-1)
+            
         container_widget = loader.load(ui_file)
         ui_file.close()
+        
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(container_widget)
         self.setLayout(layout)
+
+    def load_stylesheet(self):
+        """Lädt die externe QSS Datei für saubere Trennung."""
+        try:
+            style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "style.qss")
+            with open(style_path, "r") as f:
+                self.setStyleSheet(f.read())
+        except Exception as e:
+            logger.warning(f"Style.qss konnte nicht geladen werden: {e}")
 
     def setup_positioning(self):
         screen = QApplication.primaryScreen()
@@ -121,26 +136,16 @@ class SmartDeskControlPanel(QWidget):
         self.window_width = 420
         self.window_height = 294
         self.resize(self.window_width, self.window_height)
+        
         padding_x = 20
         padding_y = 20
         self.target_x = screen_geometry.width() - self.window_width - padding_x
         self.target_y = screen_geometry.height() - self.window_height - padding_y
         self.start_x = screen_geometry.width()
+        
         self.setGeometry(self.start_x, self.target_y, self.window_width, self.window_height)
 
-    def enterEvent(self, event):
-        super().enterEvent(event)
-        self.update_button_styles_on_hover(True)
-
-    def leaveEvent(self, event):
-        super().leaveEvent(event)
-        self.update_button_styles_on_hover(False)
-
-    def update_button_styles_on_hover(self, is_hovering):
-        if not self.toggle_btn: return
-        style = (self.hover_active_style if is_hovering else self.active_style) if self.is_active else (self.hover_inactive_style if is_hovering else self.inactive_style)
-        self.toggle_btn.setStyleSheet(style)
-
+    # --- Fenster Animationen (unverändert) ---
     def show_animated(self):
         self.show()
         self.raise_()
@@ -181,60 +186,47 @@ class SmartDeskControlPanel(QWidget):
         cleanup_control_panel_pid()
         super().closeEvent(event)
 
-    # --- WIEDERHERGESTELLTE LOGIK ---
+    # --- Logik ---
 
     def update_status(self):
-        """Prüft PID Datei und aktualisiert Button."""
+        """Prüft Status und setzt Styles via Property."""
         if not self.toggle_btn: return
 
-        # Prüfen ob listener.pid existiert
-        if PID_FILE_PATH and os.path.exists(PID_FILE_PATH):
-            # Läuft (Aktiv)
-            if not self.is_active:
-                self.is_active = True
-                self.toggle_btn.setText("Hotkey Deaktivieren") 
-                self.toggle_btn.setStyleSheet(self.active_style)
-        else:
-            # Läuft nicht (Inaktiv)
-            if self.is_active:
-                self.is_active = False
-                self.toggle_btn.setText("Hotkey Aktivieren")
-                self.toggle_btn.setStyleSheet(self.inactive_style)
-                
-        # Fallback für Initialzustand
-        if self.toggle_btn.text() == "Hotkey Aktivieren" and self.is_active:
-             self.toggle_btn.setText("Hotkey Deaktivieren")
-             self.toggle_btn.setStyleSheet(self.active_style)
+        is_running = PID_FILE_PATH and os.path.exists(PID_FILE_PATH)
+        self.is_active = is_running
+
+        # Text Logik
+        new_text = "Hotkey Deaktivieren" if is_running else "Hotkey Aktivieren"
+        if self.toggle_btn.text() != new_text:
+            self.toggle_btn.setText(new_text)
+
+        # Style Logik (Dynamic Property)
+        if self.toggle_btn.property("active") != is_running:
+            self.toggle_btn.setProperty("active", is_running)
+            # Style neu berechnen erzwingen (unpolish -> polish)
+            self.toggle_btn.style().unpolish(self.toggle_btn)
+            self.toggle_btn.style().polish(self.toggle_btn)
 
     def toggle_smartdesk(self):
-        """Schaltet den Listener an oder aus."""
         if self.is_active:
-            self.deactivate_smartdesk()
+            logger.info("Deaktiviere SmartDesk...")
+            hotkey_manager.stop_listener()
         else:
-            self.activate_smartdesk()
-
-    def activate_smartdesk(self):
-        logger.info("Aktiviere SmartDesk...")
-        hotkey_manager.start_listener()
-        # Timer updated UI, aber wir erzwingen ein kurzes Update für Responsivität
-        QTimer.singleShot(100, self.update_status)
-
-    def deactivate_smartdesk(self):
-        logger.info("Deaktiviere SmartDesk...")
-        hotkey_manager.stop_listener()
-        QTimer.singleShot(100, self.update_status)
+            logger.info("Aktiviere SmartDesk...")
+            hotkey_manager.start_listener()
+        
+        # UI sofort aktualisieren
+        QTimer.singleShot(50, self.update_status)
 
     def update_active_desktop_label(self):
         if not self.desktop_name_label: return
         try:
             desktops = desktop_service.get_all_desktops()
             active_desktop = next((d for d in desktops if d.is_active), None)
-            if active_desktop:
-                self.desktop_name_label.setText(f"Desktop: {active_desktop.name}")
-            else:
-                self.desktop_name_label.setText("Desktop: -")
+            text = f"Desktop: {active_desktop.name}" if active_desktop else "Desktop: -"
+            self.desktop_name_label.setText(text)
         except Exception:
-            self.desktop_name_label.setText("Desktop: Fehler")
+            self.desktop_name_label.setText("Desktop: -")
 
     def open_smartdesk(self):
         self._run_gui_script('gui_main.py')
@@ -243,17 +235,22 @@ class SmartDeskControlPanel(QWidget):
         self._run_gui_script('gui_manage.py')
 
     def _run_gui_script(self, script_name):
-        pythonw = sys.executable.replace("python.exe", "pythonw.exe")
+        # pythonw startet ohne Konsolenfenster
+        python_exe = sys.executable.replace("python.exe", "pythonw.exe")
         script = os.path.join(os.path.dirname(__file__), script_name)
-        subprocess.Popen([pythonw, script], creationflags=subprocess.CREATE_NO_WINDOW)
+        subprocess.Popen([python_exe, script], creationflags=subprocess.CREATE_NO_WINDOW)
         self.close_panel()
 
     # --- Transition Logic ---
     def transition_to_create_desktop(self):
         if self.create_window is None:
             self.create_window = CreateDesktopWindow()
-            self.create_window.closed.connect(self.on_create_window_closed)
-            self.create_window.go_back.connect(self.on_create_window_back)
+            # Falls Dummy-Klasse verwendet wird, haben diese Signale keinen Effekt, crashen aber auch nicht
+            try:
+                self.create_window.closed.connect(self.on_create_window_closed)
+                self.create_window.go_back.connect(self.on_create_window_back)
+            except AttributeError: pass
+            
         self.animate_out(callback=self.finish_transition_to_create)
 
     def finish_transition_to_create(self):

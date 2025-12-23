@@ -21,9 +21,9 @@ class BannerState(Enum):
 
 @dataclass
 class BannerConfig:
-    hold_duration_sec: float = 0.1
+    hold_duration_sec: float = 0.01
     arm_timeout_sec: float = 5.0
-    check_interval_ms: int = 50
+    check_interval_ms: int = 0.01
 
 class BannerController:
     def __init__(

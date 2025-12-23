@@ -76,7 +76,7 @@ class OverviewWindow(QWidget):
         # Hauptcontainer aus UI laden
         self.load_ui()
         
-        self.setWindowTitle("SmartDesk Overview")
+        self.setWindowTitle("Overview")
         
         # STIL: Rahmenlos, immer oben, kein Taskleisten-Icon
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
