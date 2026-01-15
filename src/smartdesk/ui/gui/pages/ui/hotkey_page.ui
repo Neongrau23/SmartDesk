@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HotkeyPage</class>
+ <widget class="QWidget" name="HotkeyPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"><number>20</number></property>
+   <property name="leftMargin"><number>40</number></property>
+   <property name="topMargin"><number>40</number></property>
+   <property name="rightMargin"><number>40</number></property>
+   <property name="bottomMargin"><number>40</number></property>
+   
+   <item>
+    <widget class="QLabel" name="label_title">
+     <property name="text"><string>Hotkey Verwaltung</string></property>
+     <property name="class" stdset="0"><string>page-title</string></property>
+    </widget>
+   </item>
+
+   <!-- Status Card -->
+   <item>
+    <widget class="QGroupBox" name="group_status">
+     <property name="title"><string>Listener Status</string></property>
+     <layout class="QVBoxLayout" name="verticalLayout_status_card">
+      <item>
+       <layout class="QHBoxLayout" name="layout_status">
+        <item>
+         <widget class="QLabel" name="lbl_status_icon">
+          <property name="text"><string>⚪</string></property>
+          <property name="font"><font><pointSize>24</pointSize></font></property>
+          <property name="maximumSize"><size><width>40</width><height>16777215</height></size></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lbl_status_text">
+          <property name="text"><string>Status unbekannt</string></property>
+          <property name="styleSheet"><string>font-size: 16px; font-weight: bold;</string></property>
+         </widget>
+        </item>
+        <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+        
+        <item>
+         <widget class="QPushButton" name="btn_start">
+          <property name="text"><string>Starten</string></property>
+          <property name="styleSheet"><string>background-color: #1a7a65; color: white; font-weight: bold;</string></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_stop">
+          <property name="text"><string>Stoppen</string></property>
+          <property name="styleSheet"><string>background-color: #7a1a1a; color: white;</string></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_restart">
+          <property name="text"><string>Neustart</string></property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      
+      <!-- NEW: Message Label -->
+      <item>
+       <widget class="QLabel" name="lbl_message">
+        <property name="text"><string></string></property>
+        <property name="alignment"><set>Qt::AlignCenter</set></property>
+        <property name="styleSheet"><string>color: #aaa; font-style: italic; margin-top: 5px;</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Hotkey List -->
+   <item>
+    <widget class="QGroupBox" name="group_list">
+     <property name="title"><string>Aktive Hotkeys (Alt + Taste)</string></property>
+     <layout class="QVBoxLayout" name="layout_list">
+      <item>
+       <widget class="QTableWidget" name="table_hotkeys">
+        <property name="columnCount"><number>2</number></property>
+        <property name="selectionBehavior"><enum>QAbstractItemView::SelectRows</enum></property>
+        <property name="editTriggers"><enum>QAbstractItemView::NoEditTriggers</enum></property>
+        <property name="styleSheet"><string>QHeaderView::section { background-color: #333; color: white; border: none; padding: 4px; }</string></property>
+        <column>
+         <property name="text"><string>Taste</string></property>
+        </column>
+        <column>
+         <property name="text"><string>Aktion</string></property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   
+  </layout>
+ </widget>
+</ui>

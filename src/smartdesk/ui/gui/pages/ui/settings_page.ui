@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsPage</class>
+ <widget class="QWidget" name="SettingsPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing"><number>20</number></property>
+   <property name="leftMargin"><number>40</number></property>
+   <property name="topMargin"><number>40</number></property>
+   <property name="rightMargin"><number>40</number></property>
+   <property name="bottomMargin"><number>40</number></property>
+   
+   <item>
+    <widget class="QLabel" name="label_title">
+     <property name="text"><string>Einstellungen</string></property>
+     <property name="class" stdset="0"><string>page-title</string></property>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex"><number>0</number></property>
+     <!-- Tab 1: Allgemein -->
+     <widget class="QWidget" name="tab_general">
+      <attribute name="title"><string>Allgemein</string></attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_general">
+       <item>
+        <widget class="QGroupBox" name="group_tray">
+         <property name="title"><string>Tray Icon</string></property>
+         <layout class="QVBoxLayout" name="layout_tray">
+          <item>
+           <widget class="QCheckBox" name="check_tray_startup">
+            <property name="text"><string>Beim Systemstart minimiert starten</string></property>
+            <property name="enabled"><bool>false</bool></property>
+           </widget>
+          </item>
+          <item>
+            <widget class="QLabel" name="lbl_tray_hint">
+                <property name="text"><string>(Funktionen folgen in Kürze)</string></property>
+                <property name="styleSheet"><string>color: #666; font-style: italic;</string></property>
+            </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+      </layout>
+     </widget>
+     
+     <!-- Tab 2: Hotkeys (Placeholder, wird per Code gefüllt) -->
+     <widget class="QWidget" name="tab_hotkeys">
+      <attribute name="title"><string>Hotkeys</string></attribute>
+      <layout class="QVBoxLayout" name="layout_hotkeys_container">
+        <property name="leftMargin"><number>0</number></property>
+        <property name="topMargin"><number>0</number></property>
+        <property name="rightMargin"><number>0</number></property>
+        <property name="bottomMargin"><number>0</number></property>
+      </layout>
+     </widget>
+     
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>

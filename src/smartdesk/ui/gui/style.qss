@@ -1,14 +1,20 @@
+/* ============================================================
+   SMARTDESK MODERN DARK THEME v2
+   Style: Professional Dark / Flat
+   ============================================================ */
+
 /* --- GLOBAL --- */
 QWidget {
     background-color: #1e1e1e;
     color: #f0f0f0;
+    /* Mix aus modernen und Standard-Fonts */
     font-family: 'Segoe UI', 'Roboto', sans-serif;
     font-size: 14px;
 }
 
 /* --- SIDEBAR --- */
 QFrame#sidebar {
-    background-color: #252526; /* Etwas heller als Main */
+    background-color: #252526;
     border-right: 1px solid #3e3e42;
 }
 
@@ -17,6 +23,7 @@ QLabel#label_logo {
     font-size: 22px;
     font-weight: bold;
     padding: 20px 10px;
+    font-family: 'Segoe UI Semibold', sans-serif;
 }
 
 /* --- NAVIGATION BUTTONS --- */
@@ -24,7 +31,7 @@ QPushButton.nav-btn {
     background-color: transparent;
     border: none;
     border-left: 4px solid transparent;
-    border-radius: 0px; /* Eckig an der Seite */
+    border-radius: 0px; 
     text-align: left;
     padding: 12px 20px;
     color: #cccccc;
@@ -43,7 +50,7 @@ QPushButton.nav-btn:checked {
     font-weight: 600;
 }
 
-/* --- TITEL --- */
+/* --- HEADERS --- */
 QLabel.page-title {
     font-size: 26px;
     font-weight: 600;
@@ -52,12 +59,11 @@ QLabel.page-title {
 }
 
 /* --- CARDS / GROUPBOXES --- */
-/* Wir machen GroupBoxes zu "Cards" */
 QGroupBox {
     background-color: #252526;
     border: 1px solid #3e3e42;
     border-radius: 8px;
-    margin-top: 24px; /* Platz für den Titel */
+    margin-top: 24px;
     padding: 15px;
 }
 
@@ -71,39 +77,56 @@ QGroupBox::title {
     background-color: transparent;
 }
 
+/* Specific Frames used as Cards in new Layout */
+QFrame#frame_list_container, QFrame#frame_banner, QFrame#frame_create_modal, QFrame#card_path {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 8px;
+}
+
 /* --- LISTS --- */
-QListWidget {
+QListWidget, QTableWidget {
     background-color: #252526;
     border: 1px solid #3e3e42;
     border-radius: 6px;
-    outline: none; /* Kein Fokus-Rahmen */
+    outline: none;
     padding: 5px;
 }
 
-QListWidget::item {
+QListWidget::item, QTableWidget::item {
     padding: 10px;
     border-radius: 4px;
     color: #ddd;
     margin-bottom: 2px;
+    border: none; /* Reset gradient border */
 }
 
-QListWidget::item:hover {
+QListWidget::item:hover, QTableWidget::item:hover {
     background-color: #2a2d2e;
 }
 
-QListWidget::item:selected {
+QListWidget::item:selected, QTableWidget::item:selected {
     background-color: #0078d4;
     color: white;
 }
 
+/* Header */
+QHeaderView::section {
+    background-color: #2d2d2d;
+    color: #ccc;
+    border: none;
+    padding: 6px;
+    border-bottom: 1px solid #3e3e42;
+}
+
 /* --- BUTTONS --- */
-/* Standard Action Button */
 QPushButton {
     background-color: #3e3e42;
     border: 1px solid #3e3e42;
     border-radius: 4px;
     padding: 8px 16px;
     color: #ffffff;
+    font-weight: normal; /* Reset bold from gradient theme */
 }
 
 QPushButton:hover {
@@ -116,10 +139,11 @@ QPushButton:pressed {
     border-color: #0078d4;
 }
 
-/* Primary Button (Akzent) */
+/* Primary Button */
 QPushButton#btn_add_desktop, 
 QPushButton#btn_confirm_create, 
 QPushButton#btn_activate_desktop,
+QPushButton#btn_start,
 QPushButton.primary-btn {
     background-color: #0078d4;
     border: 1px solid #0078d4;
@@ -130,36 +154,83 @@ QPushButton.primary-btn {
 QPushButton#btn_add_desktop:hover, 
 QPushButton#btn_confirm_create:hover, 
 QPushButton#btn_activate_desktop:hover,
+QPushButton#btn_start:hover,
 QPushButton.primary-btn:hover {
     background-color: #106ebe;
     border-color: #106ebe;
 }
 
-/* Delete / Danger Button */
-QPushButton#btn_delete_desktop {
+/* Delete / Stop Button */
+QPushButton#btn_delete_desktop,
+QPushButton#btn_stop {
     background-color: #2b1111;
     border: 1px solid #5a1e1e;
     color: #ff9999;
 }
 
-QPushButton#btn_delete_desktop:hover {
+QPushButton#btn_delete_desktop:hover,
+QPushButton#btn_stop:hover {
     background-color: #421212;
     border-color: #7a2e2e;
+}
+
+/* Edit Button (Simple) */
+QPushButton#btn_edit_name {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    font-size: 12px;
+    padding: 4px 10px;
+    color: #eeeeee;
+}
+QPushButton#btn_edit_name:hover {
+    background-color: #4a4a4a;
+    border-color: #777;
+}
+QPushButton#btn_edit_name:disabled {
+    background-color: transparent;
+    border: 1px solid #333;
+    color: #555;
 }
 
 /* --- INPUTS --- */
 QLineEdit, QTextEdit {
     background-color: #3c3c3c;
-    border: 1px solid #3c3c3c; /* Flat look */
+    border: 1px solid #3c3c3c;
     border-radius: 4px;
     padding: 8px;
     color: #f0f0f0;
-    selection-background-color: #0078d4;
 }
 
 QLineEdit:focus, QTextEdit:focus {
     background-color: #303030;
-    border: 1px solid #0078d4; /* Blauer Rahmen bei Fokus */
+    border: 1px solid #0078d4;
+}
+
+/* --- TABS --- */
+QTabWidget::pane {
+    border: 1px solid #3e3e42;
+    background-color: #252526;
+    border-radius: 4px;
+}
+
+QTabBar::tab {
+    background: #2d2d2d;
+    color: #cccccc;
+    padding: 10px 20px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    margin-right: 2px;
+    border: none;
+}
+
+QTabBar::tab:selected {
+    background: #3e3e42;
+    color: #ffffff;
+    border-bottom: 2px solid #0078d4;
+}
+
+QTabBar::tab:hover {
+    background: #37373d;
 }
 
 /* --- SCROLLBARS --- */
@@ -167,7 +238,7 @@ QScrollBar:vertical {
     border: none;
     background: #1e1e1e;
     width: 10px;
-    margin: 0px 0px 0px 0px;
+    margin: 0;
 }
 QScrollBar::handle:vertical {
     background: #424242;
@@ -179,29 +250,11 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
     background: none;
 }
 
-/* --- STATUS BADGES ETC --- */
+/* --- STATUS BADGE --- */
 QLabel#label_status_badge {
-    /* Styles werden oft im Code überschrieben, aber Default hier: */
-    border-radius: 12px;
-}
-
-/* Edit Name Button */
-QPushButton#btn_edit_name {
-    background-color: #3a3a3a;
-    border: 1px solid #555;
-    font-size: 12px;
+    background-color: transparent; /* Reset from cyan */
+    color: #fff;
+    border-radius: 12px; /* Pill shape */
     padding: 4px 10px;
-    margin-left: 10px;
-    color: #eeeeee;
-}
-
-QPushButton#btn_edit_name:hover {
-    background-color: #4a4a4a;
-    border-color: #777;
-}
-
-QPushButton#btn_edit_name:disabled {
-    background-color: transparent;
-    border: 1px solid #333;
-    color: #555;
+    /* Color will be set by logic (green bg) usually, but default here */
 }

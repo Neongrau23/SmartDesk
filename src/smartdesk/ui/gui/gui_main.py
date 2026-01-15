@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, Slot, QTimer
+from PySide6.QtGui import QFontDatabase, QFont
 
 # --- Pfad-Hack ---
 if __name__ == "__main__" or __package__ is None:
@@ -37,6 +38,7 @@ try:
     
     # Pages
     from smartdesk.ui.gui.pages.desktop_page import DesktopPage
+    from smartdesk.ui.gui.pages.settings_page import SettingsPage
 except ImportError as e:
     logger.error(f"Import Error: {e}")
     # Mocks für Standalone
@@ -49,10 +51,12 @@ except ImportError as e:
     tray_manager = FakeService()
     DATA_DIR = "."
     DesktopPage = QWidget
+    SettingsPage = QWidget
 
 class SmartDeskMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.load_fonts() # Fonts laden bevor UI
         self.load_ui()
         self.load_stylesheet() # Style laden
         self.setup_pages()
@@ -60,6 +64,34 @@ class SmartDeskMainWindow(QMainWindow):
         
         # Start auf Dashboard
         self.show_dashboard()
+
+    def load_fonts(self):
+        """Lädt benutzerdefinierte Schriftarten aus dem fonts/ Ordner."""
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        fonts_dir = os.path.join(current_dir, "fonts")
+        
+        if not os.path.exists(fonts_dir):
+            return
+
+        loaded_families = []
+        for filename in os.listdir(fonts_dir):
+            if filename.lower().endswith((".ttf", ".otf")):
+                font_path = os.path.join(fonts_dir, filename)
+                font_id = QFontDatabase.addApplicationFont(font_path)
+                if font_id != -1:
+                    families = QFontDatabase.applicationFontFamilies(font_id)
+                    loaded_families.extend(families)
+                    logger.debug(f"Font geladen: {filename} -> {families}")
+                else:
+                    logger.warning(f"Konnte Font nicht laden: {filename}")
+        
+        # Optional: Setze globale App-Font, falls Google Sans gefunden wurde
+        if "Google Sans" in loaded_families:
+            app = QApplication.instance()
+            app.setFont(QFont("Google Sans", 10))
+        elif "Product Sans" in loaded_families:
+            app = QApplication.instance()
+            app.setFont(QFont("Product Sans", 10))
 
     def load_stylesheet(self):
         """Lädt das zentrale CSS Design."""
@@ -97,7 +129,8 @@ class SmartDeskMainWindow(QMainWindow):
         # Nav Buttons
         self.btn_dash = self.ui.findChild(QPushButton, "btn_nav_dashboard")
         self.btn_desktops = self.ui.findChild(QPushButton, "btn_nav_desktops")
-        # btn_create und btn_wallpaper werden entfernt oder ignoriert
+        
+        # Entfernt: btn_nav_create, btn_nav_wallpaper, btn_nav_hotkeys, btn_nav_tray
         
         self.btn_settings = self.ui.findChild(QPushButton, "btn_nav_settings")
         
@@ -113,23 +146,23 @@ class SmartDeskMainWindow(QMainWindow):
         """Initialisiert und fügt die dynamischen Pages hinzu."""
         if not self.stacked_widget: return
 
-        # 1. Desktop Page (Ersetzt die alte Desktops Page + Create + Wallpaper)
+        # 1. Desktop Page
         self.page_desktop_widget = DesktopPage()
-        
-        # Wir wollen die alte "page_desktops" aus main.ui ersetzen oder einfach
-        # die neue Page hinzufügen und nutzen.
         self.stacked_widget.addWidget(self.page_desktop_widget)
+
+        # 2. Settings Page (enthält Hotkeys)
+        self.page_settings_widget = SettingsPage()
+        self.stacked_widget.addWidget(self.page_settings_widget)
 
     def setup_connections(self):
         if self.btn_dash: self.btn_dash.clicked.connect(self.show_dashboard)
         if self.btn_desktops: self.btn_desktops.clicked.connect(self.show_desktops)
+        if self.btn_settings: self.btn_settings.clicked.connect(self.show_settings)
         
-        # Ignoriere alte Buttons, falls sie im UI noch existieren, um Fehler zu vermeiden
-        btn_create = self.ui.findChild(QPushButton, "btn_nav_create")
-        if btn_create: btn_create.setVisible(False)
-        
-        btn_wallpaper = self.ui.findChild(QPushButton, "btn_nav_wallpaper")
-        if btn_wallpaper: btn_wallpaper.setVisible(False)
+        # Aufräumen: Verstecke Buttons, die nicht mehr genutzt werden, falls sie noch im UI sind
+        for btn_name in ["btn_nav_create", "btn_nav_wallpaper", "btn_nav_hotkeys", "btn_nav_tray"]:
+            btn = self.ui.findChild(QPushButton, btn_name)
+            if btn: btn.setVisible(False)
         
         if self.btn_refresh_dash: self.btn_refresh_dash.clicked.connect(self.refresh_status)
 
@@ -143,6 +176,11 @@ class SmartDeskMainWindow(QMainWindow):
             self.page_desktop_widget.refresh_list()
             self.stacked_widget.setCurrentWidget(self.page_desktop_widget)
 
+    def show_settings(self):
+        if self.stacked_widget and self.page_settings_widget:
+            self.page_settings_widget.refresh_hotkey_status() # Status updaten
+            self.stacked_widget.setCurrentWidget(self.page_settings_widget)
+
     def refresh_status(self):
         if not self.text_status: return
         
@@ -150,7 +188,6 @@ class SmartDeskMainWindow(QMainWindow):
         
         try:
             # Hotkey Status
-            # (Hier müssten echte Checks rein, try-except blocks)
             hotkey_pid = getattr(hotkey_manager, 'get_listener_pid', lambda: None)()
             status = f"Hotkey Listener PID: {hotkey_pid}\n" 
             
@@ -169,18 +206,8 @@ class SmartDeskMainWindow(QMainWindow):
             self.text_status.setPlainText(f"Error refreshing status: {e}")
 
     def refresh_desktops_list(self):
-        if not self.list_desktops: return
-        
-        self.list_desktops.clear()
-        try:
-            desktops = desktop_service.get_all_desktops()
-            for d in desktops:
-                icon = "🟢" if d.is_active else "⚪"
-                item_text = f"{icon} {d.name} ({d.path})"
-                item = QListWidgetItem(item_text)
-                self.list_desktops.addItem(item)
-        except Exception as e:
-            self.list_desktops.addItem(f"Error loading desktops: {e}")
+        # Wird von DesktopPage gehandelt, hier nur Dummy falls alte Verbindungen existieren
+        pass
 
 
 def launch_gui():
