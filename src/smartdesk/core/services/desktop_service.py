@@ -108,7 +108,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     return True
 
 
-def delete_desktop(name: str, delete_folder: bool = False) -> bool:
+def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = False) -> bool:
     """
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
     Geschützte Desktops (z.B. Original) können nicht gelöscht werden.
@@ -127,19 +127,20 @@ def delete_desktop(name: str, delete_folder: bool = False) -> bool:
         print(f"{PREFIX_ERROR} {msg}")
         return False
 
-    try:
-        confirm = (
-            input(get_text("desktop_handler.prompts.delete_confirm", name=name))
-            .strip()
-            .lower()
-        )
-    except EOFError:
-        print(get_text("desktop_handler.info.delete_aborted"))
-        return False
+    if not skip_confirm:
+        try:
+            confirm = (
+                input(get_text("desktop_handler.prompts.delete_confirm", name=name))
+                .strip()
+                .lower()
+            )
+        except EOFError:
+            print(get_text("desktop_handler.info.delete_aborted"))
+            return False
 
-    if confirm != 'y':
-        print(get_text("desktop_handler.info.delete_aborted"))
-        return False
+        if confirm != 'y':
+            print(get_text("desktop_handler.info.delete_aborted"))
+            return False
 
     if target_desktop.is_active:
         msg = get_text('desktop_handler.error.delete_active', name=name)

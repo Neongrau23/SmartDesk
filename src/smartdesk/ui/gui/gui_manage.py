@@ -236,7 +236,7 @@ class ManageDesktopsWindow(QWidget):
         )
         
         if confirm == QMessageBox.Yes:
-            desktop_service.delete_desktop(d.name)
+            desktop_service.delete_desktop(d.name, skip_confirm=True)
             self.refresh_list()
 
     # --- Animation (Kopie von Control Panel) ---
