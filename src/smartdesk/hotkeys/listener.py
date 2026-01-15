@@ -6,7 +6,18 @@ import traceback
 from datetime import datetime
 import threading
 
-# --- NEUER IMPORT ---
+# --- DUMMY KLASSEN DEFINIEREN (vor Verwendung) ---
+class DummyRegistry:
+    def has_combo_action(self, key): return False
+    def has_direct_action(self): return False
+    def execute_combo(self, key): return False
+    def execute_direct(self): return False
+    def has_hold_action(self): return False
+    def execute_hold(self): return False
+    def get_combo_description(self, key): return ""
+    def set_log_func(self, func): pass
+
+# --- I18N IMPORT ---
 try:
     # Importiere die get_text Funktion aus dem shared-Modul
     from ..shared.localization import get_text
@@ -35,19 +46,9 @@ try:
     from .action_registry import get_registry, setup_actions
 except ImportError as e:
     print(get_text("hotkey_listener.error.actions_load", e=e))
-    
-    class DummyRegistry:
-        def has_combo_action(self, key): return False
-        def has_direct_action(self): return False
-        def execute_combo(self, key): return False
-        def execute_direct(self): return False
-        def has_hold_action(self): return False
-        def execute_hold(self): return False
-        def get_combo_description(self, key): return ""
-        def set_log_func(self, func): pass
-    
-def get_registry(): return DummyRegistry()
-def setup_actions(): pass
+    # Fallback-Funktionen
+    def get_registry(): return DummyRegistry()
+    def setup_actions(): pass
 
 
 # --- 2. Zustand und Tastenspeicher ---
