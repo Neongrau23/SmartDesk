@@ -94,7 +94,9 @@ coverage/
 .coverage.*
 
 # Documentation
-docs/_build/
+docs/
+doc/
+_build/
 site/
 
 # Jupyter Notebooks
