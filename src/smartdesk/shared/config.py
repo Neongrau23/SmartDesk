@@ -1,6 +1,15 @@
 # Dateipfad: src/smartdesk/shared/config.py
 
 import os
+import sys
+
+# --- CRASH PROTECTION FOR GUI APPS (pythonw.exe) ---
+# Wenn die App ohne Konsole läuft (z.B. als Tray-Icon), sind stdout/stderr None.
+# Schreibzugriffe (print, logging) würden zum Absturz führen.
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, 'w')
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, 'w')
 
 # Registry Keys (Bestehend)
 KEY_USER_SHELL = (
