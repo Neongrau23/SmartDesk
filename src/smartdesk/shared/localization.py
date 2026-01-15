@@ -371,6 +371,7 @@ TEXT = {
             "pid_cleaned": "PID-Datei bereinigt.",
             "stopped_user": "\nListener durch Benutzer (Strg+C) gestoppt.",
             "stopping": "Listener wird beendet.",
+            "instructions": "\nDrücke Strg + Shift + Alt + [1-9] um einen Desktop zu wechseln.\nDrücke Strg + Shift + Alt + C um den Listener zu beenden.",\r\n            "instructions_stop": "Drücke Strg+C im Terminal, um den Listener zu stoppen.",
         },
         "log": {
             "action_executed": "Hotkey Alt+{n} ausgeführt",

@@ -135,19 +135,32 @@ def check_requirements_file() -> bool:
 # =============================================================================
 
 def create_venv() -> bool:
-    """Erstellt das Virtual Environment."""
-    if VENV_DIR.exists():
-        print_info("Virtual Environment existiert bereits")
+    """Erstellt das Virtual Environment oder stellt es wieder her."""
+    pip_path = get_venv_pip()
+
+    if VENV_DIR.exists() and pip_path.exists():
+        print_info("Virtual Environment existiert bereits und ist gültig.")
         return True
-    
+
+    if VENV_DIR.exists():
+        print_warning("Virtual Environment existiert, ist aber ungültig oder unvollständig.")
+        print_info("Lösche das vorhandene Virtual Environment...")
+        try:
+            import shutil
+            shutil.rmtree(VENV_DIR)
+            print_success("Altes Virtual Environment gelöscht.")
+        except OSError as e:
+            print_error(f"Fehler beim Löschen des Virtual Environment: {e}")
+            return False
+
     print_info("Erstelle Virtual Environment...")
     success, _ = run_command([sys.executable, "-m", "venv", str(VENV_DIR)])
-    
+
     if success:
         print_success("Virtual Environment erstellt")
     else:
         print_error("Fehler beim Erstellen des Virtual Environment")
-    
+
     return success
 
 

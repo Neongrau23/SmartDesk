@@ -1,0 +1,7 @@
+----------- DETAILED IMPORT TRACEBACK -----------
+Traceback (most recent call last):
+  File "F:\GitHub\SmartDesk_v1.0.0\main.py", line 40, in main
+    from smartdesk.ui.tray.tray_manager import TrayManager
+ImportError: cannot import name 'TrayManager' from 'smartdesk.ui.tray.tray_manager' (F:\GitHub\SmartDesk_v1.0.0\src\smartdesk\ui\tray\tray_manager.py)
+
+IMPORT ERROR: cannot import name 'TrayManager' from 'smartdesk.ui.tray.tray_manager' (F:\GitHub\SmartDesk_v1.0.0\src\smartdesk\ui\tray\tray_manager.py)
