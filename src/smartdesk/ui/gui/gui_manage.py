@@ -51,6 +51,7 @@ class ManageDesktopsWindow(QWidget):
         self.is_closing = False
         self.selected_desktop = None
         self.desktop_buttons = [] # Speichert Referenzen zu Buttons
+        self.block_close_on_blur = False # Verhindert Schließen bei Dialogen
 
         self.load_ui()
         self.load_stylesheet()
@@ -180,11 +181,13 @@ class ManageDesktopsWindow(QWidget):
     def action_rename(self):
         if not self.selected_desktop: return
         
+        self.block_close_on_blur = True
         new_name, ok = QInputDialog.getText(
             self, "Umbenennen", 
             f"Neuer Name für '{self.selected_desktop.name}':",
             text=self.selected_desktop.name
         )
+        self.block_close_on_blur = False
         
         if ok and new_name and new_name != self.selected_desktop.name:
             success = desktop_service.update_desktop(self.selected_desktop.name, new_name, self.selected_desktop.path) # Pfad lassen
@@ -196,9 +199,11 @@ class ManageDesktopsWindow(QWidget):
     def action_wallpaper(self):
         if not self.selected_desktop: return
         
+        self.block_close_on_blur = True
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Hintergrundbild wählen", "", "Bilder (*.png *.jpg *.jpeg *.bmp)"
         )
+        self.block_close_on_blur = False
         
         if file_path:
             desktop_service.assign_wallpaper(self.selected_desktop.name, file_path)
@@ -217,8 +222,10 @@ class ManageDesktopsWindow(QWidget):
         action_delete = menu.addAction("🗑️ Löschen")
         
         # Zeige Menü unter dem Button
+        self.block_close_on_blur = True
         pos = self.btn_more.mapToGlobal(self.btn_more.rect().bottomLeft())
         selected_action = menu.exec(pos)
+        self.block_close_on_blur = False
         
         if selected_action == action_delete:
             self._delete_current()
@@ -226,14 +233,18 @@ class ManageDesktopsWindow(QWidget):
     def _delete_current(self):
         d = self.selected_desktop
         if d.is_active:
+            self.block_close_on_blur = True
             QMessageBox.warning(self, "Stopp", "Der aktive Desktop kann nicht gelöscht werden.")
+            self.block_close_on_blur = False
             return
 
+        self.block_close_on_blur = True
         confirm = QMessageBox.question(
             self, "Löschen", 
             f"Soll '{d.name}' wirklich gelöscht werden?",
             QMessageBox.Yes | QMessageBox.No
         )
+        self.block_close_on_blur = False
         
         if confirm == QMessageBox.Yes:
             desktop_service.delete_desktop(d.name, skip_confirm=True)
@@ -269,6 +280,9 @@ class ManageDesktopsWindow(QWidget):
     def event(self, event):
         # Schließen bei Fokusverlust
         if event.type() == QEvent.Type.WindowDeactivate and not self.is_closing:
+            if self.block_close_on_blur:
+                return True # Event ignorieren
+                
             # Kurzer Check ob Dialoge offen sind (optional), hier einfach schließen
             if not self.isActiveWindow():
                 self.close_panel_animated()
