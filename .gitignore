@@ -142,3 +142,5 @@ local_settings.py
 
 
 smartdesk_error.log
+listener.log
+listener.txt
