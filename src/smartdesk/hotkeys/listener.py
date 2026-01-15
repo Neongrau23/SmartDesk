@@ -46,8 +46,8 @@ except ImportError as e:
         def get_combo_description(self, key): return ""
         def set_log_func(self, func): pass
     
-    def get_registry(): return DummyRegistry()
-    def setup_actions(): pass
+def get_registry(): return DummyRegistry()
+def setup_actions(): pass
 
 
 # --- 2. Zustand und Tastenspeicher ---
@@ -114,141 +114,139 @@ def _cancel_alt_hold_timer():
 
 def on_press(key):
     global wait_state
-    log_file = os.path.join(r'F:\GitHub\SmartDesk_v1.0.0', 'listener.txt')
-    with open(log_file, 'a', encoding='utf-8') as log:
-        log.write(f"on_press: key={key}, state={wait_state}\n")
-
-        # Banner-Controller: Alt-Erkennung (für interne State-Machine des Controllers)
-        if key == Key.alt_l or key == Key.alt_r:
-            ctrl = _get_banner_ctrl()
-            if ctrl:
-                ctrl.on_alt_pressed()
+    
+    # Banner-Controller: Alt-Erkennung (für interne State-Machine des Controllers)
+    if key == Key.alt_l or key == Key.alt_r:
+        ctrl = _get_banner_ctrl()
+        if ctrl:
+            ctrl.on_alt_pressed()
+    
+    # Wenn wir bereits auf Alt warten (Strg+Shift wurden vorher gedrückt)
+    if wait_state == "WAITING_FOR_ALT_NUM":
+        global alt_hold_timer
         
-        # Wenn wir bereits auf Alt warten (Strg+Shift wurden vorher gedrückt)
-        if wait_state == "WAITING_FOR_ALT_NUM":
-            global alt_hold_timer
+        # Timer für Hold-Aktion starten, wenn JETZT Alt gedrückt wird
+        if key in (Key.alt_l, Key.alt_r):
+            registry = get_registry()
+            # Nur starten, wenn Timer noch nicht läuft
+            if registry.has_hold_action() and alt_hold_timer is None:
+                if _log_func:
+                    _log_func("Alt gedrückt, starte Hold-Timer...")
+                alt_hold_timer = threading.Timer(0.3, _execute_alt_hold_action)
+                alt_hold_timer.start()
+
+        alt_gehalten = Key.alt_l in current_keys or Key.alt_r in current_keys
+
+        key_char = None
+        try:
+            key_char = key.char
+        except AttributeError:
+            pass
+
+        is_modifier = key in (
+            Key.alt_l, Key.alt_r, Key.ctrl_l, Key.ctrl_r,
+            Key.shift, Key.shift_r
+        )
+
+        if alt_gehalten:
+            registry = get_registry()
+            if _log_func:
+                _log_func(f"alt held, key_char: {key_char}")
             
-            # Timer für Hold-Aktion starten, wenn JETZT Alt gedrückt wird
-            if key in (Key.alt_l, Key.alt_r):
-                registry = get_registry()
-                # Nur starten, wenn Timer noch nicht läuft
-                if registry.has_hold_action() and alt_hold_timer is None:
-                    if _log_func:
-                        _log_func("Alt gedrückt, starte Hold-Timer...")
-                    alt_hold_timer = threading.Timer(0.3, _execute_alt_hold_action)
-                    alt_hold_timer.start()
-
-            alt_gehalten = Key.alt_l in current_keys or Key.alt_r in current_keys
-
-            key_char = None
-            try:
-                key_char = key.char
-            except AttributeError:
-                pass
-
-            is_modifier = key in (
-                Key.alt_l, Key.alt_r, Key.ctrl_l, Key.ctrl_r,
-                Key.shift, Key.shift_r
-            )
-
-            if alt_gehalten:
-                registry = get_registry()
-                log.write(f"alt held, key_char: {key_char}\n")
+            # Prüfen auf Kombinationen (z.B. Alt+1)
+            if key_char and registry.has_combo_action(key_char):
+                _cancel_alt_hold_timer()
+                if _log_func:
+                    desc = registry.get_combo_description(key_char)
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
+                    _log_func(f"Executing combo action for key: {key_char}")
                 
-                # Prüfen auf Kombinationen (z.B. Alt+1)
-                if key_char and registry.has_combo_action(key_char):
-                    _cancel_alt_hold_timer()
-                    if _log_func:
-                        desc = registry.get_combo_description(key_char)
-                        _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
-                    
-                    log.write(f"Executing combo action for key: {key_char}\n")
-                    _close_banner_and_reset()
-                    registry.execute_combo(key_char)
-                elif is_modifier:
-                    pass
-                else:
-                    # Ungültige Taste während Alt gehalten wird -> Reset
-                    log.write(f"No combo action for key: {key_char}\n")
-                    _close_banner_and_reset()
-                    print(get_text("hotkey_listener.info.abort_invalid_key"))
-
+                _close_banner_and_reset()
+                registry.execute_combo(key_char)
             elif is_modifier:
                 pass
             else:
-                # Irgendeine andere Taste (z.B. Buchstabe) ohne Alt -> Abbruch des Wartens
-                _close_banner_and_reset()
+                # Ungültige Taste während Alt gehalten wird -> Reset
                 if _log_func:
-                    _log_func(get_text("hotkey_listener.log.abort_no_alt"))
+                    _log_func(f"No combo action for key: {key_char}")
+                _close_banner_and_reset()
+                print(get_text("hotkey_listener.info.abort_invalid_key"))
 
-        current_keys.add(key)
-        
-        # Strg+Shift-Erkennung (Der Einstiegspunkt)
-        ctrl_held = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys
-        shift_held = Key.shift in current_keys or Key.shift_r in current_keys
-
-        # Wenn IDLE und Strg+Shift gedrückt werden -> Zustand wechseln
-        if ctrl_held and shift_held and wait_state == "IDLE":
-            wait_state = "WAITING_FOR_ALT_NUM"
-            log.write(f"State changed to WAITING_FOR_ALT_NUM\n")
-            msg = get_text("hotkey_listener.info.wait_for_alt_num")
-            print(msg)
+        elif is_modifier:
+            pass
+        else:
+            # Irgendeine andere Taste (z.B. Buchstabe) ohne Alt -> Abbruch des Wartens
+            _close_banner_and_reset()
             if _log_func:
-                _log_func(get_text("hotkey_listener.log.wait_for_alt_num"))
+                _log_func(get_text("hotkey_listener.log.abort_no_alt"))
 
-            ctrl = _get_banner_ctrl()
-            if ctrl:
-                ctrl.on_ctrl_shift_triggered()
+    current_keys.add(key)
+    
+    # Strg+Shift-Erkennung (Der Einstiegspunkt)
+    ctrl_held = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys
+    shift_held = Key.shift in current_keys or Key.shift_r in current_keys
+
+    # Wenn IDLE und Strg+Shift gedrückt werden -> Zustand wechseln
+    if ctrl_held and shift_held and wait_state == "IDLE":
+        wait_state = "WAITING_FOR_ALT_NUM"
+        if _log_func:
+            _log_func("State changed to WAITING_FOR_ALT_NUM")
+        msg = get_text("hotkey_listener.info.wait_for_alt_num")
+        print(msg)
+        if _log_func:
+            _log_func(get_text("hotkey_listener.log.wait_for_alt_num"))
+
+        ctrl = _get_banner_ctrl()
+        if ctrl:
+            ctrl.on_ctrl_shift_triggered()
 
 
 def on_release(key):
     global wait_state
-    log_file = os.path.join(r'F:\GitHub\SmartDesk_v1.0.0', 'listener.txt')
-    with open(log_file, 'a', encoding='utf-8') as log:
-        log.write(f"on_release: key={key}, state={wait_state}\n")
-        try:
-            current_keys.remove(key)
-        except KeyError:
-            pass
 
-        # Logik während wir auf Alt (oder Alt-Release) warten
-        if wait_state == "WAITING_FOR_ALT_NUM":
-            
-            # Prüfung: Sind Modifizierer losgelassen worden?
-            if key in (Key.ctrl_l, Key.ctrl_r, Key.shift, Key.shift_r):
-                ctrl_held = any(k in current_keys for k in (Key.ctrl_l, Key.ctrl_r))
-                shift_held = any(k in current_keys for k in (Key.shift, Key.shift_r))
-                alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
+    try:
+        current_keys.remove(key)
+    except KeyError:
+        pass
 
-                # KORREKTUR: Wenn Strg+Shift losgelassen sind, aber Alt noch nicht gedrückt ist:
-                # Wir RESETTEN NICHT. Wir warten weiter auf Alt.
-                if not ctrl_held and not shift_held and not alt_held:
-                    if _log_func:
-                        _log_func("Strg und Shift losgelassen, warte weiter auf Alt...")
-                    # HIER WURDE DER FEHLER BEHOBEN: _close_banner_and_reset() ENTFERNT
+    # Logik während wir auf Alt (oder Alt-Release) warten
+    if wait_state == "WAITING_FOR_ALT_NUM":
+        
+        # Prüfung: Sind Modifizierer losgelassen worden?
+        if key in (Key.ctrl_l, Key.ctrl_r, Key.shift, Key.shift_r):
+            ctrl_held = any(k in current_keys for k in (Key.ctrl_l, Key.ctrl_r))
+            shift_held = any(k in current_keys for k in (Key.shift, Key.shift_r))
+            alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
 
-        # Timer abbrechen, wenn Alt losgelassen wird (egal in welchem Zustand)
-        if key in (Key.alt_l, Key.alt_r):
-            _cancel_alt_hold_timer()
+            # KORREKTUR: Wenn Strg+Shift losgelassen sind, aber Alt noch nicht gedrückt ist:
+            # Wir RESETTEN NICHT. Wir warten weiter auf Alt.
+            if not ctrl_held and not shift_held and not alt_held:
+                if _log_func:
+                    _log_func("Strg und Shift losgelassen, warte weiter auf Alt...")
+                # HIER WURDE DER FEHLER BEHOBEN: _close_banner_and_reset() ENTFERNT
 
-        # Banner-Controller: Alt losgelassen (Signal an Controller zum Schließen der UI)
+    # Timer abbrechen, wenn Alt losgelassen wird (egal in welchem Zustand)
+    if key in (Key.alt_l, Key.alt_r):
+        _cancel_alt_hold_timer()
+
+    # Banner-Controller: Alt losgelassen (Signal an Controller zum Schließen der UI)
+    if key == Key.alt_l or key == Key.alt_r:
+        other_alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
+        if not other_alt_held:
+            ctrl = _get_banner_ctrl()
+            if ctrl:
+                ctrl.on_alt_released()
+
+    # Sicherheits-Reset, nur wenn wir wirklich fertig sind
+    # (Dies verhindert, dass der Listener im "WAITING" hängen bleibt, wenn Alt losgelassen wurde)
+    if wait_state == "WAITING_FOR_ALT_NUM":
         if key == Key.alt_l or key == Key.alt_r:
             other_alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
             if not other_alt_held:
-                ctrl = _get_banner_ctrl()
-                if ctrl:
-                    ctrl.on_alt_released()
-
-        # Sicherheits-Reset, nur wenn wir wirklich fertig sind
-        # (Dies verhindert, dass der Listener im "WAITING" hängen bleibt, wenn Alt losgelassen wurde)
-        if wait_state == "WAITING_FOR_ALT_NUM":
-            if key == Key.alt_l or key == Key.alt_r:
-                other_alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
-                if not other_alt_held:
-                    if _log_func:
-                        _log_func("Alt losgelassen, Zyklus beendet.")
-                    log.write(f"Resetting state to IDLE\n")
-                    _close_banner_and_reset()
+                if _log_func:
+                    _log_func("Alt losgelassen, Zyklus beendet.")
+                    _log_func("Resetting state to IDLE")
+                _close_banner_and_reset()
 
 
 # --- 4. Starte den Listener ---
