@@ -46,12 +46,9 @@ def _switch_to_desktop_by_index(desktop_index: int):
 
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
-            # Wir leiten stdout/stderr nur um, wenn wir wirklich loggen wollen.
-            # Aber Vorsicht: Wenn das hier abstürzt, bleibt stdout umgeleitet.
-            # Besser: explizit in log schreiben.
-            
-            log.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] --- Switching to desktop {desktop_index} ---
-")
+            # Timestamp für Log
+            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+            log.write(f"[{timestamp}] --- Switching to desktop {desktop_index} ---\n")
             
             # 1. Alle Desktops laden
             try:
@@ -100,8 +97,8 @@ def _save_icons():
 
     try:
         with open(log_file, 'a', encoding='utf-8') as log:
-            log.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] --- Saving icons ---
-")
+            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+            log.write(f"[{timestamp}] --- Saving icons ---\n")
             try:
                 desktop_handler.save_current_desktop_icons()
                 log.write("Saved icons successfully.\n")
