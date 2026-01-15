@@ -14,9 +14,11 @@ from ..utils.path_validator import ensure_directory_exists
 from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
 from ...shared.localization import get_text
-from ...shared.style import PREFIX_ERROR, PREFIX_WARN, PREFIX_OK
+from ...shared.logging_config import get_logger
 from .icon_service import get_current_icon_positions, set_icon_positions
 from . import wallpaper_service
+
+logger = get_logger(__name__)
 
 
 def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool:
@@ -29,14 +31,14 @@ def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool
     else:
         if not os.path.exists(path) or not os.path.isdir(path):
             msg = get_text('desktop_handler.error.path_not_found_or_not_dir', path=path)
-            print(f"{PREFIX_ERROR} {msg}")
+            logger.error(msg)
             return False
 
     desktops = load_desktops()
 
     if any(d.name == name for d in desktops):
         msg = get_text('desktop_handler.error.name_exists', name=name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     new_desktop = Desktop(name=name, path=path)
@@ -44,7 +46,7 @@ def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool
     save_desktops(desktops)
 
     msg = get_text('desktop_handler.success.create', name=name)
-    print(f"{PREFIX_OK} {msg}")
+    logger.info(msg)
     return True
 
 
@@ -55,18 +57,18 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
 
     if not target_desktop:
         msg = get_text('desktop_handler.error.not_found', old_name=old_name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     # Geschützte Desktops können nicht bearbeitet werden
     if target_desktop.protected:
         msg = get_text('desktop_handler.error.protected_edit', name=old_name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     if new_name != old_name and any(d.name == new_name for d in desktops):
         msg = get_text('desktop_handler.error.new_name_exists', new_name=new_name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     if new_path != target_desktop.path:
@@ -78,7 +80,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
                     msg = get_text(
                         'desktop_handler.warn.target_path_exists', path=new_path
                     )
-                    print(f"{PREFIX_WARN} {msg}")
+                    logger.warning(msg)
 
                 shutil.move(target_desktop.path, new_path)
                 msg = get_text(
@@ -86,15 +88,15 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
                     old_path=target_desktop.path,
                     new_path=new_path,
                 )
-                print(msg)
+                logger.info(msg)
             except Exception as e:
                 msg = get_text('desktop_handler.error.folder_move', e=e)
-                print(f"{PREFIX_ERROR} {msg}")
+                logger.error(msg)
                 return False
         else:
             if not ensure_directory_exists(new_path):
                 msg = get_text('desktop_handler.error.new_path_create', path=new_path)
-                print(f"{PREFIX_ERROR} {msg}")
+                logger.error(msg)
                 return False
 
     target_desktop.name = new_name
@@ -104,7 +106,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     msg = get_text(
         'desktop_handler.success.update', old_name=old_name, new_name=new_name
     )
-    print(f"{PREFIX_OK} {msg}")
+    logger.info(msg)
     return True
 
 
@@ -118,33 +120,35 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
 
     if not target_desktop:
         msg = get_text('desktop_handler.error.not_found_delete', name=name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     # Geschützte Desktops können nicht gelöscht werden
     if target_desktop.protected:
         msg = get_text('desktop_handler.error.protected_delete', name=name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     if not skip_confirm:
+        # Warnung: input() ist problematisch in GUI-Umgebungen.
+        # Sollte durch GUI-Dialoge und skip_confirm=True ersetzt werden.
         try:
             confirm = (
                 input(get_text("desktop_handler.prompts.delete_confirm", name=name))
                 .strip()
                 .lower()
             )
-        except EOFError:
-            print(get_text("desktop_handler.info.delete_aborted"))
+        except (EOFError, OSError):
+            logger.warning(get_text("desktop_handler.info.delete_aborted") + " (No Input)")
             return False
 
         if confirm != 'y':
-            print(get_text("desktop_handler.info.delete_aborted"))
+            logger.info(get_text("desktop_handler.info.delete_aborted"))
             return False
 
     if target_desktop.is_active:
         msg = get_text('desktop_handler.error.delete_active', name=name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
@@ -157,8 +161,8 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
             msg = get_text(
                 'desktop_handler.error.delete_critical', path=target_desktop.path
             )
-            print(f"{PREFIX_ERROR} {msg}")
-            print(get_text("desktop_handler.info.delete_denied"))
+            logger.error(msg)
+            logger.info(get_text("desktop_handler.info.delete_denied"))
             return False
 
     if delete_folder:
@@ -168,15 +172,15 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
                 msg = get_text(
                     'desktop_handler.success.folder_delete', path=target_desktop.path
                 )
-                print(f"{PREFIX_OK} {msg}")
+                logger.info(msg)
             except Exception as e:
                 msg = get_text('desktop_handler.error.folder_delete', e=e)
-                print(f"{PREFIX_ERROR} {msg}")
+                logger.error(msg)
         else:
             msg = get_text(
                 "desktop_handler.info.folder_not_found", path=target_desktop.path
             )
-            print(msg)
+            logger.info(msg)
 
     # Lösche das zugehörige Hintergrundbild
     if target_desktop.wallpaper_path and os.path.exists(target_desktop.wallpaper_path):
@@ -186,16 +190,16 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
                 'desktop_handler.success.wallpaper_delete',
                 path=target_desktop.wallpaper_path,
             )
-            print(f"{PREFIX_OK} {msg}")
+            logger.info(msg)
         except Exception as e:
             msg = get_text('desktop_handler.warn.wallpaper_delete', e=e)
-            print(f"{PREFIX_WARN} {msg}")
+            logger.warning(msg)
 
     desktops.remove(target_desktop)
     save_desktops(desktops)
 
     msg = get_text('desktop_handler.success.delete', name=name)
-    print(f"{PREFIX_OK} {msg}")
+    logger.info(msg)
     return True
 
 
@@ -229,7 +233,7 @@ def get_all_desktops() -> List[Desktop]:
 
     except Exception as e:
         msg = get_text('desktop_handler.warn.sync_failed', e=e)
-        print(f"{PREFIX_WARN} {msg}")
+        logger.warning(msg)
 
     # Sortierung: Geschützte Desktops zuerst, dann alphabetisch
     desktops.sort(key=lambda d: (not d.protected, d.name.lower()))
@@ -249,65 +253,71 @@ def switch_to_desktop(desktop_name: str) -> bool:
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
     if not target_desktop:
         msg = get_text('desktop_handler.error.switch_not_found', name=desktop_name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     if target_desktop.is_active:
         msg = get_text("desktop_handler.info.already_active", name=desktop_name)
-        print(msg)
+        logger.info(msg)
         return False
 
     # Automatisches Backup vor dem Wechsel
     backup_path = create_backup_before_switch()
     if backup_path:
-        print(f"{PREFIX_OK} Registry-Backup erstellt")
+        logger.info("Registry-Backup erstellt")
 
     target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
 
     if not os.path.exists(target_path):
         msg = get_text('desktop_handler.warn.path_not_found', name=desktop_name)
-        print(f"{PREFIX_WARN} {msg}")
-        print(get_text("desktop_handler.info.path_is", path=target_path))
-        print(get_text("desktop_handler.prompts.path_not_found_title"))
+        logger.warning(msg)
+        logger.info(get_text("desktop_handler.info.path_is", path=target_path))
+        
+        # Interaktive Abfrage vermeiden, wenn möglich, oder loggen.
+        # Hier ist ein potenzielles Problem für GUI, ähnlich wie bei delete_desktop.
+        # Aber switch_to_desktop wird meist via Hotkey oder CLI aufgerufen.
+        # Via GUI (Tray) wird es auch aufgerufen.
+        
+        print(get_text("desktop_handler.prompts.path_not_found_title")) # TODO: Refactor input
         print(get_text("desktop_handler.prompts.path_recreate"))
         print(get_text("desktop_handler.prompts.path_remove"))
         print(get_text("desktop_handler.prompts.path_abort"))
 
         try:
             choice = input(get_text("desktop_handler.prompts.your_choice")).strip()
-        except EOFError:
-            choice = "j"
+        except (EOFError, OSError):
+            choice = "j" # Default fallback? Oder Abort?
 
         if choice == '1':
             msg = get_text("desktop_handler.info.recreating_folder", path=target_path)
-            print(msg)
+            logger.info(msg)
             if ensure_directory_exists(target_path):
                 msg = get_text('desktop_handler.success.recreating_folder')
-                print(f"{PREFIX_OK} {msg}")
+                logger.info(msg)
             else:
                 msg = get_text('desktop_handler.error.recreating_folder')
-                print(f"{PREFIX_ERROR} {msg}")
-                print(get_text("desktop_handler.info.aborting_switch"))
+                logger.error(msg)
+                logger.info(get_text("desktop_handler.info.aborting_switch"))
                 return False
 
         elif choice == '2':
             msg = get_text("desktop_handler.info.removing_config", name=desktop_name)
-            print(msg)
+            logger.info(msg)
             try:
                 desktops.remove(target_desktop)
                 save_desktops(desktops)
                 msg = get_text(
                     'desktop_handler.success.removing_config', name=desktop_name
                 )
-                print(f"{PREFIX_OK} {msg}")
+                logger.info(msg)
             except (ValueError, OSError) as e:
                 msg = get_text('desktop_handler.error.removing_config', e=e)
-                print(f"{PREFIX_ERROR} {msg}")
+                logger.error(msg)
 
-            print(get_text("desktop_handler.info.aborting_switch"))
+            logger.info(get_text("desktop_handler.info.aborting_switch"))
             return False
         else:
-            print(get_text("desktop_handler.info.aborting_switch"))
+            logger.info(get_text("desktop_handler.info.aborting_switch"))
             return False
 
     # Animation starten
@@ -318,7 +328,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
         )
 
         if not os.path.exists(animation_script):
-            print(f"{PREFIX_WARN} Animationsskript nicht gefunden")
+            logger.warning("Animationsskript nicht gefunden")
         else:
             subprocess.Popen(
                 [sys.executable, animation_script],
@@ -328,13 +338,13 @@ def switch_to_desktop(desktop_name: str) -> bool:
             )
             time.sleep(0.5)
     except (OSError, ValueError, FileNotFoundError) as e:
-        print(f"{PREFIX_WARN} Animation konnte nicht gestartet werden: {e}")
+        logger.warning(f"Animation konnte nicht gestartet werden: {e}")
 
     # Eigentlicher Wechselprozess
     active_desktop = next((d for d in desktops if d.is_active), None)
     if active_desktop:
         msg = get_text("desktop_handler.info.saving_icons", name=active_desktop.name)
-        print(msg)
+        logger.info(msg)
         try:
             active_desktop.icon_positionen = get_current_icon_positions(
                 timeout_seconds=3
@@ -342,21 +352,21 @@ def switch_to_desktop(desktop_name: str) -> bool:
             active_desktop.is_active = False
             save_desktops(desktops)
             msg = get_text('desktop_handler.success.db_update')
-            print(f"{PREFIX_OK} {msg}")
+            logger.info(msg)
         except Exception as e:
-            print(f"{PREFIX_WARN} Icon-Speicherung fehlgeschlagen: {e}")
+            logger.warning(f"Icon-Speicherung fehlgeschlagen: {e}")
             active_desktop.is_active = False
             save_desktops(desktops)
     else:
         msg = get_text('desktop_handler.warn.no_active_desktop')
-        print(f"{PREFIX_WARN} {msg}")
+        logger.warning(msg)
 
     msg = get_text(
         "desktop_handler.info.switching_registry",
         name=target_desktop.name,
         path=target_desktop.path,
     )
-    print(msg)
+    logger.info(msg)
 
     reg_success = True
     if not update_registry_key(
@@ -370,13 +380,13 @@ def switch_to_desktop(desktop_name: str) -> bool:
 
     if not reg_success:
         msg = get_text('desktop_handler.error.registry_update_failed')
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         if active_desktop:
             active_desktop.is_active = True
             save_desktops(desktops)
         return False
 
-    print(get_text("desktop_handler.info.registry_success"))
+    logger.info(get_text("desktop_handler.info.registry_success"))
     return True
 
 
@@ -384,35 +394,35 @@ def sync_desktop_state_and_apply_icons():
     """
     Führt die Aktionen *nach* dem Explorer-Neustart aus.
     """
-    print(get_text("desktop_handler.info.sync_after_restart"))
+    logger.info(get_text("desktop_handler.info.sync_after_restart"))
 
     desktops = get_all_desktops()
     new_active_desktop = next((d for d in desktops if d.is_active), None)
 
     if not new_active_desktop:
         msg = get_text('desktop_handler.error.sync_no_active')
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         msg = get_text('desktop_handler.warn.sync_path_not_registered')
-        print(f"{PREFIX_WARN} {msg}")
+        logger.warning(msg)
         return
 
     msg = get_text("desktop_handler.info.sync_path_found", path=new_active_desktop.path)
-    print(msg)
+    logger.info(msg)
     msg = get_text(
         "desktop_handler.info.sync_desktop_active", name=new_active_desktop.name
     )
-    print(msg)
+    logger.info(msg)
 
     if new_active_desktop.wallpaper_path:
-        print(get_text("desktop_handler.info.setting_wallpaper"))
+        logger.info(get_text("desktop_handler.info.setting_wallpaper"))
         wallpaper_service.set_wallpaper(new_active_desktop.wallpaper_path)
 
     msg = get_text(
         "desktop_handler.info.sync_restoring_icons", name=new_active_desktop.name
     )
-    print(msg)
+    logger.info(msg)
     set_icon_positions(new_active_desktop.icon_positionen)
-    print(get_text("desktop_handler.info.sync_icons_done"))
+    logger.info(get_text("desktop_handler.info.sync_icons_done"))
 
 
 def save_current_desktop_icons() -> bool:
@@ -425,23 +435,23 @@ def save_current_desktop_icons() -> bool:
 
     if not active_desktop:
         msg = get_text('desktop_handler.error.save_icons_no_active')
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         msg = get_text('desktop_handler.warn.save_icons_not_registered')
-        print(f"{PREFIX_WARN} {msg}")
+        logger.warning(msg)
         return False
 
     try:
         msg = get_text("desktop_handler.info.reading_icons", name=active_desktop.name)
-        print(msg)
+        logger.info(msg)
         active_desktop.icon_positionen = get_current_icon_positions()
         save_desktops(desktops)
 
         msg = get_text('desktop_handler.success.save_icons', name=active_desktop.name)
-        print(f"{PREFIX_OK} {msg}")
+        logger.info(msg)
         return True
     except Exception as e:
         msg = get_text('desktop_handler.error.save_icons', e=e)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
 
@@ -453,7 +463,7 @@ def assign_wallpaper(desktop_name: str, source_image_path: str) -> bool:
         msg = get_text(
             'wallpaper_manager.error.source_not_found', path=source_image_path
         )
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     desktops = get_all_desktops()
@@ -461,17 +471,17 @@ def assign_wallpaper(desktop_name: str, source_image_path: str) -> bool:
 
     if not target_desktop:
         msg = get_text('desktop_handler.error.not_found', old_name=desktop_name)
-        print(f"{PREFIX_ERROR} {msg}")
+        logger.error(msg)
         return False
 
     # Altes Bild löschen
     if target_desktop.wallpaper_path and os.path.exists(target_desktop.wallpaper_path):
         try:
             os.remove(target_desktop.wallpaper_path)
-            print(get_text("desktop_handler.info.old_wallpaper_removed"))
+            logger.info(get_text("desktop_handler.info.old_wallpaper_removed"))
         except Exception as e:
             msg = get_text('desktop_handler.warn.wallpaper_delete', e=e)
-            print(f"{PREFIX_WARN} {msg}")
+            logger.warning(msg)
 
     new_path = wallpaper_service.copy_wallpaper_to_datadir(
         source_image_path, target_desktop.name
@@ -484,10 +494,10 @@ def assign_wallpaper(desktop_name: str, source_image_path: str) -> bool:
     save_desktops(desktops)
 
     msg = get_text('desktop_handler.success.wallpaper_assigned', name=desktop_name)
-    print(f"{PREFIX_OK} {msg}")
+    logger.info(msg)
 
     if target_desktop.is_active:
-        print(get_text("desktop_handler.info.setting_wallpaper_now"))
+        logger.info(get_text("desktop_handler.info.setting_wallpaper_now"))
         wallpaper_service.set_wallpaper(new_path)
 
     return True
