@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DesktopPage</class>
+ <widget class="QWidget" name="DesktopPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_main">
+   <property name="spacing"><number>0</number></property>
+   <property name="leftMargin"><number>0</number></property>
+   <property name="topMargin"><number>0</number></property>
+   <property name="rightMargin"><number>0</number></property>
+   <property name="bottomMargin"><number>0</number></property>
+
+   <!-- LINKS: Liste & Add Button -->
+   <item>
+    <widget class="QFrame" name="frame_sidebar">
+     <property name="minimumSize"><size><width>250</width><height>0</height></size></property>
+     <property name="maximumSize"><size><width>280</width><height>16777215</height></size></property>
+     
+     <layout class="QVBoxLayout" name="verticalLayout_sidebar">
+      <property name="spacing"><number>10</number></property>
+      <property name="leftMargin"><number>10</number></property>
+      <property name="topMargin"><number>20</number></property>
+      <property name="rightMargin"><number>10</number></property>
+      <property name="bottomMargin"><number>20</number></property>
+      
+      <item>
+       <widget class="QLabel" name="label_list_title">
+        <property name="text"><string>Meine Desktops</string></property>
+       </widget>
+      </item>
+      
+      <item>
+       <widget class="QListWidget" name="list_desktops">
+       </widget>
+      </item>
+      
+      <item>
+       <widget class="QPushButton" name="btn_add_desktop">
+        <property name="text"><string>+ Neuer Desktop</string></property>
+        <property name="minimumSize"><size><width>0</width><height>40</height></size></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- RECHTS: Content Area (Details oder Create) -->
+   <item>
+    <widget class="QStackedWidget" name="stack_content">
+     
+     <!-- PAGE 0: Leere Ansicht -->
+     <widget class="QWidget" name="page_empty">
+        <layout class="QVBoxLayout" name="layout_empty">
+            <item>
+                <widget class="QLabel" name="label_empty">
+                    <property name="text"><string>Wählen Sie einen Desktop aus oder erstellen Sie einen neuen.</string></property>
+                    <property name="alignment"><set>Qt::AlignCenter</set></property>
+                </widget>
+            </item>
+        </layout>
+     </widget>
+
+     <!-- PAGE 1: Details Ansicht -->
+     <widget class="QWidget" name="page_details">
+      <layout class="QVBoxLayout" name="verticalLayout_details">
+       <property name="leftMargin"><number>40</number></property>
+       <property name="topMargin"><number>40</number></property>
+       <property name="rightMargin"><number>40</number></property>
+       <property name="bottomMargin"><number>40</number></property>
+       
+       <!-- Header -->
+       <item>
+        <layout class="QHBoxLayout" name="header_layout">
+            <property name="spacing"><number>15</number></property>
+            <item>
+                <widget class="QLabel" name="label_desktop_name">
+                 <property name="text"><string>Desktop Name</string></property>
+                 <property name="class" stdset="0"><string>page-title</string></property>
+                </widget>
+            </item>
+            <!-- NEW: Edit Name Button -->
+            <item>
+                <widget class="QPushButton" name="btn_edit_name">
+                    <property name="text"><string>Umbenennen</string></property>
+                    <property name="toolTip"><string>Namen ändern</string></property>
+                    <!-- Entferne maximumSize Restriktion für Breite -->
+                    <property name="minimumSize"><size><width>0</width><height>30</height></size></property>
+                </widget>
+            </item>
+            
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+            
+            <item>
+                <widget class="QLabel" name="label_status_badge">
+                    <property name="text"><string>AKTIV</string></property>
+                    <property name="visible"><bool>false</bool></property>
+                </widget>
+            </item>
+        </layout>
+       </item>
+
+       <item>
+        <widget class="QLabel" name="label_desktop_path">
+         <property name="text"><string>C:/Pfad/zum/Desktop</string></property>
+        </widget>
+       </item>
+       
+       <item><widget class="Line" name="line1"><property name="orientation"><enum>Qt::Horizontal</enum></property></widget></item>
+
+       <!-- Wallpaper Section -->
+       <item>
+        <widget class="QLabel" name="label_section_wallpaper">
+            <property name="text"><string>Hintergrundbild</string></property>
+        </widget>
+       </item>
+
+       <item>
+        <layout class="QHBoxLayout" name="layout_wallpaper">
+            <property name="spacing"><number>20</number></property>
+            <item>
+                <widget class="QLabel" name="img_wallpaper_preview">
+                    <property name="text"><string>Kein Bild</string></property>
+                    <property name="minimumSize"><size><width>320</width><height>180</height></size></property>
+                    <property name="maximumSize"><size><width>320</width><height>180</height></size></property>
+                    <property name="alignment"><set>Qt::AlignCenter</set></property>
+                    <property name="scaledContents"><bool>true</bool></property>
+                </widget>
+            </item>
+            <item>
+                <layout class="QVBoxLayout" name="layout_wallpaper_actions">
+                    <item>
+                        <widget class="QPushButton" name="btn_change_wallpaper">
+                            <property name="text"><string>Bild ändern...</string></property>
+                        </widget>
+                    </item>
+                    <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+                </layout>
+            </item>
+        </layout>
+       </item>
+
+       <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+
+       <!-- Footer Actions -->
+       <item>
+        <layout class="QHBoxLayout" name="layout_footer_actions">
+            <item>
+                <widget class="QPushButton" name="btn_activate_desktop">
+                    <property name="text"><string>Zu diesem Desktop wechseln</string></property>
+                </widget>
+            </item>
+            <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+            <item>
+                <widget class="QPushButton" name="btn_delete_desktop">
+                    <property name="text"><string>Desktop löschen</string></property>
+                </widget>
+            </item>
+        </layout>
+       </item>
+
+      </layout>
+     </widget>
+
+     <!-- PAGE 2: Erstellen Ansicht -->
+     <widget class="QWidget" name="page_create">
+      <layout class="QVBoxLayout" name="layout_create_wrapper">
+       <property name="leftMargin"><number>40</number></property>
+       <property name="topMargin"><number>40</number></property>
+       <property name="rightMargin"><number>40</number></property>
+       <property name="bottomMargin"><number>40</number></property>
+
+       <item>
+        <widget class="QLabel" name="label_create_title">
+         <property name="text"><string>Neuen Desktop erstellen</string></property>
+         <property name="class" stdset="0"><string>page-title</string></property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QGroupBox" name="group_create">
+         <property name="title"><string>Details</string></property>
+         <layout class="QFormLayout" name="formLayout_create">
+          <property name="verticalSpacing"><number>15</number></property>
+          
+          <item row="0" column="0"><widget class="QLabel" name="l_name"><property name="text"><string>Name:</string></property></widget></item>
+          <item row="0" column="1"><widget class="QLineEdit" name="inp_create_name"><property name="placeholderText"><string>z.B. Gaming</string></property></widget></item>
+          
+          <item row="1" column="0"><widget class="QLabel" name="l_mode"><property name="text"><string>Modus:</string></property></widget></item>
+          <item row="1" column="1">
+           <layout class="QHBoxLayout" name="hl_mode">
+            <item><widget class="QRadioButton" name="radio_existing"><property name="text"><string>Existierender Ordner</string></property><property name="checked"><bool>true</bool></property></widget></item>
+            <item><widget class="QRadioButton" name="radio_new"><property name="text"><string>Neuer Ordner</string></property></widget></item>
+           </layout>
+          </item>
+          
+          <item row="2" column="0"><widget class="QLabel" name="l_path"><property name="text"><string>Pfad:</string></property></widget></item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="hl_path">
+            <item><widget class="QLineEdit" name="inp_create_path"/></item>
+            <item><widget class="QPushButton" name="btn_browse_path"><property name="text"><string>...</string></property><property name="maximumSize"><size><width>40</width><height>16777215</height></size></property></widget></item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+
+       <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+
+       <item>
+        <layout class="QHBoxLayout" name="hl_create_actions">
+         <item><spacer><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+         <item>
+          <widget class="QPushButton" name="btn_cancel_create">
+           <property name="text"><string>Abbrechen</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_confirm_create">
+           <property name="text"><string>Desktop erstellen</string></property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+
+    </widget>
+   </item>
+  </layout>
+ </widget>
+</ui>

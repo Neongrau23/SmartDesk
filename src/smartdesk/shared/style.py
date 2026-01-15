@@ -11,10 +11,10 @@ GREEN = colorama.Fore.GREEN
 YELLOW = colorama.Fore.YELLOW
 RESET = colorama.Style.RESET_ALL
 
-# Prefixe für Ausgaben
-PREFIX_OK = f"{GREEN}✓{RESET}"
-PREFIX_ERROR = f"{RED}✗{RESET}"
-PREFIX_WARN = f"{YELLOW}!{RESET}"
+# Prefixe für Ausgaben (ASCII-Safe)
+PREFIX_OK = f"{GREEN}[OK]{RESET}"
+PREFIX_ERROR = f"{RED}[ERR]{RESET}"
+PREFIX_WARN = f"{YELLOW}[WARN]{RESET}"
 
 
 def format_status_active(text: str) -> str:

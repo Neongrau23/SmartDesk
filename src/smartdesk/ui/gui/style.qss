@@ -1,115 +1,207 @@
-/* --- Globale Einstellungen --- */
+/* --- GLOBAL --- */
 QWidget {
-    color: #cccccc;
-    font-family: "Segoe UI";
-    font-size: 10pt;
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 14px;
 }
 
-#Form {
-    background-color: #2b2b2b;
-    border-radius: 10px;
+/* --- SIDEBAR --- */
+QFrame#sidebar {
+    background-color: #252526; /* Etwas heller als Main */
+    border-right: 1px solid #3e3e42;
 }
 
-/* --- Label --- */
-QLabel {
-    color: #cccccc;
-}
-
-/* Titel-Label (Fett) */
-#label_title {
-    color: #ffffff;
+QLabel#label_logo {
+    color: #0078d4; /* Akzentfarbe Blau */
+    font-size: 22px;
     font-weight: bold;
-    font-size: 14pt;
+    padding: 20px 10px;
 }
 
-/* --- Buttons (Standard) --- */
-QPushButton {
-    background-color: #3c3c3c;
+/* --- NAVIGATION BUTTONS --- */
+QPushButton.nav-btn {
+    background-color: transparent;
+    border: none;
+    border-left: 4px solid transparent;
+    border-radius: 0px; /* Eckig an der Seite */
+    text-align: left;
+    padding: 12px 20px;
+    color: #cccccc;
+    font-size: 14px;
+}
+
+QPushButton.nav-btn:hover {
+    background-color: #2d2d2d;
     color: #ffffff;
-    border: 1px solid #333333; /* Leichter Rand für 3D-Effekt */
-    border-radius: 5px;
+}
+
+QPushButton.nav-btn:checked {
+    background-color: #37373d;
+    color: #ffffff;
+    border-left: 4px solid #0078d4;
+    font-weight: 600;
+}
+
+/* --- TITEL --- */
+QLabel.page-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* --- CARDS / GROUPBOXES --- */
+/* Wir machen GroupBoxes zu "Cards" */
+QGroupBox {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 8px;
+    margin-top: 24px; /* Platz für den Titel */
+    padding: 15px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 5px;
+    left: 10px;
+    color: #0078d4;
+    font-weight: bold;
+    background-color: transparent;
+}
+
+/* --- LISTS --- */
+QListWidget {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 6px;
+    outline: none; /* Kein Fokus-Rahmen */
+    padding: 5px;
+}
+
+QListWidget::item {
     padding: 10px;
-    text-align: center;
+    border-radius: 4px;
+    color: #ddd;
+    margin-bottom: 2px;
+}
+
+QListWidget::item:hover {
+    background-color: #2a2d2e;
+}
+
+QListWidget::item:selected {
+    background-color: #0078d4;
+    color: white;
+}
+
+/* --- BUTTONS --- */
+/* Standard Action Button */
+QPushButton {
+    background-color: #3e3e42;
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    padding: 8px 16px;
+    color: #ffffff;
 }
 
 QPushButton:hover {
-    background-color: #4a4a4a;
-    border: 1px solid #555555;
+    background-color: #4e4e52;
+    border-color: #4e4e52;
 }
 
 QPushButton:pressed {
-    background-color: #2a2a2a;
+    background-color: #0078d4;
+    border-color: #0078d4;
 }
 
-QPushButton:disabled {
-    background-color: #2f2f2f;
-    color: #555555;
-    border: 1px solid transparent;
-}
-
-/* --- Spezielle Buttons (Aktionen) --- */
-#btn_create {
-    background-color: #14a085; /* Grün */
-    font-weight: bold;
-}
-#btn_create:hover { background-color: #0d7377; }
-
-#btn_toggle_hotkey[active="true"] {
-    background-color: #d9534f; /* Rot */
-}
-#btn_toggle_hotkey[active="true"]:hover { background-color: #c9302c; }
-
-/* --- Desktop Liste (ScrollArea) --- */
-QScrollArea {
-    background-color: #2b2b2b; /* Gleiche Farbe wie Hintergrund */
-    border: none;
-}
-
-QScrollArea > QWidget > QWidget {
-    background-color: #2b2b2b;
-}
-
-/* --- Die Listenelemente als BUTTONS --- */
-QPushButton[class="desktop_item"] {
-    background-color: #3c3c3c; /* Sichtbarer Hintergrund */
-    color: #ffffff;
-    text-align: left;
-    padding: 8px 15px; /* Mehr Platz innen */
-    border-radius: 5px;
-    margin-bottom: 4px; /* Abstand zwischen den Buttons */
-    border: 1px solid #444444;
-}
-
-QPushButton[class="desktop_item"]:hover {
-    background-color: #4a4a4a;
-    border: 1px solid #666666;
-}
-
-/* Ausgewählter Button (aktiv) */
-QPushButton[class="desktop_item"]:checked {
-    background-color: #14a085; /* SmartDesk Grün */
+/* Primary Button (Akzent) */
+QPushButton#btn_add_desktop, 
+QPushButton#btn_confirm_create, 
+QPushButton#btn_activate_desktop,
+QPushButton.primary-btn {
+    background-color: #0078d4;
+    border: 1px solid #0078d4;
     color: white;
-    border: 1px solid #1abc9c;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-/* --- Scrollbars (Dezent) --- */
+QPushButton#btn_add_desktop:hover, 
+QPushButton#btn_confirm_create:hover, 
+QPushButton#btn_activate_desktop:hover,
+QPushButton.primary-btn:hover {
+    background-color: #106ebe;
+    border-color: #106ebe;
+}
+
+/* Delete / Danger Button */
+QPushButton#btn_delete_desktop {
+    background-color: #2b1111;
+    border: 1px solid #5a1e1e;
+    color: #ff9999;
+}
+
+QPushButton#btn_delete_desktop:hover {
+    background-color: #421212;
+    border-color: #7a2e2e;
+}
+
+/* --- INPUTS --- */
+QLineEdit, QTextEdit {
+    background-color: #3c3c3c;
+    border: 1px solid #3c3c3c; /* Flat look */
+    border-radius: 4px;
+    padding: 8px;
+    color: #f0f0f0;
+    selection-background-color: #0078d4;
+}
+
+QLineEdit:focus, QTextEdit:focus {
+    background-color: #303030;
+    border: 1px solid #0078d4; /* Blauer Rahmen bei Fokus */
+}
+
+/* --- SCROLLBARS --- */
 QScrollBar:vertical {
-    background-color: #2b2b2b;
-    width: 8px;
-    margin: 0px;
+    border: none;
+    background: #1e1e1e;
+    width: 10px;
+    margin: 0px 0px 0px 0px;
 }
 QScrollBar::handle:vertical {
-    background-color: #555555;
-    border-radius: 4px;
+    background: #424242;
     min-height: 20px;
-}
-QScrollBar::handle:vertical:hover {
-    background-color: #666666;
+    border-radius: 5px;
 }
 QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-    height: 0px;
-}
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    border: none;
     background: none;
+}
+
+/* --- STATUS BADGES ETC --- */
+QLabel#label_status_badge {
+    /* Styles werden oft im Code überschrieben, aber Default hier: */
+    border-radius: 12px;
+}
+
+/* Edit Name Button */
+QPushButton#btn_edit_name {
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    font-size: 12px;
+    padding: 4px 10px;
+    margin-left: 10px;
+    color: #eeeeee;
+}
+
+QPushButton#btn_edit_name:hover {
+    background-color: #4a4a4a;
+    border-color: #777;
+}
+
+QPushButton#btn_edit_name:disabled {
+    background-color: transparent;
+    border: 1px solid #333;
+    color: #555;
 }
