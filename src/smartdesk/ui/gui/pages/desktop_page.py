@@ -305,7 +305,7 @@ class DesktopPage(QWidget):
         )
         
         if reply == QMessageBox.Yes:
-            success = desktop_service.switch_to_desktop(self.current_desktop.name)
+            success = desktop_service.switch_to_desktop(self.current_desktop.name, parent=self)
             
             if success:
                 desktop_service.sync_desktop_state_and_apply_icons()
@@ -320,16 +320,9 @@ class DesktopPage(QWidget):
         
         name = self.current_desktop.name
         
-        reply = QMessageBox.question(
-            self, "Löschen", 
-            f"Möchten Sie den Desktop '{name}' wirklich löschen?\nDer Ordner bleibt erhalten.",
-            QMessageBox.Yes | QMessageBox.No
-        )
-        
-        if reply == QMessageBox.Yes:
-            if desktop_service.delete_desktop(name, skip_confirm=True):
-                self.refresh_list()
-                self.stack_content.setCurrentIndex(0) # Empty
-                QMessageBox.information(self, "Gelöscht", f"Desktop '{name}' wurde entfernt.")
-            else:
-                QMessageBox.warning(self, "Fehler", "Konnte Desktop nicht löschen (ggf. aktiv oder geschützt).")
+        if desktop_service.delete_desktop(name, parent=self):
+            self.refresh_list()
+            self.stack_content.setCurrentIndex(0) # Empty
+            QMessageBox.information(self, "Gelöscht", f"Desktop '{name}' wurde entfernt.")
+        else:
+            QMessageBox.warning(self, "Fehler", "Konnte Desktop nicht löschen (ggf. aktiv oder geschützt).")

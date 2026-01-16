@@ -127,7 +127,7 @@ pip-delete-this-directory.txt
 
 # Logs
 logs/
-# *.log
+*.log
 npm-debug.log*
 
 # Local configuration
@@ -138,12 +138,3 @@ local_settings.py
 *.exe
 *.dll
 *.pyd
-
-
-
-
-
-
-smartdesk_error.log
-listener.log
-listener.txt

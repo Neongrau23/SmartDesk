@@ -17,6 +17,7 @@ from ...shared.localization import get_text
 from ...shared.logging_config import get_logger
 from .icon_service import get_current_icon_positions, set_icon_positions
 from . import wallpaper_service
+from ...ui.gui.dialogs import show_choice_dialog, show_confirmation_dialog
 
 logger = get_logger(__name__)
 
@@ -110,7 +111,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
     return True
 
 
-def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = False) -> bool:
+def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = False, parent=None) -> bool:
     """
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
     Geschützte Desktops (z.B. Original) können nicht gelöscht werden.
@@ -130,19 +131,11 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
         return False
 
     if not skip_confirm:
-        # Warnung: input() ist problematisch in GUI-Umgebungen.
-        # Sollte durch GUI-Dialoge und skip_confirm=True ersetzt werden.
-        try:
-            confirm = (
-                input(get_text("desktop_handler.prompts.delete_confirm", name=name))
-                .strip()
-                .lower()
-            )
-        except (EOFError, OSError):
-            logger.warning(get_text("desktop_handler.info.delete_aborted") + " (No Input)")
-            return False
+        # Ersetzt durch GUI-Dialog
+        title = get_text("desktop_handler.prompts.delete_confirm_title")
+        message = get_text("desktop_handler.prompts.delete_confirm", name=name)
 
-        if confirm != 'y':
+        if not show_confirmation_dialog(parent, title, message):
             logger.info(get_text("desktop_handler.info.delete_aborted"))
             return False
 
@@ -241,7 +234,7 @@ def get_all_desktops() -> List[Desktop]:
     return desktops
 
 
-def switch_to_desktop(desktop_name: str) -> bool:
+def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     """
     Bereitet den Desktop-Wechsel vor.
     Gibt True zurück, wenn ein Explorer-Neustart NÖTIG ist.
@@ -273,22 +266,18 @@ def switch_to_desktop(desktop_name: str) -> bool:
         logger.warning(msg)
         logger.info(get_text("desktop_handler.info.path_is", path=target_path))
         
-        # Interaktive Abfrage vermeiden, wenn möglich, oder loggen.
-        # Hier ist ein potenzielles Problem für GUI, ähnlich wie bei delete_desktop.
-        # Aber switch_to_desktop wird meist via Hotkey oder CLI aufgerufen.
-        # Via GUI (Tray) wird es auch aufgerufen.
+        title = get_text("desktop_handler.prompts.path_not_found_title")
+        message = get_text("desktop_handler.prompts.path_not_found_message")
         
-        print(get_text("desktop_handler.prompts.path_not_found_title")) # TODO: Refactor input
-        print(get_text("desktop_handler.prompts.path_recreate"))
-        print(get_text("desktop_handler.prompts.path_remove"))
-        print(get_text("desktop_handler.prompts.path_abort"))
+        choices = [
+            get_text("desktop_handler.prompts.path_recreate"),
+            get_text("desktop_handler.prompts.path_remove"),
+            get_text("desktop_handler.prompts.path_abort"),
+        ]
 
-        try:
-            choice = input(get_text("desktop_handler.prompts.your_choice")).strip()
-        except (EOFError, OSError):
-            choice = "j" # Default fallback? Oder Abort?
+        choice_text = show_choice_dialog(parent, title, message, choices)
 
-        if choice == '1':
+        if choice_text == get_text("desktop_handler.prompts.path_recreate"):
             msg = get_text("desktop_handler.info.recreating_folder", path=target_path)
             logger.info(msg)
             if ensure_directory_exists(target_path):
@@ -300,7 +289,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
                 logger.info(get_text("desktop_handler.info.aborting_switch"))
                 return False
 
-        elif choice == '2':
+        elif choice_text == get_text("desktop_handler.prompts.path_remove"):
             msg = get_text("desktop_handler.info.removing_config", name=desktop_name)
             logger.info(msg)
             try:
@@ -316,7 +305,7 @@ def switch_to_desktop(desktop_name: str) -> bool:
 
             logger.info(get_text("desktop_handler.info.aborting_switch"))
             return False
-        else:
+        else: # Abort or no choice
             logger.info(get_text("desktop_handler.info.aborting_switch"))
             return False
 
