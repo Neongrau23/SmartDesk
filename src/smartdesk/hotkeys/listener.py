@@ -64,6 +64,24 @@ _log_func = None
 
 # --- 3. Listener-Funktionen ---
 
+def _get_key_identifier(key):
+    """
+    Konvertiert ein pynput Key-Objekt in einen String-Identifier,
+    wie er in der Konfiguration erwartet wird.
+    """
+    if hasattr(key, 'char') and key.char is not None:
+        return key.char # Z.B. '1', 'a'
+
+    # Check for special keys (Key.f1, Key.enter, etc.)
+    try:
+        if isinstance(key, Key):
+            return key.name # Z.B. 'f1'
+    except AttributeError:
+        pass
+
+    return str(key).replace('Key.', '')
+
+
 def _get_banner_ctrl():
     """Lazy-Initialisierung des Banner-Controllers."""
     global _banner_controller
@@ -138,11 +156,8 @@ def on_press(key):
 
         alt_gehalten = Key.alt_l in current_keys or Key.alt_r in current_keys
 
-        key_char = None
-        try:
-            key_char = key.char
-        except AttributeError:
-            pass
+        # Identifier für die Taste ermitteln (z.B. '1', 'f1')
+        key_id = _get_key_identifier(key)
 
         is_modifier = key in (
             Key.alt_l, Key.alt_r, Key.ctrl_l, Key.ctrl_r,
@@ -152,24 +167,24 @@ def on_press(key):
         if alt_gehalten:
             registry = get_registry()
             if _log_func:
-                _log_func(f"alt held, key_char: {key_char}")
+                _log_func(f"alt held, key_id: {key_id}")
             
-            # Prüfen auf Kombinationen (z.B. Alt+1)
-            if key_char and registry.has_combo_action(key_char):
+            # Prüfen auf Kombinationen (z.B. Alt+1 oder Alt+F1)
+            if key_id and registry.has_combo_action(key_id):
                 _cancel_alt_hold_timer()
                 if _log_func:
-                    desc = registry.get_combo_description(key_char)
-                    _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
-                    _log_func(f"Executing combo action for key: {key_char}")
+                    desc = registry.get_combo_description(key_id)
+                    _log_func(get_text("hotkey_listener.log.action_executed", n=key_id, desc=desc))
+                    _log_func(f"Executing combo action for key: {key_id}")
                 
                 _close_banner_and_reset()
-                registry.execute_combo(key_char)
+                registry.execute_combo(key_id)
             elif is_modifier:
                 pass
             else:
                 # Ungültige Taste während Alt gehalten wird -> Reset
                 if _log_func:
-                    _log_func(f"No combo action for key: {key_char}")
+                    _log_func(f"No combo action for key: {key_id}")
                 _close_banner_and_reset()
                 print(get_text("hotkey_listener.info.abort_invalid_key"))
 

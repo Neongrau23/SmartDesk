@@ -5,6 +5,14 @@ Alle Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/),
 und dieses Projekt hält sich an [Semantic Versioning](https://semver.org/lang/de/).
 
+## [Unreleased]
+
+### Added
+- Konfigurierbares Hotkey-System: Tastenbelegungen können nun in einer `config.json` angepasst werden.
+
+### Changed
+- Refactoring des Hotkey-Listeners für Unterstützung beliebiger Tasten.
+
 ## [0.2.1] - 2026-01-16
 
 ### Fixed
