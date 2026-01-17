@@ -104,5 +104,5 @@ Beiträge sind willkommen! Bitte beachte beim Coden die bestehenden Konventionen
 
 Dieses Projekt ist unter der **MIT Lizenz** veröffentlicht. Siehe [LICENSE](LICENSE) für Details.
 
-Copyright (c) 2025 Neongrau23
+Copyright (c) 2026 Neongrau23
 
