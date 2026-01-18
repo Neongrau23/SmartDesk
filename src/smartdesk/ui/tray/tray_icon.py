@@ -26,6 +26,7 @@ except Exception as e:
 
 # --- Projekt-Imports ---
 from smartdesk.hotkeys import hotkey_manager
+from smartdesk.core.services.auto_switch_service import AutoSwitchService
 from smartdesk.ui.gui.control_panel import SmartDeskControlPanel
 from smartdesk.shared.localization import get_text, init_localization
 
@@ -43,6 +44,10 @@ class SmartDeskTrayApp(QApplication):
 
         self.control_panel = None
         
+        # --- Auto Switch Service ---
+        self.auto_switch_service = AutoSwitchService()
+        self.auto_switch_service.start()
+
         # --- Icons Laden ---
         icon_path = os.path.join(smartdesk_dir, 'icons')
         self.idle_icon = QIcon(os.path.join(icon_path, 'idle_icon.png'))
@@ -88,6 +93,12 @@ class SmartDeskTrayApp(QApplication):
         # --- Status-Überwachung ---
         self.status_thread = threading.Thread(target=self.monitor_status, daemon=True)
         self.status_thread.start()
+
+    def quit(self):
+        """Beendet die Anwendung sauber."""
+        if self.auto_switch_service:
+            self.auto_switch_service.stop()
+        super().quit()
 
     def on_tray_activated(self, reason):
         """Wird aufgerufen, wenn auf das Tray-Icon geklickt wird."""
