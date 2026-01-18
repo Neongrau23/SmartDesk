@@ -294,7 +294,7 @@ class MultiMonitorFade:
             pass
 
     def wait_for_signal(self):
-        """Wartet auf die Signaldatei, bevor ausgeblendet wird."""
+        """Wartet darauf, dass die Signaldatei vom aufrufenden Prozess gelöscht wird."""
         if not self.signal_file:
             # Fallback auf feste Zeit, wenn keine Signaldatei übergeben wurde
             if self.config.DEBUG:
@@ -305,14 +305,15 @@ class MultiMonitorFade:
             return
 
         if self.config.DEBUG:
-            print(f"Warte auf Signaldatei: {self.signal_file}")
+            print(f"Warte auf Löschung der Signaldatei: {self.signal_file}")
 
         start_time = time.time()
         # Maximales Timeout, falls der Hauptprozess abstürzt
         max_wait_seconds = 30
 
         try:
-            while not os.path.exists(self.signal_file):
+            # Warte solange die Datei existiert
+            while os.path.exists(self.signal_file):
                 time.sleep(0.1)
                 # Root-Update ist wichtig, damit das Fenster nicht einfriert
                 self.root.update_idletasks()
@@ -324,16 +325,11 @@ class MultiMonitorFade:
                     break
 
             if self.config.DEBUG:
-                print("Signaldatei empfangen.")
+                print("Signaldatei wurde gelöscht (oder Timeout). Fahre fort.")
 
-        finally:
-            # Signaldatei aufräumen, falls sie existiert
-            if os.path.exists(self.signal_file):
-                try:
-                    os.remove(self.signal_file)
-                except Exception as e:
-                    if self.config.DEBUG:
-                        print(f"Konnte Signaldatei nicht löschen: {e}")
+        except Exception as e:
+            if self.config.DEBUG:
+                print(f"Fehler beim Warten auf Signaldatei: {e}")
 
 
 if __name__ == "__main__":

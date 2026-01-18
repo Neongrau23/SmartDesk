@@ -69,20 +69,7 @@ def _switch_to_desktop_by_index(desktop_index: int):
 
                 # 3. Zum Desktop wechseln
                 if desktop_handler.switch_to_desktop(target_desktop.name):
-                    log.write("Switched to desktop successfully.\n")
-                    try:
-                        system_manager.restart_explorer()
-                        log.write("Restarted explorer.\n")
-                    except Exception as e:
-                        log.write(f"Error restarting explorer: {e}\n")
-                    
-                    time.sleep(0.5)
-                    
-                    try:
-                        desktop_handler.sync_desktop_state_and_apply_icons()
-                        log.write("Synced desktop state and applied icons.\n")
-                    except Exception as e:
-                        log.write(f"Error syncing state: {e}\n")
+                    log.write("Switched to desktop successfully (including restart & sync).\n")
             else:
                 log.write(f"Invalid desktop index: {desktop_index}\n")
 

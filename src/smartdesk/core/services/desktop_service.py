@@ -6,9 +6,11 @@ import shutil
 import sys
 import time
 import subprocess
+import tempfile
 from typing import List
 
 from ...shared.config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
+from ..services.system_service import restart_explorer
 from ..utils.registry_operations import update_registry_key, get_registry_value
 from ..utils.path_validator import ensure_directory_exists
 from ..models.desktop import Desktop
@@ -236,8 +238,12 @@ def get_all_desktops() -> List[Desktop]:
 
 def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     """
-    Bereitet den Desktop-Wechsel vor.
-    Gibt True zurück, wenn ein Explorer-Neustart NÖTIG ist.
+    Führt den kompletten Desktop-Wechsel durch:
+    1. Animation starten (Lock-File-gesteuert)
+    2. Registry-Einträge ändern
+    3. Explorer neustarten
+    4. Icons und Wallpaper setzen
+    5. Animation beenden
     """
     from ..utils.backup_service import create_backup_before_switch
 
@@ -309,7 +315,16 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
             logger.info(get_text("desktop_handler.info.aborting_switch"))
             return False
 
-    # Animation starten
+    # 1. Lock-File für Animation erstellen
+    lock_file = os.path.join(tempfile.gettempdir(), 'smartdesk_switch.lock')
+    try:
+        with open(lock_file, 'w') as f:
+            f.write("Switching...")
+    except Exception as e:
+        logger.warning(f"Konnte Lock-File nicht erstellen: {e}")
+        lock_file = None
+
+    # 2. Animation starten
     try:
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         animation_script = os.path.join(
@@ -319,17 +334,22 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
         if not os.path.exists(animation_script):
             logger.warning("Animationsskript nicht gefunden")
         else:
+            cmd = [sys.executable, animation_script]
+            if lock_file:
+                cmd.append(lock_file)
+
             subprocess.Popen(
-                [sys.executable, animation_script],
+                cmd,
                 creationflags=subprocess.CREATE_NO_WINDOW,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
+            # Kurz warten, damit das Fenster sichtbar wird (Fade-In)
             time.sleep(0.5)
     except (OSError, ValueError, FileNotFoundError) as e:
         logger.warning(f"Animation konnte nicht gestartet werden: {e}")
 
-    # Eigentlicher Wechselprozess
+    # 3. Icons des aktuellen Desktops sichern
     active_desktop = next((d for d in desktops if d.is_active), None)
     if active_desktop:
         msg = get_text("desktop_handler.info.saving_icons", name=active_desktop.name)
@@ -350,6 +370,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
         msg = get_text('desktop_handler.warn.no_active_desktop')
         logger.warning(msg)
 
+    # 4. Registry ändern
     msg = get_text(
         "desktop_handler.info.switching_registry",
         name=target_desktop.name,
@@ -370,10 +391,34 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     if not reg_success:
         msg = get_text('desktop_handler.error.registry_update_failed')
         logger.error(msg)
+        # Rollback: Aktiv-Status
         if active_desktop:
             active_desktop.is_active = True
             save_desktops(desktops)
+        
+        # Aufräumen: Lock-File entfernen, damit Animation stoppt
+        if lock_file and os.path.exists(lock_file):
+            try:
+                os.remove(lock_file)
+            except Exception:
+                pass
         return False
+
+    # 5. Explorer neustarten
+    restart_explorer()
+
+    # 6. Icons und Wallpaper für den neuen Desktop setzen (Sync)
+    # Da wir in switch_to_desktop sind und die Registry geändert haben, 
+    # synchronisieren wir jetzt den Status.
+    sync_desktop_state_and_apply_icons()
+
+    # 7. Lock-File löschen -> Animation beendet sich
+    if lock_file and os.path.exists(lock_file):
+        try:
+            os.remove(lock_file)
+            logger.debug(f"Lock-File entfernt: {lock_file}")
+        except Exception as e:
+            logger.warning(f"Konnte Lock-File nicht entfernen: {e}")
 
     logger.info(get_text("desktop_handler.info.registry_success"))
     return True

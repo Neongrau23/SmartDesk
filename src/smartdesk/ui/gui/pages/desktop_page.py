@@ -308,7 +308,6 @@ class DesktopPage(QWidget):
             success = desktop_service.switch_to_desktop(self.current_desktop.name, parent=self)
             
             if success:
-                desktop_service.sync_desktop_state_and_apply_icons()
                 self.refresh_list()
                 self.load_details(self.current_desktop.name)
                 QMessageBox.information(self, "Erfolg", "Desktop gewechselt.")
