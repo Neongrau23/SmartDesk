@@ -4,7 +4,7 @@ Unit-Tests für den Banner-Controller.
 """
 
 import time
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from smartdesk.hotkeys.banner_controller import (
     BannerController,
@@ -88,39 +88,31 @@ class TestBannerControllerStates:
 class TestBannerControllerTiming:
     """Tests für die Timing-Logik."""
 
-    def test_banner_shows_after_hold_duration(self):
+    @patch('smartdesk.hotkeys.banner_controller.subprocess.Popen')
+    def test_banner_shows_after_hold_duration(self, mock_popen):
         """Banner erscheint nach der Hold-Duration."""
-        mock_banner = MockBanner()
+        # Mock Popen return value to simulate running process
+        process_mock = mock_popen.return_value
+        process_mock.poll.return_value = None
+        process_mock.pid = 12345
 
-        config = BannerConfig(hold_duration_sec=0.1)  # Kurz für Tests
-        ctrl = BannerController(
-            banner_factory=lambda: mock_banner,
-            config=config
-        )
+        config = BannerConfig(hold_duration_sec=0.1)
+        ctrl = BannerController(config=config)
 
-        # Mock den BannerManager
-        with patch('smartdesk.hotkeys.banner_controller.get_banner_manager') as mock_manager:
-            mock_manager.return_value.show_banner = mock_banner.show
-            mock_manager.return_value.close_banner = mock_banner.close
-            
-            ctrl.on_ctrl_shift_triggered()
-            ctrl.on_alt_pressed()
+        ctrl.on_ctrl_shift_triggered()
+        ctrl.on_alt_pressed()
 
-            # Warte länger als Hold-Duration
-            time.sleep(0.2)
+        # Warte länger als Hold-Duration
+        time.sleep(0.2)
 
-            assert ctrl.state == BannerState.SHOWING
-            assert mock_banner.show_called
+        assert ctrl.state == BannerState.SHOWING
+        mock_popen.assert_called()
 
-    def test_banner_does_not_show_if_released_early(self):
+    @patch('smartdesk.hotkeys.banner_controller.subprocess.Popen')
+    def test_banner_does_not_show_if_released_early(self, mock_popen):
         """Banner erscheint nicht, wenn Alt zu früh losgelassen."""
-        mock_banner = MockBanner()
-        
-        config = BannerConfig(hold_duration_sec=1.0)  # 1 Sekunde
-        ctrl = BannerController(
-            banner_factory=lambda: mock_banner,
-            config=config
-        )
+        config = BannerConfig(hold_duration_sec=1.0)
+        ctrl = BannerController(config=config)
         
         ctrl.on_ctrl_shift_triggered()
         ctrl.on_alt_pressed()
@@ -129,33 +121,31 @@ class TestBannerControllerTiming:
         ctrl.on_alt_released()
         
         assert ctrl.state == BannerState.IDLE
-        assert not mock_banner.show_called
+        mock_popen.assert_not_called()
     
-    def test_banner_closes_on_alt_release(self):
+    @patch('smartdesk.hotkeys.banner_controller.subprocess.Popen')
+    def test_banner_closes_on_alt_release(self, mock_popen):
         """Banner schließt wenn Alt losgelassen wird."""
-        mock_banner = MockBanner()
-
+        # Setup Mock Process
+        process_mock = mock_popen.return_value
+        process_mock.poll.return_value = None
+        process_mock.stdin = MagicMock()
+        
         config = BannerConfig(hold_duration_sec=0.05)
-        ctrl = BannerController(
-            banner_factory=lambda: mock_banner,
-            config=config
-        )
+        ctrl = BannerController(config=config)
 
-        # Mock den BannerManager
-        with patch('smartdesk.hotkeys.banner_controller.get_banner_manager') as mock_manager:
-            mock_manager.return_value.show_banner = mock_banner.show
-            mock_manager.return_value.close_banner = mock_banner.close
-            
-            ctrl.on_ctrl_shift_triggered()
-            ctrl.on_alt_pressed()
-            time.sleep(0.1)  # Warte bis Banner erscheint
+        ctrl.on_ctrl_shift_triggered()
+        ctrl.on_alt_pressed()
+        time.sleep(0.1)  # Warte bis Banner erscheint
 
-            assert ctrl.state == BannerState.SHOWING
+        assert ctrl.state == BannerState.SHOWING
+        mock_popen.assert_called()
 
-            ctrl.on_alt_released()
+        ctrl.on_alt_released()
 
-            assert ctrl.state == BannerState.IDLE
-            assert mock_banner.close_called
+        assert ctrl.state == BannerState.IDLE
+        # Prüfen ob stdin.close() aufgerufen wurde (Signal zum Schließen)
+        process_mock.stdin.close.assert_called()
 class TestBannerControllerLogging:
     """Tests für die Logging-Funktionalität."""
     
@@ -188,9 +178,9 @@ class TestBannerControllerConfig:
     def test_default_config_values(self):
         """Standard-Konfiguration hat sinnvolle Werte."""
         ctrl = BannerController()
-        assert ctrl.config.hold_duration_sec == 0.3  # Aktualisiert auf den tatsächlichen Standardwert
+        assert ctrl.config.hold_duration_sec == 0.01
         assert ctrl.config.arm_timeout_sec == 5.0
-        assert ctrl.config.check_interval_ms == 50
+        assert ctrl.config.check_interval_ms == 0.01
 
 
 class TestBannerControllerArmTimeout:

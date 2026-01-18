@@ -139,9 +139,10 @@ class TestDeleteProtection:
             ),
         ]
 
+    @patch('smartdesk.core.services.desktop_service.logger')
     @patch('smartdesk.core.services.desktop_service.get_all_desktops')
     @patch('smartdesk.core.services.desktop_service.save_desktops')
-    def test_cannot_delete_protected_desktop(self, mock_save, mock_get_all, mock_desktops_with_protected, capsys):
+    def test_cannot_delete_protected_desktop(self, mock_save, mock_get_all, mock_logger, mock_desktops_with_protected):
         """Ein geschützter Desktop kann nicht gelöscht werden."""
         from smartdesk.core.services.desktop_service import delete_desktop
         
@@ -152,13 +153,15 @@ class TestDeleteProtection:
         assert result is False
         mock_save.assert_not_called()
         
-        captured = capsys.readouterr()
-        assert "geschützt" in captured.out.lower() or "protected" in captured.out.lower()
+        # Prüfe ob Fehler geloggt wurde
+        assert mock_logger.error.called
+        args, _ = mock_logger.error.call_args
+        assert "geschützt" in args[0].lower() or "protected" in args[0].lower()
 
     @patch('smartdesk.core.services.desktop_service.get_all_desktops')
     @patch('smartdesk.core.services.desktop_service.save_desktops')
-    @patch('builtins.input', return_value='y')
-    def test_can_delete_unprotected_desktop(self, mock_input, mock_save, mock_get_all, mock_desktops_with_protected):
+    @patch('smartdesk.core.services.desktop_service.show_confirmation_dialog', return_value=True)
+    def test_can_delete_unprotected_desktop(self, mock_confirm, mock_save, mock_get_all, mock_desktops_with_protected):
         """Ein nicht geschützter Desktop kann gelöscht werden."""
         from smartdesk.core.services.desktop_service import delete_desktop
         
@@ -196,9 +199,10 @@ class TestEditProtection:
             ),
         ]
 
+    @patch('smartdesk.core.services.desktop_service.logger')
     @patch('smartdesk.core.services.desktop_service.load_desktops')
     @patch('smartdesk.core.services.desktop_service.save_desktops')
-    def test_cannot_edit_protected_desktop(self, mock_save, mock_load, mock_desktops_with_protected, capsys):
+    def test_cannot_edit_protected_desktop(self, mock_save, mock_load, mock_logger, mock_desktops_with_protected):
         """Ein geschützter Desktop kann nicht bearbeitet werden."""
         from smartdesk.core.services.desktop_service import update_desktop
         
@@ -213,8 +217,10 @@ class TestEditProtection:
         assert result is False
         mock_save.assert_not_called()
         
-        captured = capsys.readouterr()
-        assert "geschützt" in captured.out.lower() or "protected" in captured.out.lower()
+        # Prüfe ob Fehler geloggt wurde
+        assert mock_logger.error.called
+        args, _ = mock_logger.error.call_args
+        assert "geschützt" in args[0].lower() or "protected" in args[0].lower()
 
     @patch('smartdesk.core.services.desktop_service.load_desktops')
     @patch('smartdesk.core.services.desktop_service.save_desktops')
