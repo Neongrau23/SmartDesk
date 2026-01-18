@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from ...shared.config import DATA_DIR
 from ...shared.logging_config import get_logger
 from . import desktop_service
+from . import settings_service
 
 logger = get_logger(__name__)
 
@@ -110,6 +111,10 @@ class AutoSwitchService:
 
     def _check_and_switch(self):
         """Checks running processes and switches desktop if needed."""
+        # 0. Check global setting
+        if not settings_service.get_setting("auto_switch_enabled", False):
+            return
+
         # 1. Check cooldown
         if self._last_switch_time:
             elapsed = (datetime.now() - self._last_switch_time).total_seconds()
