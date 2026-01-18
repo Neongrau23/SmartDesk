@@ -3,13 +3,14 @@ import logging
 from PySide6.QtWidgets import (
     QWidget, QFileDialog, QMessageBox, QListWidget, QListWidgetItem, 
     QLabel, QPushButton, QStackedWidget, QLineEdit, QRadioButton,
-    QInputDialog
+    QInputDialog, QGroupBox, QHBoxLayout, QVBoxLayout
 )
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, QSize
 from PySide6.QtGui import QPixmap, QIcon
 
 from smartdesk.core.services import desktop_service
+from smartdesk.core.services.auto_switch_service import AutoSwitchService
 from smartdesk.shared.localization import get_text
 
 # Logger Setup
@@ -75,6 +76,93 @@ class DesktopPage(QWidget):
         self.btn_cancel_create = self.ui.findChild(QPushButton, "btn_cancel_create")
         self.radio_existing = self.ui.findChild(QRadioButton, "radio_existing")
         self.radio_new = self.ui.findChild(QRadioButton, "radio_new")
+
+        # Auto Switch UI Injection
+        self.layout_info = self.ui.findChild(QVBoxLayout, "layout_info_container")
+        self.setup_auto_switch_ui()
+
+    def setup_auto_switch_ui(self):
+        if not self.layout_info: return
+        
+        # GroupBox
+        self.group_rules = QGroupBox("VERKNÜPFTE PROGRAMME (AUTO-SWITCH)")
+        self.group_rules.setStyleSheet("QGroupBox { font-weight: bold; color: #00b4d8; margin-top: 10px; }")
+        layout_rules = QVBoxLayout()
+        
+        # List
+        self.list_programs = QListWidget()
+        self.list_programs.setMaximumHeight(100)
+        self.list_programs.setToolTip("Programme, die diesen Desktop automatisch aktivieren")
+        layout_rules.addWidget(self.list_programs)
+        
+        # Controls
+        hl_controls = QHBoxLayout()
+        self.inp_program = QLineEdit()
+        self.inp_program.setPlaceholderText("Prozessname (z.B. code.exe) oder leer lassen für Auswahl")
+        
+        self.btn_add_prog = QPushButton("+")
+        self.btn_add_prog.setFixedWidth(40)
+        self.btn_add_prog.setToolTip("Hinzufügen")
+        self.btn_add_prog.clicked.connect(self.action_add_program)
+        
+        self.btn_del_prog = QPushButton("-")
+        self.btn_del_prog.setFixedWidth(40)
+        self.btn_del_prog.setToolTip("Entfernen")
+        self.btn_del_prog.clicked.connect(self.action_remove_program)
+        
+        hl_controls.addWidget(self.inp_program)
+        hl_controls.addWidget(self.btn_add_prog)
+        hl_controls.addWidget(self.btn_del_prog)
+        
+        layout_rules.addLayout(hl_controls)
+        self.group_rules.setLayout(layout_rules)
+        
+        # Insert at index 2 (after Title and Path Card)
+        self.layout_info.insertWidget(2, self.group_rules)
+
+    def refresh_linked_programs(self, desktop_name):
+        if not hasattr(self, 'list_programs'): return
+        self.list_programs.clear()
+        
+        # Service Instanz nur zum Lesen/Schreiben der JSON nutzen
+        svc = AutoSwitchService() 
+        rules = svc.get_rules()
+        
+        for proc, desk in rules.items():
+            if desk == desktop_name:
+                item = QListWidgetItem(proc)
+                self.list_programs.addItem(item)
+
+    def action_add_program(self):
+        if not hasattr(self, 'current_desktop') or not self.current_desktop: return
+        
+        proc_name = self.inp_program.text().strip()
+        if not proc_name:
+            # File Dialog
+            file_path, _ = QFileDialog.getOpenFileName(self, "Programm wählen", "", "Executable (*.exe);;All Files (*)")
+            if file_path:
+                proc_name = os.path.basename(file_path)
+            else:
+                return
+
+        svc = AutoSwitchService()
+        svc.add_rule(proc_name, self.current_desktop.name)
+        
+        self.inp_program.clear()
+        self.refresh_linked_programs(self.current_desktop.name)
+        
+    def action_remove_program(self):
+        if not hasattr(self, 'current_desktop') or not self.current_desktop: return
+        
+        selected = self.list_programs.currentItem()
+        if not selected: return
+        
+        proc_name = selected.text()
+        
+        svc = AutoSwitchService()
+        svc.delete_rule(proc_name)
+        
+        self.refresh_linked_programs(self.current_desktop.name)
 
     def setup_connections(self):
         # Sidebar
@@ -184,6 +272,9 @@ class DesktopPage(QWidget):
             else:
                 self.img_preview.setText("Kein Wallpaper gesetzt")
                 self.img_preview.setPixmap(QPixmap()) # Clear
+
+            # Refresh Rules
+            self.refresh_linked_programs(name)
 
         except Exception as e:
             logger.error(f"Error loading details: {e}")

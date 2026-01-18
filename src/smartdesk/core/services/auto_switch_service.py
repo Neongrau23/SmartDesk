@@ -24,6 +24,7 @@ class AutoSwitchService:
         self._last_switch_time: Optional[datetime] = None
         self._cooldown_seconds = 60  # Minimum time between auto-switches
         self._lock = threading.RLock()
+        self._rules_mtime = 0
 
         # Load rules on init
         self.load_rules()
@@ -36,11 +37,27 @@ class AutoSwitchService:
                 return
 
             try:
+                mtime = os.path.getmtime(RULES_FILE)
+                self._rules_mtime = mtime
+                
                 with open(RULES_FILE, 'r', encoding='utf-8') as f:
                     self._rules = json.load(f)
             except Exception as e:
                 logger.error(f"Error loading rules: {e}")
                 self._rules = {}
+
+    def _check_rules_file(self):
+        """Reloads rules if file has changed on disk."""
+        if not os.path.exists(RULES_FILE):
+             return
+        
+        try:
+            mtime = os.path.getmtime(RULES_FILE)
+            if mtime > self._rules_mtime:
+                logger.debug("Regel-Datei extern geändert. Lade neu...")
+                self.load_rules()
+        except OSError:
+            pass
 
     def save_rules(self):
         """Saves current rules to the JSON file."""
@@ -50,6 +67,10 @@ class AutoSwitchService:
                 os.makedirs(os.path.dirname(RULES_FILE), exist_ok=True)
                 with open(RULES_FILE, 'w', encoding='utf-8') as f:
                     json.dump(self._rules, f, indent=4)
+                
+                # Update mtime to avoid reload loop
+                if os.path.exists(RULES_FILE):
+                    self._rules_mtime = os.path.getmtime(RULES_FILE)
             except Exception as e:
                 logger.error(f"Error saving rules: {e}")
 
@@ -99,6 +120,7 @@ class AutoSwitchService:
         """The main loop checking processes."""
         while self._running:
             try:
+                self._check_rules_file() # Check for external changes
                 self._check_and_switch()
             except Exception as e:
                 logger.error(f"Error in AutoSwitchService loop: {e}")
