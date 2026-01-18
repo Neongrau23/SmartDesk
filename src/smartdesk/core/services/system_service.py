@@ -25,9 +25,12 @@ def restart_explorer():
             return
 
         # Beende Explorer
-        subprocess.run(
-            ["taskkill", "/F", "/IM", "explorer.exe"], capture_output=True, check=False
-        )
+        for proc in psutil.process_iter(['name']):
+            if proc.name().lower() == "explorer.exe":
+                try:
+                    proc.kill()
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
 
         # Warte bis Explorer wirklich beendet ist
         timeout = 5
