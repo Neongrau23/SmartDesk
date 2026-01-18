@@ -30,6 +30,11 @@ if 'winreg' not in sys.modules:
     mock_winreg.REG_DWORD = 4
     sys.modules['winreg'] = mock_winreg
 
+# Mock win32 libraries and PySide6
+for lib in ['win32gui', 'win32con', 'win32api', 'win32process', 'ctypes', 'ctypes.wintypes', 'PySide6', 'PySide6.QtWidgets', 'PySide6.QtGui', 'PySide6.QtCore']:
+    if lib not in sys.modules:
+        sys.modules[lib] = MagicMock()
+
 from smartdesk.core.models.desktop import Desktop, IconPosition
 
 
