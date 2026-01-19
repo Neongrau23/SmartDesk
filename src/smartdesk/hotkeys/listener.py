@@ -179,6 +179,10 @@ def _trigger_activation():
 def on_press(key):
     global wait_state, alt_hold_timer, activation_potential, activation_spoiled
     
+    try: k_char = key.char
+    except: k_char = str(key)
+    print(f"[DEBUG] PRESS {k_char} | State: {wait_state} | Potential: {activation_potential} | Spoiled: {activation_spoiled}")
+
     # 1. Action Key Feedback (unabhängig vom State)
     if is_action_key(key):
         ctrl = _get_banner_ctrl()
@@ -186,7 +190,7 @@ def on_press(key):
     
     # 2. Logik im WAITING State
     if wait_state == "WAITING_FOR_ACTION":
-        
+        # ... (rest unchanged) ...
         # Timer starten wenn Action-Key gedrückt wird
         if is_action_key(key):
             registry = get_registry()
@@ -196,9 +200,6 @@ def on_press(key):
                 alt_hold_timer.start()
 
         action_held = is_any_action_key_held(current_keys) or is_action_key(key)
-        
-        # Ist es eine Modifier-Taste/Aktivierungstaste?
-        # Diese ignorieren wir, damit man z.B. bei Ctrl+Shift (Aktivierung) -> Ctrl loslassen -> Shift halten -> Action
         is_ignored_key = is_action_key(key) or is_part_of_activation(key)
 
         key_char = None
@@ -207,13 +208,11 @@ def on_press(key):
 
         if action_held:
             registry = get_registry()
-            
             if key_char and registry.has_combo_action(key_char):
                 _cancel_hold_timer()
                 if _log_func:
                     desc = registry.get_combo_description(key_char)
                     _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
-                
                 _close_banner_and_reset()
                 registry.execute_combo(key_char)
             elif is_ignored_key:
@@ -221,42 +220,46 @@ def on_press(key):
             else:
                 if _log_func: _log_func(f"Keine Aktion für: {key_char}")
                 _close_banner_and_reset()
-
+                print(get_text("hotkey_listener.info.abort_invalid_key"))
         elif is_ignored_key:
             pass
         else:
+            print("[DEBUG] Reset because non-action key pressed in Waiting state")
             _close_banner_and_reset()
 
     # 3. Activation Logic im IDLE State
     elif wait_state == "IDLE":
         if is_part_of_activation(key):
-            # Prüfen ob mit diesem Key die Combo voll ist
             temp_keys = current_keys.copy()
             temp_keys.add(key)
             if are_activation_keys_held(temp_keys):
                 activation_potential = True
                 activation_spoiled = False
+                print("[DEBUG] Activation Potential REACHED")
         else:
-            # Fremde Taste gedrückt -> Aktivierung kaputt
             if activation_potential or are_activation_keys_held(current_keys):
                 activation_spoiled = True
+                print("[DEBUG] Activation SPOILED by other key")
 
     current_keys.add(key)
 
 
 def on_release(key):
     global wait_state, activation_potential, activation_spoiled
+    
+    try: k_char = key.char
+    except: k_char = str(key)
+    print(f"[DEBUG] RELEASE {k_char} | State: {wait_state} | Potential: {activation_potential}")
 
     just_triggered = False
 
     # 1. Activation Trigger (beim Loslassen im IDLE State)
     if wait_state == "IDLE":
         if is_part_of_activation(key):
-            # Trigger Bedingung: War mal voll da, und nichts Fremdes gedrückt
             if activation_potential and not activation_spoiled:
+                print("[DEBUG] TRIGGERING ACTIVATION!")
                 _trigger_activation()
                 just_triggered = True
-                # Wichtig: Nach Trigger nicht resetten, wait_state ist jetzt anders
 
     try:
         current_keys.remove(key)
@@ -270,17 +273,18 @@ def on_release(key):
             ctrl = _get_banner_ctrl()
             if ctrl: ctrl.on_alt_released()
 
-    # Safety Reset wenn ActionKey losgelassen wird und wir im Waiting Mode sind
-    # ABER: Nicht resetten, wenn wir diesen Modus gerade erst durch diesen Tastendruck aktiviert haben!
+    # Safety Reset
     if wait_state == "WAITING_FOR_ACTION" and not just_triggered:
         if is_action_key(key):
             if not is_any_action_key_held(current_keys):
+                print(f"[DEBUG] Safety Reset triggered by releasing Action Key {k_char}")
                 if _log_func: _log_func(f"{ACTION_KEY_NAME} losgelassen, Zyklus beendet.")
                 _close_banner_and_reset()
     
-    # Potential Reset wenn keine Activation Keys mehr gehalten werden
+    # Potential Reset
     if wait_state == "IDLE":
         if not any(is_part_of_activation(k) for k in current_keys):
+            if activation_potential: print("[DEBUG] Potential RESET (keys released)")
             activation_potential = False
             activation_spoiled = False
 
