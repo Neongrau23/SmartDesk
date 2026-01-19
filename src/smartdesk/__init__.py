@@ -17,4 +17,4 @@
 #   - animations/: Animation configurations
 # - hotkeys/     : Global hotkey handling
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
