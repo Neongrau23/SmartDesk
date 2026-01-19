@@ -219,11 +219,21 @@ def on_press(key):
         wait_state = "WAITING_FOR_ACTION"
         if _log_func:
             _log_func(f"Aktivierung erkannt! Warte auf {ACTION_KEY_NAME} + Taste...")
-        print(get_text("hotkey_listener.info.wait_for_alt_num")) # Text könnte angepasst werden "Warte auf Aktion..."
+        print(get_text("hotkey_listener.info.wait_for_alt_num"))
 
         ctrl = _get_banner_ctrl()
         if ctrl:
             ctrl.on_ctrl_shift_triggered()
+            
+        # FIX: Wenn die Aktivierungstaste gleichzeitig die Aktionstaste ist (z.B. Ctrl+Alt -> Alt halten),
+        # müssen wir den Timer hier manuell starten, da on_press für Alt schon vorbei ist.
+        if is_any_action_key_held(current_keys):
+            registry = get_registry()
+            if registry.has_hold_action() and alt_hold_timer is None:
+                if _log_func:
+                    _log_func(f"{ACTION_KEY_NAME} ist bereits gedrückt, starte Timer...")
+                alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
+                alt_hold_timer.start()
 
 
 def on_release(key):
