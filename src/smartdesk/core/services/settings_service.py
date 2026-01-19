@@ -17,7 +17,9 @@ DEFAULTS = {
     "auto_switch_enabled": False,
     "theme": "dark",
     "start_minimized": False,
-    "show_switch_animation": True
+    "show_switch_animation": True,
+    "activation_keys": "Ctrl+Shift",
+    "action_modifier": "Alt"
 }
 
 def load_settings() -> dict:

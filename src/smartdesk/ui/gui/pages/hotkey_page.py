@@ -1,12 +1,13 @@
 import os
 import logging
 from PySide6.QtWidgets import (
-    QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton
+    QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox
 )
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, QTimer
 
 from smartdesk.hotkeys import hotkey_manager
+from smartdesk.core.services.settings_service import get_setting, set_setting
 
 # Logger Setup
 try:
@@ -24,6 +25,7 @@ class HotkeyPage(QWidget):
         self.setup_table()
         
         # Initialer Status
+        self.load_config_to_ui()
         self.refresh_status()
         self.load_hotkeys()
         
@@ -67,19 +69,53 @@ class HotkeyPage(QWidget):
         self.btn_stop = self.ui.findChild(QPushButton, "btn_stop")
         self.btn_restart = self.ui.findChild(QPushButton, "btn_restart")
         self.table = self.ui.findChild(QTableWidget, "table_hotkeys")
+        
+        # Config Elemente
+        self.combo_activation = self.ui.findChild(QComboBox, "combo_activation")
+        self.combo_action = self.ui.findChild(QComboBox, "combo_action")
+        self.btn_save_config = self.ui.findChild(QPushButton, "btn_save_config")
 
     def setup_connections(self):
         if self.btn_start: self.btn_start.clicked.connect(self.action_start)
         if self.btn_stop: self.btn_stop.clicked.connect(self.action_stop)
         if self.btn_restart: self.btn_restart.clicked.connect(self.action_restart)
+        if self.btn_save_config: self.btn_save_config.clicked.connect(self.save_config)
 
     def setup_table(self):
         if not self.table: return
-        # Header anpassen
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
         self.table.verticalHeader().setVisible(False)
+
+    def load_config_to_ui(self):
+        """Lädt die aktuellen Settings in die ComboBoxen."""
+        act_key = get_setting("activation_keys", "Ctrl+Shift")
+        act_mod = get_setting("action_modifier", "Alt")
+        
+        if self.combo_activation:
+            self.combo_activation.setCurrentText(act_key)
+        if self.combo_action:
+            self.combo_action.setCurrentText(act_mod)
+
+    def save_config(self):
+        """Speichert die Settings und startet den Listener neu."""
+        if not self.combo_activation or not self.combo_action: return
+        
+        new_act = self.combo_activation.currentText()
+        new_mod = self.combo_action.currentText()
+        
+        set_setting("activation_keys", new_act)
+        set_setting("action_modifier", new_mod)
+        
+        self.show_message("Konfiguration gespeichert. Starte Listener neu...", success=True)
+        
+        # UI Update (Tabelle)
+        self.load_hotkeys()
+        
+        # Neustart erzwingen
+        hotkey_manager.restart_listener()
+        self.refresh_status()
 
     def refresh_status(self):
         try:
@@ -105,17 +141,19 @@ class HotkeyPage(QWidget):
         if not self.table: return
         self.table.setRowCount(0)
         
-        # Aktuell hardcoded, später aus Config laden
+        # Aktions-Key aus Settings laden für die Anzeige
+        mod = get_setting("action_modifier", "Alt")
+        
         hotkeys = [
-            ("Alt + 1", "Wechsel zu Desktop 1"),
-            ("Alt + 2", "Wechsel zu Desktop 2"),
-            ("Alt + 3", "Wechsel zu Desktop 3"),
-            ("Alt + 4", "Wechsel zu Desktop 4"),
-            ("Alt + 5", "Wechsel zu Desktop 5"),
-            ("Alt + 6", "Wechsel zu Desktop 6"),
-            ("Alt + 7", "Wechsel zu Desktop 7"),
-            ("Alt + 8", "Wechsel zu Desktop 8"),
-            ("Alt + 9", "Speichere aktuelle Icon-Positionen"),
+            (f"{mod} + 1", "Wechsel zu Desktop 1"),
+            (f"{mod} + 2", "Wechsel zu Desktop 2"),
+            (f"{mod} + 3", "Wechsel zu Desktop 3"),
+            (f"{mod} + 4", "Wechsel zu Desktop 4"),
+            (f"{mod} + 5", "Wechsel zu Desktop 5"),
+            (f"{mod} + 6", "Wechsel zu Desktop 6"),
+            (f"{mod} + 7", "Wechsel zu Desktop 7"),
+            (f"{mod} + 8", "Wechsel zu Desktop 8"),
+            (f"{mod} + 9", "Speichere aktuelle Icon-Positionen"),
         ]
         
         self.table.setRowCount(len(hotkeys))
@@ -126,11 +164,10 @@ class HotkeyPage(QWidget):
     def show_message(self, text, success=True):
         if not self.lbl_message: return
         
-        color = "#1a7a65" if success else "#cc4444" # Grün oder Rot
+        color = "#1a7a65" if success else "#cc4444"
         self.lbl_message.setText(text)
         self.lbl_message.setStyleSheet(f"color: {color}; font-weight: bold; margin-top: 5px;")
         
-        # Timer starten zum Löschen (3 Sekunden)
         self.msg_timer.start(3000)
 
     def clear_message(self):

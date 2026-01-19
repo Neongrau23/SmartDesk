@@ -24,6 +24,47 @@
     </widget>
    </item>
 
+   <!-- Configuration Card -->
+   <item>
+    <widget class="QGroupBox" name="group_config">
+     <property name="title"><string>Konfiguration</string></property>
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_activation">
+        <property name="text"><string>Aktivierung (Menü öffnen):</string></property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="combo_activation">
+        <item><property name="text"><string>Ctrl+Shift</string></property></item>
+        <item><property name="text"><string>Ctrl+Alt</string></property></item>
+        <item><property name="text"><string>Shift+Alt</string></property></item>
+        <item><property name="text"><string>Win+Shift</string></property></item>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_action">
+        <property name="text"><string>Aktions-Taste (gedrückt halten):</string></property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="combo_action">
+        <item><property name="text"><string>Alt</string></property></item>
+        <item><property name="text"><string>Ctrl</string></property></item>
+        <item><property name="text"><string>Shift</string></property></item>
+        <item><property name="text"><string>Win</string></property></item>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="btn_save_config">
+        <property name="text"><string>Speichern &amp; Neustarten</string></property>
+        <property name="maximumSize"><size><width>200</width><height>16777215</height></size></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
    <!-- Status Card -->
    <item>
     <widget class="QGroupBox" name="group_status">

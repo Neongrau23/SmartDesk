@@ -1,5 +1,5 @@
 # --- ALLE NOTWENDIGEN IMPORTS ---
-from pynput.keyboard import Listener, Key
+from pynput.keyboard import Listener, Key, KeyCode
 import sys
 import os
 import traceback
@@ -19,53 +19,98 @@ class DummyRegistry:
 
 # --- I18N IMPORT ---
 try:
-    # Importiere die get_text Funktion aus dem shared-Modul
     from ..shared.localization import get_text
 except ImportError:
-    # Fallback
-    print("[FALLBACK] Konnte 'get_text' nicht importieren.")
     def get_text(key, **kwargs):
         text = key.split('.')[-1].replace('_', ' ').capitalize()
         if kwargs:
             text += ": " + str(kwargs)
         return f"[i18n: {text}]"
 
+# --- SETTINGS IMPORT ---
+try:
+    from ..core.services.settings_service import load_settings
+except ImportError:
+    def load_settings(): return {}
+
 # --- BANNER CONTROLLER IMPORT ---
 try:
     from .banner_controller import get_banner_controller
-    _banner_controller = None  # Wird lazy initialisiert
-    print("[INFO] Banner-Controller erfolgreich importiert")
-except ImportError as e:
-    print(f"[WARNING] Banner-Controller Import fehlgeschlagen: {e}")
     _banner_controller = None
-    def get_banner_controller():
-        return None
+except ImportError:
+    _banner_controller = None
+    def get_banner_controller(): return None
 
 # --- AKTIONEN IMPORT ---
 try:
     from .action_registry import get_registry, setup_actions
-except ImportError as e:
-    print(get_text("hotkey_listener.error.actions_load", e=e))
-    # Fallback-Funktionen
+except ImportError:
     def get_registry(): return DummyRegistry()
     def setup_actions(): pass
 
 
-# --- 2. Zustand und Tastenspeicher ---
+# --- KONFIGURATION & KEY MAPPING ---
+
+KEY_MAP = {
+    'Ctrl': {Key.ctrl_l, Key.ctrl_r},
+    'Shift': {Key.shift, Key.shift_r},
+    'Alt': {Key.alt_l, Key.alt_r},
+    'Win': {Key.cmd, Key.cmd_l, Key.cmd_r},
+    'Tab': {Key.tab},
+    'Space': {Key.space},
+    'Enter': {Key.enter},
+}
+
+# Globale Konfiguration (wird in start_listener geladen)
+ACTIVATION_KEY_GROUPS = [] # Liste von Sets, z.B. [{Ctrl_L, Ctrl_R}, {Shift_L, Shift_R}]
+ACTION_KEY_GROUP = set()   # Set, z.B. {Alt_L, Alt_R}
+ACTION_KEY_NAME = "Alt"    # Für Logs/Anzeige
+
+def parse_key_config(config_str):
+    """Parsed Strings wie 'Ctrl+Shift' in Key-Sets."""
+    if not config_str: return []
+    parts = [p.strip() for p in config_str.split('+')]
+    groups = []
+    for part in parts:
+        if part in KEY_MAP:
+            groups.append(KEY_MAP[part])
+        elif len(part) == 1:
+            # Einzelne Buchstaben/Zeichen
+            char_code = KeyCode.from_char(part.lower())
+            groups.append({char_code})
+    return groups
+
+def is_key_in_group(key, group):
+    """Prüft ob key im group-Set ist."""
+    return key in group
+
+def are_activation_keys_held(current_keys):
+    """Prüft ob alle Aktivierungs-Gruppen gedrückt sind."""
+    if not ACTIVATION_KEY_GROUPS: return False
+    for group in ACTIVATION_KEY_GROUPS:
+        if not any(k in current_keys for k in group):
+            return False
+    return True
+
+def is_action_key(key):
+    """Prüft ob die Taste Teil der Aktions-Taste (z.B. Alt) ist."""
+    return key in ACTION_KEY_GROUP
+
+def is_any_action_key_held(current_keys):
+    """Prüft ob irgendeine der Aktions-Tasten gehalten wird."""
+    return any(k in current_keys for k in ACTION_KEY_GROUP)
+
+
+# --- ZUSTANDSVARIABLEN ---
 current_keys = set()
 wait_state = "IDLE"
-
-# Timer für Alt-Hold-Aktion
-alt_hold_timer = None
-
-# Log-Funktion
+alt_hold_timer = None # Heißt historisch so, meint den Timer für Action-Key-Hold
 _log_func = None
 
 
-# --- 3. Listener-Funktionen ---
+# --- LISTENER LOGIK ---
 
 def _get_banner_ctrl():
-    """Lazy-Initialisierung des Banner-Controllers."""
     global _banner_controller
     if _banner_controller is None:
         ctrl = get_banner_controller()
@@ -74,128 +119,107 @@ def _get_banner_ctrl():
         _banner_controller = ctrl
     return _banner_controller
 
-
 def _close_banner_and_reset():
-    """Schließt das Banner und setzt den Controller zurück."""
     global wait_state
-    _cancel_alt_hold_timer()
+    _cancel_hold_timer()
     ctrl = _get_banner_ctrl()
     if ctrl:
         ctrl.reset()
     wait_state = "IDLE"
 
-
-def _execute_alt_hold_action():
-    """Wird vom Timer aufgerufen, um die Hold-Aktion auszuführen."""
+def _execute_hold_action():
     global wait_state
-    if wait_state == "WAITING_FOR_ALT_NUM":
+    if wait_state == "WAITING_FOR_ACTION":
         if _log_func:
-            _log_func("Alt-Hold-Timer abgelaufen, führe Hold-Aktion aus.")
+            _log_func(f"{ACTION_KEY_NAME}-Hold-Timer abgelaufen, führe Hold-Aktion aus.")
         
         registry = get_registry()
         if registry.has_hold_action():
             registry.execute_hold()
 
-        # Zustand zurücksetzen
         wait_state = "IDLE"
-        
-        # Banner-Controller benachrichtigen
         ctrl = _get_banner_ctrl()
         if ctrl:
             ctrl.on_action_executed()
 
-
-def _cancel_alt_hold_timer():
-    """Bricht den laufenden Alt-Hold-Timer ab."""
+def _cancel_hold_timer():
     global alt_hold_timer
     if alt_hold_timer and alt_hold_timer.is_alive():
         alt_hold_timer.cancel()
     alt_hold_timer = None
 
-
 def on_press(key):
-    global wait_state
+    global wait_state, alt_hold_timer
     
-    # Banner-Controller: Alt-Erkennung (für interne State-Machine des Controllers)
-    if key == Key.alt_l or key == Key.alt_r:
+    # --- 1. Banner Controller Update ---
+    if is_action_key(key):
         ctrl = _get_banner_ctrl()
         if ctrl:
-            ctrl.on_alt_pressed()
+            ctrl.on_alt_pressed() # Name im Controller ist noch on_alt_pressed, logisch aber on_action_key_pressed
     
-    # Wenn wir bereits auf Alt warten (Strg+Shift wurden vorher gedrückt)
-    if wait_state == "WAITING_FOR_ALT_NUM":
-        global alt_hold_timer
+    # --- 2. Logik im Warte-Zustand ---
+    if wait_state == "WAITING_FOR_ACTION":
         
-        # Timer für Hold-Aktion starten, wenn JETZT Alt gedrückt wird
-        if key in (Key.alt_l, Key.alt_r):
+        # Timer starten wenn Action-Key gedrückt wird
+        if is_action_key(key):
             registry = get_registry()
-            # Nur starten, wenn Timer noch nicht läuft
             if registry.has_hold_action() and alt_hold_timer is None:
                 if _log_func:
-                    _log_func("Alt gedrückt, starte Hold-Timer...")
-                alt_hold_timer = threading.Timer(0.3, _execute_alt_hold_action)
+                    _log_func(f"{ACTION_KEY_NAME} gedrückt, starte Timer...")
+                alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
                 alt_hold_timer.start()
 
-        alt_gehalten = Key.alt_l in current_keys or Key.alt_r in current_keys
+        action_held = is_any_action_key_held(current_keys) or is_action_key(key) # key is not yet in current_keys completely reliable here? add it logically
 
         key_char = None
         try:
             key_char = key.char
         except AttributeError:
             pass
+        
+        # Ist es eine Modifier-Taste? (Ignorieren wir meistens)
+        # Wir prüfen, ob es eine der Aktivierungs- oder Aktionstasten ist
+        is_known_modifier = False
+        for group in ACTIVATION_KEY_GROUPS:
+            if key in group: is_known_modifier = True
+        if is_action_key(key): is_known_modifier = True
 
-        is_modifier = key in (
-            Key.alt_l, Key.alt_r, Key.ctrl_l, Key.ctrl_r,
-            Key.shift, Key.shift_r
-        )
-
-        if alt_gehalten:
+        if action_held:
             registry = get_registry()
-            if _log_func:
-                _log_func(f"alt held, key_char: {key_char}")
             
-            # Prüfen auf Kombinationen (z.B. Alt+1)
+            # Prüfen auf Kombinationen (ActionKey + Zeichen)
             if key_char and registry.has_combo_action(key_char):
-                _cancel_alt_hold_timer()
+                _cancel_hold_timer()
                 if _log_func:
                     desc = registry.get_combo_description(key_char)
                     _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
-                    _log_func(f"Executing combo action for key: {key_char}")
                 
                 _close_banner_and_reset()
                 registry.execute_combo(key_char)
-            elif is_modifier:
+            elif is_known_modifier:
                 pass
             else:
-                # Ungültige Taste während Alt gehalten wird -> Reset
+                # Ungültige Taste während ActionKey gehalten
                 if _log_func:
-                    _log_func(f"No combo action for key: {key_char}")
+                    _log_func(f"Keine Aktion für: {key_char}")
                 _close_banner_and_reset()
                 print(get_text("hotkey_listener.info.abort_invalid_key"))
 
-        elif is_modifier:
+        elif is_known_modifier:
             pass
         else:
-            # Irgendeine andere Taste (z.B. Buchstabe) ohne Alt -> Abbruch des Wartens
+            # Irgendeine andere Taste ohne ActionKey -> Abbruch
             _close_banner_and_reset()
-            if _log_func:
-                _log_func(get_text("hotkey_listener.log.abort_no_alt"))
 
+    # Taste zum Set hinzufügen
     current_keys.add(key)
     
-    # Strg+Shift-Erkennung (Der Einstiegspunkt)
-    ctrl_held = Key.ctrl_l in current_keys or Key.ctrl_r in current_keys
-    shift_held = Key.shift in current_keys or Key.shift_r in current_keys
-
-    # Wenn IDLE und Strg+Shift gedrückt werden -> Zustand wechseln
-    if ctrl_held and shift_held and wait_state == "IDLE":
-        wait_state = "WAITING_FOR_ALT_NUM"
+    # --- 3. Aktivierungserkennung (State Transition) ---
+    if are_activation_keys_held(current_keys) and wait_state == "IDLE":
+        wait_state = "WAITING_FOR_ACTION"
         if _log_func:
-            _log_func("State changed to WAITING_FOR_ALT_NUM")
-        msg = get_text("hotkey_listener.info.wait_for_alt_num")
-        print(msg)
-        if _log_func:
-            _log_func(get_text("hotkey_listener.log.wait_for_alt_num"))
+            _log_func(f"Aktivierung erkannt! Warte auf {ACTION_KEY_NAME} + Taste...")
+        print(get_text("hotkey_listener.info.wait_for_alt_num")) # Text könnte angepasst werden "Warte auf Aktion..."
 
         ctrl = _get_banner_ctrl()
         if ctrl:
@@ -210,55 +234,40 @@ def on_release(key):
     except KeyError:
         pass
 
-    # Logik während wir auf Alt (oder Alt-Release) warten
-    if wait_state == "WAITING_FOR_ALT_NUM":
+    # Wenn wir warten...
+    if wait_state == "WAITING_FOR_ACTION":
+        # Prüfen ob Aktivierungs-Keys losgelassen wurden (optional, hier relevant für Abbruchbedingungen?)
+        # Die ursprüngliche Logik war: Wenn Strg+Shift losgelassen, aber Alt noch nicht gedrückt -> warten weiter.
+        pass
+
+    # Timer abbrechen wenn ActionKey losgelassen
+    if is_action_key(key):
+        _cancel_hold_timer()
         
-        # Prüfung: Sind Modifizierer losgelassen worden?
-        if key in (Key.ctrl_l, Key.ctrl_r, Key.shift, Key.shift_r):
-            ctrl_held = any(k in current_keys for k in (Key.ctrl_l, Key.ctrl_r))
-            shift_held = any(k in current_keys for k in (Key.shift, Key.shift_r))
-            alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
-
-            # KORREKTUR: Wenn Strg+Shift losgelassen sind, aber Alt noch nicht gedrückt ist:
-            # Wir RESETTEN NICHT. Wir warten weiter auf Alt.
-            if not ctrl_held and not shift_held and not alt_held:
-                if _log_func:
-                    _log_func("Strg und Shift losgelassen, warte weiter auf Alt...")
-                # HIER WURDE DER FEHLER BEHOBEN: _close_banner_and_reset() ENTFERNT
-
-    # Timer abbrechen, wenn Alt losgelassen wird (egal in welchem Zustand)
-    if key in (Key.alt_l, Key.alt_r):
-        _cancel_alt_hold_timer()
-
-    # Banner-Controller: Alt losgelassen (Signal an Controller zum Schließen der UI)
-    if key == Key.alt_l or key == Key.alt_r:
-        other_alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
-        if not other_alt_held:
+        # Banner Controller Info
+        # Prüfen ob noch ein ANDERER ActionKey gehalten wird (z.B. Alt_R wenn Alt_L losgelassen)
+        if not is_any_action_key_held(current_keys):
             ctrl = _get_banner_ctrl()
             if ctrl:
                 ctrl.on_alt_released()
 
-    # Sicherheits-Reset, nur wenn wir wirklich fertig sind
-    # (Dies verhindert, dass der Listener im "WAITING" hängen bleibt, wenn Alt losgelassen wurde)
-    if wait_state == "WAITING_FOR_ALT_NUM":
-        if key == Key.alt_l or key == Key.alt_r:
-            other_alt_held = any(k in current_keys for k in (Key.alt_l, Key.alt_r))
-            if not other_alt_held:
+    # Sicherheits-Reset wenn ActionKey losgelassen wird und wir im Waiting Mode sind
+    if wait_state == "WAITING_FOR_ACTION":
+        if is_action_key(key):
+            if not is_any_action_key_held(current_keys):
                 if _log_func:
-                    _log_func("Alt losgelassen, Zyklus beendet.")
-                    _log_func("Resetting state to IDLE")
+                    _log_func(f"{ACTION_KEY_NAME} losgelassen, Zyklus beendet.")
                 _close_banner_and_reset()
 
 
-# --- 4. Starte den Listener ---
-
 def start_listener():
-    # Logging Setup für Windows Konsole
+    # Windows Console Fix
     if sys.platform == 'win32':
         import io
         sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
         sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+    # Logging
     try:
         from ..shared.logging_config import get_logger
         logger = get_logger('hotkey_listener')
@@ -270,12 +279,29 @@ def start_listener():
     def log_message(msg):
         logger.debug(msg)
 
-    print(get_text("hotkey_listener.info.starting"))
-    log_message(get_text("hotkey_listener.log.started"))
-    print(get_text("hotkey_listener.info.instructions"))
-    print(get_text("hotkey_listener.info.instructions_stop"))
-    log_message(get_text("hotkey_listener.log.waiting"))
+    global _log_func
+    _log_func = log_message
 
+    # --- SETTINGS LADEN ---
+    global ACTIVATION_KEY_GROUPS, ACTION_KEY_GROUP, ACTION_KEY_NAME
+    settings = load_settings()
+    act_str = settings.get("activation_keys", "Ctrl+Shift")
+    mod_str = settings.get("action_modifier", "Alt")
+    
+    ACTION_KEY_NAME = mod_str
+    ACTIVATION_KEY_GROUPS = parse_key_config(act_str)
+    
+    # Action Key parsen (hier erwarten wir meist einen Modifier)
+    parsed_mod = parse_key_config(mod_str)
+    ACTION_KEY_GROUP = set()
+    for group in parsed_mod:
+        ACTION_KEY_GROUP.update(group)
+
+    log_message(f"Listener Konfiguration: Aktivierung='{act_str}', Aktion='{mod_str}'")
+
+    # --- START ---
+    print(get_text("hotkey_listener.info.starting"))
+    
     def cleanup_pid_file():
         try:
             from ..shared.config import DATA_DIR
@@ -285,15 +311,11 @@ def start_listener():
         except Exception:
             pass
 
-    global _log_func
-    _log_func = log_message
-
     registry = get_registry()
     registry.set_log_func(log_message)
     
     try:
         setup_actions()
-        log_message(get_text("hotkey_listener.log.actions_loaded"))
     except Exception as e:
         logger.error(str(e), exc_info=True)
 
@@ -308,31 +330,5 @@ def start_listener():
         finally:
             cleanup_pid_file()
 
-
-def run_listener():
-    """Hauptfunktion des Listener-Prozesses."""
-    try:
-        from ..shared.config import DATA_DIR
-    except ImportError:
-        DATA_DIR = "."
-    
-    log_file = os.path.join(DATA_DIR, "listener.log")
-    
-    try:
-        start_listener()
-    except KeyboardInterrupt:
-        pass
-    except Exception as e:
-        with open(log_file, 'a', encoding='utf-8') as log:
-            log.write(f"\nCRITICAL ERROR: {e}\n{traceback.format_exc()}\n")
-
-
 if __name__ == "__main__":
     start_listener()
-    
-    # Path Setup für Standalone-Test
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    smartdesk_dir = os.path.dirname(script_dir)
-    src_dir = os.path.dirname(smartdesk_dir)
-    if src_dir not in sys.path:
-        sys.path.insert(0, src_dir)
