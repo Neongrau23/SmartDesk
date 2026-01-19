@@ -75,36 +75,42 @@ def parse_key_config(config_str):
         if part in KEY_MAP:
             groups.append(KEY_MAP[part])
         elif len(part) == 1:
-            # Einzelne Buchstaben/Zeichen
             char_code = KeyCode.from_char(part.lower())
             groups.append({char_code})
     return groups
 
 def is_key_in_group(key, group):
-    """Prüft ob key im group-Set ist."""
     return key in group
 
 def are_activation_keys_held(current_keys):
-    """Prüft ob alle Aktivierungs-Gruppen gedrückt sind."""
     if not ACTIVATION_KEY_GROUPS: return False
     for group in ACTIVATION_KEY_GROUPS:
         if not any(k in current_keys for k in group):
             return False
     return True
 
+def is_part_of_activation(key):
+    """Prüft ob key Teil der Aktivierungs-Gruppen ist."""
+    for group in ACTIVATION_KEY_GROUPS:
+        if key in group: return True
+    return False
+
 def is_action_key(key):
-    """Prüft ob die Taste Teil der Aktions-Taste (z.B. Alt) ist."""
     return key in ACTION_KEY_GROUP
 
 def is_any_action_key_held(current_keys):
-    """Prüft ob irgendeine der Aktions-Tasten gehalten wird."""
     return any(k in current_keys for k in ACTION_KEY_GROUP)
 
 
 # --- ZUSTANDSVARIABLEN ---
 current_keys = set()
 wait_state = "IDLE"
-alt_hold_timer = None # Heißt historisch so, meint den Timer für Action-Key-Hold
+
+# Activation Logic
+activation_potential = False # Wurde die Combo einmal voll erreicht?
+activation_spoiled = False   # Wurde eine andere Taste gedrückt?
+
+alt_hold_timer = None
 _log_func = None
 
 
@@ -120,12 +126,14 @@ def _get_banner_ctrl():
     return _banner_controller
 
 def _close_banner_and_reset():
-    global wait_state
+    global wait_state, activation_potential, activation_spoiled
     _cancel_hold_timer()
     ctrl = _get_banner_ctrl()
     if ctrl:
         ctrl.reset()
     wait_state = "IDLE"
+    activation_potential = False
+    activation_spoiled = False
 
 def _execute_hold_action():
     global wait_state
@@ -148,46 +156,58 @@ def _cancel_hold_timer():
         alt_hold_timer.cancel()
     alt_hold_timer = None
 
-def on_press(key):
+def _trigger_activation():
     global wait_state, alt_hold_timer
+    wait_state = "WAITING_FOR_ACTION"
+    if _log_func:
+        _log_func(f"Aktivierung erkannt (Release)! Warte auf {ACTION_KEY_NAME} + Taste...")
+    print(get_text("hotkey_listener.info.wait_for_alt_num"))
+
+    ctrl = _get_banner_ctrl()
+    if ctrl:
+        ctrl.on_ctrl_shift_triggered()
+        
+    # Wenn ActionKey bereits gehalten wird (z.B. Teil der Aktivierung), Timer starten
+    if is_any_action_key_held(current_keys):
+        registry = get_registry()
+        if registry.has_hold_action() and alt_hold_timer is None:
+            if _log_func:
+                _log_func(f"{ACTION_KEY_NAME} ist bereits gedrückt, starte Timer...")
+            alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
+            alt_hold_timer.start()
+
+def on_press(key):
+    global wait_state, alt_hold_timer, activation_potential, activation_spoiled
     
-    # --- 1. Banner Controller Update ---
+    # 1. Action Key Feedback (unabhängig vom State)
     if is_action_key(key):
         ctrl = _get_banner_ctrl()
-        if ctrl:
-            ctrl.on_alt_pressed() # Name im Controller ist noch on_alt_pressed, logisch aber on_action_key_pressed
+        if ctrl: ctrl.on_alt_pressed()
     
-    # --- 2. Logik im Warte-Zustand ---
+    # 2. Logik im WAITING State
     if wait_state == "WAITING_FOR_ACTION":
         
         # Timer starten wenn Action-Key gedrückt wird
         if is_action_key(key):
             registry = get_registry()
             if registry.has_hold_action() and alt_hold_timer is None:
-                if _log_func:
-                    _log_func(f"{ACTION_KEY_NAME} gedrückt, starte Timer...")
+                if _log_func: _log_func(f"{ACTION_KEY_NAME} gedrückt, starte Timer...")
                 alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
                 alt_hold_timer.start()
 
-        action_held = is_any_action_key_held(current_keys) or is_action_key(key) # key is not yet in current_keys completely reliable here? add it logically
+        action_held = is_any_action_key_held(current_keys) or is_action_key(key)
+        
+        # Ist es eine Modifier-Taste/Aktivierungstaste?
+        # Diese ignorieren wir, damit man z.B. bei Ctrl+Shift (Aktivierung) -> Ctrl loslassen -> Shift halten -> Action
+        is_ignored_key = is_action_key(key) or is_part_of_activation(key)
 
         key_char = None
-        try:
-            key_char = key.char
-        except AttributeError:
-            pass
-        
-        # Ist es eine Modifier-Taste? (Ignorieren wir meistens)
-        # Wir prüfen, ob es eine der Aktivierungs- oder Aktionstasten ist
-        is_known_modifier = False
-        for group in ACTIVATION_KEY_GROUPS:
-            if key in group: is_known_modifier = True
-        if is_action_key(key): is_known_modifier = True
+        try: key_char = key.char
+        except AttributeError: pass
 
         if action_held:
             registry = get_registry()
             
-            # Prüfen auf Kombinationen (ActionKey + Zeichen)
             if key_char and registry.has_combo_action(key_char):
                 _cancel_hold_timer()
                 if _log_func:
@@ -196,78 +216,69 @@ def on_press(key):
                 
                 _close_banner_and_reset()
                 registry.execute_combo(key_char)
-            elif is_known_modifier:
+            elif is_ignored_key:
                 pass
             else:
-                # Ungültige Taste während ActionKey gehalten
-                if _log_func:
-                    _log_func(f"Keine Aktion für: {key_char}")
+                if _log_func: _log_func(f"Keine Aktion für: {key_char}")
                 _close_banner_and_reset()
-                print(get_text("hotkey_listener.info.abort_invalid_key"))
 
-        elif is_known_modifier:
+        elif is_ignored_key:
             pass
         else:
-            # Irgendeine andere Taste ohne ActionKey -> Abbruch
             _close_banner_and_reset()
 
-    # Taste zum Set hinzufügen
-    current_keys.add(key)
-    
-    # --- 3. Aktivierungserkennung (State Transition) ---
-    if are_activation_keys_held(current_keys) and wait_state == "IDLE":
-        wait_state = "WAITING_FOR_ACTION"
-        if _log_func:
-            _log_func(f"Aktivierung erkannt! Warte auf {ACTION_KEY_NAME} + Taste...")
-        print(get_text("hotkey_listener.info.wait_for_alt_num"))
+    # 3. Activation Logic im IDLE State
+    elif wait_state == "IDLE":
+        if is_part_of_activation(key):
+            # Prüfen ob mit diesem Key die Combo voll ist
+            temp_keys = current_keys.copy()
+            temp_keys.add(key)
+            if are_activation_keys_held(temp_keys):
+                activation_potential = True
+                activation_spoiled = False
+        else:
+            # Fremde Taste gedrückt -> Aktivierung kaputt
+            if activation_potential or are_activation_keys_held(current_keys):
+                activation_spoiled = True
 
-        ctrl = _get_banner_ctrl()
-        if ctrl:
-            ctrl.on_ctrl_shift_triggered()
-            
-        # FIX: Wenn die Aktivierungstaste gleichzeitig die Aktionstaste ist (z.B. Ctrl+Alt -> Alt halten),
-        # müssen wir den Timer hier manuell starten, da on_press für Alt schon vorbei ist.
-        if is_any_action_key_held(current_keys):
-            registry = get_registry()
-            if registry.has_hold_action() and alt_hold_timer is None:
-                if _log_func:
-                    _log_func(f"{ACTION_KEY_NAME} ist bereits gedrückt, starte Timer...")
-                alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
-                alt_hold_timer.start()
+    current_keys.add(key)
 
 
 def on_release(key):
-    global wait_state
+    global wait_state, activation_potential, activation_spoiled
+
+    # 1. Activation Trigger (beim Loslassen im IDLE State)
+    if wait_state == "IDLE":
+        if is_part_of_activation(key):
+            # Trigger Bedingung: War mal voll da, und nichts Fremdes gedrückt
+            if activation_potential and not activation_spoiled:
+                _trigger_activation()
+                # Wichtig: Nach Trigger nicht resetten, wait_state ist jetzt anders
 
     try:
         current_keys.remove(key)
     except KeyError:
         pass
 
-    # Wenn wir warten...
-    if wait_state == "WAITING_FOR_ACTION":
-        # Prüfen ob Aktivierungs-Keys losgelassen wurden (optional, hier relevant für Abbruchbedingungen?)
-        # Die ursprüngliche Logik war: Wenn Strg+Shift losgelassen, aber Alt noch nicht gedrückt -> warten weiter.
-        pass
-
-    # Timer abbrechen wenn ActionKey losgelassen
+    # Timer abbrechen
     if is_action_key(key):
         _cancel_hold_timer()
-        
-        # Banner Controller Info
-        # Prüfen ob noch ein ANDERER ActionKey gehalten wird (z.B. Alt_R wenn Alt_L losgelassen)
         if not is_any_action_key_held(current_keys):
             ctrl = _get_banner_ctrl()
-            if ctrl:
-                ctrl.on_alt_released()
+            if ctrl: ctrl.on_alt_released()
 
-    # Sicherheits-Reset wenn ActionKey losgelassen wird und wir im Waiting Mode sind
+    # Safety Reset
     if wait_state == "WAITING_FOR_ACTION":
         if is_action_key(key):
             if not is_any_action_key_held(current_keys):
-                if _log_func:
-                    _log_func(f"{ACTION_KEY_NAME} losgelassen, Zyklus beendet.")
+                if _log_func: _log_func(f"{ACTION_KEY_NAME} losgelassen, Zyklus beendet.")
                 _close_banner_and_reset()
+    
+    # Potential Reset wenn keine Activation Keys mehr gehalten werden
+    if wait_state == "IDLE":
+        if not any(is_part_of_activation(k) for k in current_keys):
+            activation_potential = False
+            activation_spoiled = False
 
 
 def start_listener():
@@ -301,16 +312,14 @@ def start_listener():
     ACTION_KEY_NAME = mod_str
     ACTIVATION_KEY_GROUPS = parse_key_config(act_str)
     
-    # Action Key parsen (hier erwarten wir meist einen Modifier)
     parsed_mod = parse_key_config(mod_str)
     ACTION_KEY_GROUP = set()
     for group in parsed_mod:
         ACTION_KEY_GROUP.update(group)
 
     log_message(f"Listener Konfiguration: Aktivierung='{act_str}', Aktion='{mod_str}'")
-    print(f"[INFO] Listener geladen. Aktivierung: {act_str}, Aktion: {mod_str}")
+    print(f"[INFO] Listener geladen. Aktivierung: {act_str} (On Release), Aktion: {mod_str}")
 
-    # --- START ---
     print(get_text("hotkey_listener.info.starting"))
     
     def cleanup_pid_file():
