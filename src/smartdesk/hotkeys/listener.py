@@ -298,6 +298,7 @@ def start_listener():
         ACTION_KEY_GROUP.update(group)
 
     log_message(f"Listener Konfiguration: Aktivierung='{act_str}', Aktion='{mod_str}'")
+    print(f"[INFO] Listener geladen. Aktivierung: {act_str}, Aktion: {mod_str}")
 
     # --- START ---
     print(get_text("hotkey_listener.info.starting"))
