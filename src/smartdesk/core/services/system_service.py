@@ -15,11 +15,13 @@ def restart_explorer():
 
     try:
         # Prüfe ob Explorer läuft
-        explorer_running = any(
-            p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])
-        )
+        explorers = [
+            p
+            for p in psutil.process_iter(["name"])
+            if p.name().lower() == "explorer.exe"
+        ]
 
-        if not explorer_running:
+        if not explorers:
             print(get_text("system.warning.explorer_not_running"))
             subprocess.Popen("explorer.exe")
             return
@@ -30,15 +32,9 @@ def restart_explorer():
         )
 
         # Warte bis Explorer wirklich beendet ist
-        timeout = 5
-        start_time = time.time()
-        while any(
-            p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])
-        ):
-            if time.time() - start_time > timeout:
-                print(get_text("system.warning.explorer_timeout"))
-                break
-            time.sleep(0.1)
+        _, alive = psutil.wait_procs(explorers, timeout=5)
+        if alive:
+            print(get_text("system.warning.explorer_timeout"))
 
         # Zusätzliche kurze Pause für Systemstabilität
         time.sleep(0.5)
