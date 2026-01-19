@@ -48,6 +48,7 @@ class SettingsPage(QWidget):
         self.tab_hotkeys = self.ui.findChild(QWidget, "tab_hotkeys")
         self.layout_hotkeys = self.ui.findChild(QVBoxLayout, "layout_hotkeys_container")
         self.layout_general = self.ui.findChild(QVBoxLayout, "verticalLayout_general")
+        self.check_show_fade = self.ui.findChild(QCheckBox, "check_show_fade")
 
     def setup_tabs(self):
         if self.layout_hotkeys:
@@ -77,9 +78,19 @@ class SettingsPage(QWidget):
         # Insert at top (index 0)
         self.layout_general.insertWidget(0, self.group_autopilot)
 
+        # Animation Settings
+        if self.check_show_fade:
+            is_fade_enabled = settings_service.get_setting("show_switch_animation", True)
+            self.check_show_fade.setChecked(is_fade_enabled)
+            self.check_show_fade.toggled.connect(self.on_fade_toggled)
+
     def on_autoswitch_toggled(self, checked):
         settings_service.set_setting("auto_switch_enabled", checked)
         logger.info(f"Auto-Switch setting changed to: {checked}")
+
+    def on_fade_toggled(self, checked):
+        settings_service.set_setting("show_switch_animation", checked)
+        logger.info(f"Fade Animation setting changed to: {checked}")
 
     def refresh_hotkey_status(self):
         """Wrapper, um den Status der eingebetteten HotkeyPage zu aktualisieren."""

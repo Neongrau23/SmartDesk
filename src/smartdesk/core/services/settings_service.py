@@ -16,7 +16,8 @@ SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
 DEFAULTS = {
     "auto_switch_enabled": False,
     "theme": "dark",
-    "start_minimized": False
+    "start_minimized": False,
+    "show_switch_animation": True
 }
 
 def load_settings() -> dict:

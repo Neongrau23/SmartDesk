@@ -50,6 +50,19 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QGroupBox" name="group_animation">
+         <property name="title"><string>Animationen</string></property>
+         <layout class="QVBoxLayout" name="layout_animation">
+          <item>
+           <widget class="QCheckBox" name="check_show_fade">
+            <property name="text"><string>Blende beim Desktop-Wechsel anzeigen</string></property>
+            <property name="checked"><bool>true</bool></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
       </layout>
      </widget>

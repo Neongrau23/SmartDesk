@@ -19,6 +19,7 @@ from ...shared.localization import get_text
 from ...shared.logging_config import get_logger
 from .icon_service import get_current_icon_positions, set_icon_positions
 from . import wallpaper_service
+from . import settings_service  # Import settings_service
 from ...ui.gui.dialogs import show_choice_dialog, show_confirmation_dialog
 
 logger = get_logger(__name__)
@@ -315,39 +316,44 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
             logger.info(get_text("desktop_handler.info.aborting_switch"))
             return False
 
-    # 1. Lock-File für Animation erstellen
-    lock_file = os.path.join(tempfile.gettempdir(), 'smartdesk_switch.lock')
-    try:
-        with open(lock_file, 'w') as f:
-            f.write("Switching...")
-    except Exception as e:
-        logger.warning(f"Konnte Lock-File nicht erstellen: {e}")
-        lock_file = None
+    # 1. Lock-File für Animation erstellen (nur wenn aktiviert)
+    show_animation = settings_service.get_setting("show_switch_animation", True)
+    lock_file = None
 
-    # 2. Animation starten
-    try:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        animation_script = os.path.join(
-            base_dir, '..', 'shared', 'animations', 'screen_fade.py'
-        )
+    if show_animation:
+        lock_file = os.path.join(tempfile.gettempdir(), 'smartdesk_switch.lock')
+        try:
+            with open(lock_file, 'w') as f:
+                f.write("Switching...")
+        except Exception as e:
+            logger.warning(f"Konnte Lock-File nicht erstellen: {e}")
+            lock_file = None
 
-        if not os.path.exists(animation_script):
-            logger.warning("Animationsskript nicht gefunden")
-        else:
-            cmd = [sys.executable, animation_script]
-            if lock_file:
-                cmd.append(lock_file)
-
-            subprocess.Popen(
-                cmd,
-                creationflags=subprocess.CREATE_NO_WINDOW,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+    # 2. Animation starten (nur wenn aktiviert)
+    if show_animation:
+        try:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            animation_script = os.path.join(
+                base_dir, '..', 'shared', 'animations', 'screen_fade.py'
             )
-            # Kurz warten, damit das Fenster sichtbar wird (Fade-In)
-            time.sleep(0.5)
-    except (OSError, ValueError, FileNotFoundError) as e:
-        logger.warning(f"Animation konnte nicht gestartet werden: {e}")
+
+            if not os.path.exists(animation_script):
+                logger.warning("Animationsskript nicht gefunden")
+            else:
+                cmd = [sys.executable, animation_script]
+                if lock_file:
+                    cmd.append(lock_file)
+
+                subprocess.Popen(
+                    cmd,
+                    creationflags=subprocess.CREATE_NO_WINDOW,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                # Kurz warten, damit das Fenster sichtbar wird (Fade-In)
+                time.sleep(0.5)
+        except (OSError, ValueError, FileNotFoundError) as e:
+            logger.warning(f"Animation konnte nicht gestartet werden: {e}")
 
     # 3. Icons des aktuellen Desktops sichern
     active_desktop = next((d for d in desktops if d.is_active), None)
