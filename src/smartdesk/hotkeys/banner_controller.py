@@ -61,8 +61,14 @@ class BannerController:
             if self._state == BannerState.ARMED:
                 self._state = BannerState.HOLDING
                 self._hold_start_time = time.time()
-                self._log("Controller: HOLDING - Timer gestartet")
-                self._start_hold_timer()
+                
+                if self.config.hold_duration_sec <= 0:
+                    self._log("Controller: Instant Show (0s delay)")
+                    self._show_banner()
+                    self._state = BannerState.SHOWING
+                else:
+                    self._log(f"Controller: HOLDING - Timer gestartet ({self.config.hold_duration_sec}s)")
+                    self._start_hold_timer()
 
     def on_alt_released(self) -> None:
         with self._lock:
