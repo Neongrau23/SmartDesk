@@ -1,7 +1,7 @@
 # Dateipfad: src/smartdesk/hotkeys/banner_controller.py
 """
 Banner-Controller für Hold-to-Show Funktionalität.
-Korrigierte Version: Non-blocking Close für sofortige Reaktion.
+Persistent-GUI Version: Hält den GUI-Prozess am Leben für sofortige Reaktion.
 """
 
 import time
@@ -21,9 +21,9 @@ class BannerState(Enum):
 
 @dataclass
 class BannerConfig:
-    hold_duration_sec: float = 0.01
+    hold_duration_sec: float = 0.5
     arm_timeout_sec: float = 5.0
-    check_interval_ms: int = 0.01
+    check_interval_ms: int = 10
 
 class BannerController:
     def __init__(
@@ -55,6 +55,8 @@ class BannerController:
                 self._state = BannerState.ARMED
                 self._arm_time = time.time()
                 self._log("Controller: ARMED - Warte auf Alt")
+                # Pre-Start GUI process if not running
+                self._ensure_process_running()
 
     def on_alt_pressed(self) -> None:
         with self._lock:
@@ -73,8 +75,8 @@ class BannerController:
     def on_alt_released(self) -> None:
         with self._lock:
             if self._state == BannerState.SHOWING:
-                self._log("Controller: Alt losgelassen - Schließe GUI")
-                self._close_banner()
+                self._log("Controller: Alt losgelassen - Verstecke GUI")
+                self._hide_banner()
                 self._state = BannerState.IDLE
 
             elif self._state == BannerState.HOLDING:
@@ -96,10 +98,20 @@ class BannerController:
     def reset(self) -> None:
         with self._lock:
             self._stop_timer.set()
-            self._close_banner()
+            self._hide_banner()
             self._state = BannerState.IDLE
             self._arm_time = 0
             self._hold_start_time = 0
+
+    def shutdown(self) -> None:
+        """Beendet den GUI-Prozess komplett."""
+        self._send_command("QUIT")
+        if self._gui_process:
+            try:
+                self._gui_process.wait(timeout=1.0)
+            except subprocess.TimeoutExpired:
+                self._gui_process.kill()
+            self._gui_process = None
 
     def _start_hold_timer(self) -> None:
         self._stop_timer.clear()
@@ -122,14 +134,15 @@ class BannerController:
         self._timer_thread = threading.Thread(target=timer_loop, daemon=True)
         self._timer_thread.start()
 
-    def _start_gui_overview(self) -> None:
-        """Startet die gui_overview.py."""
-        if self._gui_process is not None and self._gui_process.poll() is None:
-            return
+    def _ensure_process_running(self) -> None:
+        """Startet den GUI-Prozess im Hintergrund, falls er nicht läuft."""
+        if self._gui_process is not None:
+            if self._gui_process.poll() is None:
+                return # Läuft noch
+            self._log(f"GUI: Prozess war beendet (Code {self._gui_process.returncode}). Starte neu...")
 
         try:
             python_exe = sys.executable
-            # Pfad muss ggf. an deine Ordnerstruktur angepasst werden
             script_path = os.path.abspath(os.path.join(
                 os.path.dirname(__file__),
                 "..", "ui", "gui", "gui_overview.py"
@@ -139,6 +152,7 @@ class BannerController:
                 self._log(f"GUI: Fehler - Skript nicht gefunden: {script_path}")
                 return
 
+            # Start mit PIPE für stdin
             self._gui_process = subprocess.Popen(
                 [python_exe, script_path],
                 stdin=subprocess.PIPE,
@@ -147,57 +161,30 @@ class BannerController:
                 creationflags=(
                     subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
                 ),
+                text=True, # Text-Modus für einfacheres Schreiben
+                bufsize=1  # Line buffering
             )
-            self._log(f"GUI: gui_overview.py gestartet. PID: {self._gui_process.pid}")
+            self._log(f"GUI: Prozess gestartet (PID: {self._gui_process.pid})")
         except Exception as e:
-            self._log(f"GUI: Fehler beim Starten von gui_overview.py: {e}")
+            self._log(f"GUI: Fehler beim Starten: {e}")
 
-    def _stop_gui_overview(self) -> None:
-        """
-        Sendet das Schließen-Signal (via stdin close).
-        Wartet NICHT im Hauptthread auf das Ende des Prozesses,
-        damit die GUI sofort reagiert.
-        """
-        if self._gui_process and self._gui_process.poll() is None:
-            self._log("GUI: Signal zum Schließen gesendet (non-blocking).")
-            
-            # 1. Signal senden: Stdin schließen
-            if self._gui_process.stdin:
-                try:
-                    self._gui_process.stdin.close()
-                except Exception as e:
-                    self._log(f"GUI: Fehler beim Schließen von stdin: {e}")
-
-            # 2. Aufräumen in separaten Thread auslagern
-            cleanup_thread = threading.Thread(
-                target=self._wait_and_cleanup,
-                args=(self._gui_process,),
-                daemon=True
-            )
-            cleanup_thread.start()
-
-            # Referenz sofort entfernen
-            self._gui_process = None
-        else:
-            self._gui_process = None
-
-    def _wait_and_cleanup(self, process: subprocess.Popen):
-        """Hilfsmethode für den Hintergrund-Thread."""
-        try:
-            # Gib der GUI Zeit für die Animation (1.5s Puffer)
-            process.wait(timeout=1.5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-        except Exception:
-            pass
+    def _send_command(self, cmd: str) -> None:
+        if not self._gui_process or self._gui_process.poll() is not None:
+            self._ensure_process_running()
+        
+        if self._gui_process and self._gui_process.stdin:
+            try:
+                self._gui_process.stdin.write(f"{cmd}\n")
+                self._gui_process.stdin.flush()
+                # self._log(f"GUI CMD: {cmd}")
+            except Exception as e:
+                self._log(f"GUI: Fehler beim Senden von '{cmd}': {e}")
 
     def _show_banner(self) -> None:
-        self._start_gui_overview()
-        self._log("GUI: Anzeige gestartet")
+        self._send_command("SHOW")
 
-    def _close_banner(self) -> None:
-        self._stop_gui_overview()
-        self._log("GUI: Geschlossen")
+    def _hide_banner(self) -> None:
+        self._send_command("HIDE")
 
 # Singleton
 _controller: Optional[BannerController] = None
@@ -214,5 +201,5 @@ def set_banner_controller(controller: BannerController) -> None:
     global _controller
     with _controller_lock:
         if _controller:
-            _controller.reset()
+            _controller.shutdown() # Cleanup old one
         _controller = controller
