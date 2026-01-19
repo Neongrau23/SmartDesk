@@ -218,7 +218,7 @@ class OverviewWindow(QWidget):
         ensure_taskbar_on_top()
         
         self.animation = QPropertyAnimation(self, b"geometry")
-        self.animation.setDuration(200) # Etwas schneller
+        self.animation.setDuration(450)
         self.animation.setStartValue(QRect(self.target_x, self.start_y, self.width(), self.height()))
         self.animation.setEndValue(QRect(self.target_x, self.target_y, self.width(), self.height()))
         self.animation.setEasingCurve(QEasingCurve.OutCubic)
@@ -237,7 +237,7 @@ class OverviewWindow(QWidget):
         ensure_taskbar_on_top()
         
         self.animation = QPropertyAnimation(self, b"geometry")
-        self.animation.setDuration(200)
+        self.animation.setDuration(450)
         self.animation.setStartValue(self.geometry())
         self.animation.setEndValue(QRect(self.target_x, self.start_y, self.width(), self.height()))
         self.animation.setEasingCurve(QEasingCurve.InCubic)
