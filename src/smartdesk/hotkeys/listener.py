@@ -172,11 +172,6 @@ def _trigger_activation():
     ctrl = _get_banner_ctrl()
     if ctrl:
         ctrl.on_ctrl_shift_triggered()
-        
-    # Wenn ActionKey bereits gehalten wird (z.B. Teil der Aktivierung), Timer starten
-    if is_any_action_key_held(current_keys):
-        # Wir markieren den Key als "benutzt", da er gehalten wird und wir in den Modus gehen
-        pass
 
 def on_press(key):
     global wait_state, alt_hold_timer, activation_potential, activation_spoiled, action_key_used_after_activation
