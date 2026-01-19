@@ -1,0 +1,45 @@
+# SmartDesk AI Rules & Context
+
+You are an expert Python developer working on "SmartDesk", a Windows virtual desktop manager using PySide6 and Win32 APIs.
+
+## 🧠 Core Principles
+- **Stability First:** System-level calls (Win32) must be wrapped in try-except blocks. Crashes in background threads must not kill the main app.
+- **Performance:** GUI operations (PySide6) must happen in the main thread. Heavy lifting (file I/O, system calls) goes to background threads.
+- **Clean Code:** Follow PEP 8. Use type hints (`typing`) strictly. Docstrings for complex functions.
+
+## 🏗️ Architecture & Features (v0.4.1+)
+- **Persistent GUI Overlay:** 
+  - The hotkey overview (`gui_overview.py`) runs as a persistent background process managed by `BannerController`.
+  - Communication happens via `stdin` commands: `SHOW`, `HIDE`, `QUIT`.
+  - **Do not** revert to spawning a new process per keypress.
+- **Hotkey Logic:** 
+  - Triggers are "On-Release" (key up) to prevent conflicts.
+  - Supports an "Instant Mode" (0.0s delay) which bypasses timer threads entirely.
+- **Desktop Switching:** 
+  - The core mechanism involves restarting `explorer.exe`. 
+  - The fullscreen fade animation (`screen_fade.py`) is critical to hide the desktop flickering during this restart.
+
+## 📝 Coding Style
+- **Naming:**
+  - Variables/Functions: `snake_case` (e.g., `current_desktop`)
+  - Classes: `PascalCase` (e.g., `DesktopService`)
+  - Constants: `UPPER_CASE`
+- **File Structure:**
+  - `core/`: Business logic & Services
+  - `ui/`: PySide6 GUI & Tray
+  - `hotkeys/`: pynput Listeners
+  - `shared/`: Config & Logging
+- **Logging:** 
+  - Use `smartdesk.shared.logging_config.get_logger`. 
+  - **Never** use `print()` in production code (it crashes in `.pyw` no-console mode).
+
+## 📦 Tech Stack
+- **Language:** Python 3.10+
+- **GUI:** PySide6 (Qt for Python)
+- **System:** pywin32 (ctypes, user32, shell32)
+- **Input:** pynput (Global Hotkeys)
+
+## 🚀 Release Process
+- Update `__version__` in `src/smartdesk/__init__.py`.
+- Create Git Tag (e.g., `v0.4.1`).
+- Document changes in `docs/releases/vX.X.X.md`.
