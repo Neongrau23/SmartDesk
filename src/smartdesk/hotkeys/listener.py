@@ -247,12 +247,15 @@ def on_press(key):
 def on_release(key):
     global wait_state, activation_potential, activation_spoiled
 
+    just_triggered = False
+
     # 1. Activation Trigger (beim Loslassen im IDLE State)
     if wait_state == "IDLE":
         if is_part_of_activation(key):
             # Trigger Bedingung: War mal voll da, und nichts Fremdes gedrückt
             if activation_potential and not activation_spoiled:
                 _trigger_activation()
+                just_triggered = True
                 # Wichtig: Nach Trigger nicht resetten, wait_state ist jetzt anders
 
     try:
@@ -267,8 +270,9 @@ def on_release(key):
             ctrl = _get_banner_ctrl()
             if ctrl: ctrl.on_alt_released()
 
-    # Safety Reset
-    if wait_state == "WAITING_FOR_ACTION":
+    # Safety Reset wenn ActionKey losgelassen wird und wir im Waiting Mode sind
+    # ABER: Nicht resetten, wenn wir diesen Modus gerade erst durch diesen Tastendruck aktiviert haben!
+    if wait_state == "WAITING_FOR_ACTION" and not just_triggered:
         if is_action_key(key):
             if not is_any_action_key_held(current_keys):
                 if _log_func: _log_func(f"{ACTION_KEY_NAME} losgelassen, Zyklus beendet.")
