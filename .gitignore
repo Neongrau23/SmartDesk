@@ -138,3 +138,5 @@ local_settings.py
 *.exe
 *.dll
 *.pyd
+.gemini/
+gha-creds-*.json
