@@ -335,6 +335,16 @@ def start_listener():
     log_message(f"Listener Konfiguration: Aktivierung='{act_str}', Aktion='{mod_str}'")
     print(f"[INFO] Listener geladen. Aktivierung: {act_str} (On Release), Aktion: {mod_str}")
 
+    # Controller Config Update
+    try:
+        hold_dur = float(settings.get("hold_duration", 0.5))
+        ctrl = _get_banner_ctrl()
+        if ctrl:
+            ctrl.config.hold_duration_sec = hold_dur
+            log_message(f"Hold duration set to {hold_dur}s")
+    except Exception as e:
+        logger.error(f"Error setting hold duration: {e}")
+
     print(get_text("hotkey_listener.info.starting"))
     
     def cleanup_pid_file():

@@ -19,7 +19,8 @@ DEFAULTS = {
     "start_minimized": False,
     "show_switch_animation": True,
     "activation_keys": "Ctrl+Shift",
-    "action_modifier": "Alt"
+    "action_modifier": "Alt",
+    "hold_duration": 0.5
 }
 
 def load_settings() -> dict:

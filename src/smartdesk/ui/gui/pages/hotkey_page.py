@@ -1,7 +1,7 @@
 import os
 import logging
 from PySide6.QtWidgets import (
-    QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox
+    QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox, QDoubleSpinBox
 )
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, QTimer
@@ -73,6 +73,7 @@ class HotkeyPage(QWidget):
         # Config Elemente
         self.combo_activation = self.ui.findChild(QComboBox, "combo_activation")
         self.combo_action = self.ui.findChild(QComboBox, "combo_action")
+        self.spin_hold_duration = self.ui.findChild(QDoubleSpinBox, "spin_hold_duration")
         self.btn_save_config = self.ui.findChild(QPushButton, "btn_save_config")
 
     def setup_connections(self):
@@ -92,11 +93,14 @@ class HotkeyPage(QWidget):
         """Lädt die aktuellen Settings in die ComboBoxen."""
         act_key = get_setting("activation_keys", "Ctrl+Shift")
         act_mod = get_setting("action_modifier", "Alt")
+        duration = get_setting("hold_duration", 0.5)
         
         if self.combo_activation:
             self.combo_activation.setCurrentText(act_key)
         if self.combo_action:
             self.combo_action.setCurrentText(act_mod)
+        if self.spin_hold_duration:
+            self.spin_hold_duration.setValue(float(duration))
 
     def save_config(self):
         """Speichert die Settings und startet den Listener neu."""
@@ -104,9 +108,13 @@ class HotkeyPage(QWidget):
         
         new_act = self.combo_activation.currentText()
         new_mod = self.combo_action.currentText()
+        new_duration = 0.5
+        if self.spin_hold_duration:
+            new_duration = self.spin_hold_duration.value()
         
         set_setting("activation_keys", new_act)
         set_setting("action_modifier", new_mod)
+        set_setting("hold_duration", new_duration)
         
         self.show_message("Konfiguration gespeichert. Starte Listener neu...", success=True)
         
