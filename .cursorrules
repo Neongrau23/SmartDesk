@@ -15,9 +15,26 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
 - **Hotkey Logic:** 
   - Triggers are "On-Release" (key up) to prevent conflicts.
   - Supports an "Instant Mode" (0.0s delay) which bypasses timer threads entirely.
-- **Desktop Switching:** 
-  - The core mechanism involves restarting `explorer.exe`. 
+  - State Machine: `IDLE` -> `ARMED` -> `HOLDING` -> `SHOWING`.
+- **Desktop Switching Workflow:** 
+  - Sequence: Create Lock File -> Create Registry Backup -> Save Icons -> Update Registry -> Restart Windows Explorer -> Restore Icons/Wallpaper.
   - The fullscreen fade animation (`screen_fade.py`) is critical to hide the desktop flickering during this restart.
+
+## ⚙️ Technical Implementation Details
+- **Threading & Locks:** 
+  - Services requiring recursive internal calls (e.g., `add_rule` calling `save_rules`) **must** use `threading.RLock` instead of `threading.Lock` to avoid deadlocks.
+  - When iterating over system resources based on a shared locked resource, make a copy of the resource within the lock, then release the lock before starting the long iteration.
+- **Performance (psutil):** 
+  - To check running processes against rules, iterate through `psutil.process_iter()` and check each process individually. Stop as soon as a match is found. Do not create a large set of all process names first.
+  - For process termination checks, prefer `psutil.wait_procs` with a pre-filtered list over polling loops.
+- **Environment:** 
+  - Network access can be unreliable; avoid unnecessary `pip install` commands.
+
+## 🧪 Testing & Development
+- **Framework:** `pytest`. Run via `python -m pytest` to ensure correct environment.
+- **Requirements:** 
+  - Must set `PYTHONPATH=src` and provide the `APPDATA` environment variable.
+  - **Mocking:** Since SmartDesk is Windows-heavy, mock `win32*`, `ctypes`, `PySide6`, `PIL`, and `pynput` in `tests/conftest.py` to allow execution in limited environments.
 
 ## 📝 Coding Style
 - **Naming:**
