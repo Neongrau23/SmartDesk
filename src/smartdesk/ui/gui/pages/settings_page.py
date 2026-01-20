@@ -122,26 +122,30 @@ class SettingsPage(QWidget):
         self.lbl_update_status.setText("Suche nach Updates...")
         self.btn_check_for_updates.setEnabled(False)
         
-        is_newer, latest_version = self.update_service.check_for_updates()
-        
-        if is_newer:
-            self.lbl_update_status.setText(f"Neue Version verfügbar: v{latest_version}! Klicken zum Download.")
-            self.lbl_update_status.setStyleSheet("color: green;")
-            # Optional: Button zum Öffnen der Download-Seite
-            download_url = self.update_service.get_download_url()
-            if download_url:
-                # Hier könnte man einen neuen Button/Link anzeigen
-                self.lbl_update_status.linkActivated.connect(lambda: QDesktopServices.openUrl(download_url))
-                self.lbl_update_status.setText(f'<a href="{download_url}">Neue Version v{latest_version} verfügbar! Hier klicken zum Download.</a>')
-                self.lbl_update_status.setOpenExternalLinks(True)
+        try:
+            is_newer, latest_version = self.update_service.check_for_updates()
             
-        elif latest_version:
-            self.lbl_update_status.setText(f"SmartDesk ist aktuell (v{__version__}).")
-            self.lbl_update_status.setStyleSheet("color: black;")
-        else:
-            self.lbl_update_status.setText("Fehler beim Prüfen auf Updates.")
+            if is_newer:
+                self.lbl_update_status.setText(f"Neue Version verfügbar: v{latest_version}! Klicken zum Download.")
+                self.lbl_update_status.setStyleSheet("color: green;")
+                download_url = self.update_service.get_download_url()
+                if download_url:
+                    self.lbl_update_status.setText(f'<a href="{download_url}">Neue Version v{latest_version} verfügbar! Hier klicken zum Download.</a>')
+                    self.lbl_update_status.setOpenExternalLinks(True)
+                
+            elif latest_version:
+                self.lbl_update_status.setText(f"SmartDesk ist aktuell (v{__version__}).")
+                self.lbl_update_status.setStyleSheet("color: black;")
+            else:
+                # This case might happen if the check fails but no exception was raised (e.g., non-200 status)
+                self.lbl_update_status.setText("Fehler beim Prüfen auf Updates (API-Antwort).")
+                self.lbl_update_status.setStyleSheet("color: red;")
+
+        except Exception as e:
+            logger.error(f"Update check failed with an exception: {e}")
+            self.lbl_update_status.setText(f"Fehler: {e}")
             self.lbl_update_status.setStyleSheet("color: red;")
-            
+
         self.btn_check_for_updates.setEnabled(True)
 
     def refresh_hotkey_status(self):
