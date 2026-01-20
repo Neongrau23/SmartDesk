@@ -188,9 +188,9 @@ def on_press(key):
         if is_action_key(key):
             action_key_used_after_activation = True
             
-            # FIX: Controller synchronisieren!
-            # Falls der Controller durch vorheriges Loslassen auf IDLE ging,
-            # müssen wir ihn wieder "Scharfschalten" (ARMED), bevor wir HOLDING triggern.
+            # Controller synchronisieren:
+            # Falls der Controller (z.B. durch Timeout oder Reset) auf IDLE steht,
+            # stellen wir sicher, dass er ARMED ist, bevor wir HOLDING auslösen.
             ctrl = _get_banner_ctrl()
             if ctrl:
                 ctrl.on_ctrl_shift_triggered() # Sicherstellen dass er ARMED ist
