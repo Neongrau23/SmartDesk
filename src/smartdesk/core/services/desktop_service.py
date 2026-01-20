@@ -45,6 +45,9 @@ def create_desktop(name: str, path: str, create_if_missing: bool = True) -> bool
         logger.error(msg)
         return False
 
+    # Pfad normalisieren (Windows Backslashes erzwingen)
+    path = os.path.normpath(os.path.expandvars(path))
+
     new_desktop = Desktop(name=name, path=path)
     desktops.append(new_desktop)
     save_desktops(desktops)
@@ -104,7 +107,7 @@ def update_desktop(old_name: str, new_name: str, new_path: str) -> bool:
                 return False
 
     target_desktop.name = new_name
-    target_desktop.path = new_path
+    target_desktop.path = os.path.normpath(os.path.expandvars(new_path))
 
     save_desktops(desktops)
     msg = get_text(
@@ -390,20 +393,24 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
         logger.warning(msg)
 
     # 4. Registry ändern
+    # WICHTIG: Pfad muss absolut sauber normalisiert sein (Windows Backslashes),
+    # sonst kommt der Fehler 'Ungültiges Gerät' beim Umbenennen von Dateien.
+    clean_path = os.path.normpath(os.path.expandvars(target_desktop.path))
+
     msg = get_text(
         "desktop_handler.info.switching_registry",
         name=target_desktop.name,
-        path=target_desktop.path,
+        path=clean_path,
     )
     logger.info(msg)
 
     reg_success = True
     if not update_registry_key(
-        KEY_USER_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_EXPAND_SZ
+        KEY_USER_SHELL, VALUE_NAME, clean_path, winreg.REG_EXPAND_SZ
     ):
         reg_success = False
     if not update_registry_key(
-        KEY_LEGACY_SHELL, VALUE_NAME, target_desktop.path, winreg.REG_SZ
+        KEY_LEGACY_SHELL, VALUE_NAME, clean_path, winreg.REG_SZ
     ):
         reg_success = False
 
