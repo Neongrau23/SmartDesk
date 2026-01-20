@@ -4,13 +4,19 @@ import json
 import os
 import time
 from contextlib import contextmanager
-from typing import List
+from typing import List, Optional, Dict, Any
 
 from ..models.desktop import Desktop
 from ...shared.config import DATA_DIR
 
 DATA_FILE_PATH = os.path.join(DATA_DIR, "desktops.json")
 LOCK_FILE_PATH = os.path.join(DATA_DIR, "desktops.lock")
+
+# Global cache variables
+_json_cache: Optional[List[Dict[str, Any]]] = None
+_last_mtime: float = 0.0
+_cached_file_path: Optional[str] = None
+
 
 @contextmanager
 def file_lock(lock_file, timeout=10):
@@ -56,21 +62,38 @@ def load_desktops() -> List[Desktop]:
     """
     Lädt alle Desktops aus der desktops.json Datei.
     Gibt eine leere Liste zurück, wenn die Datei nicht existiert.
+    Nutzt einen In-Memory-Cache für die JSON-Daten, um Dateizugriffe und Parsing zu minimieren.
     """
+    global _json_cache, _last_mtime, _cached_file_path
     data_file = get_data_file_path()
 
     if not os.path.exists(data_file):
         return []
 
     try:
+        current_mtime = os.path.getmtime(data_file)
+
+        # Capture cache locally to avoid race condition where another thread invalidates it
+        local_cache = _json_cache
+
+        # Check if cache is valid (same file path and same mtime)
+        if (local_cache is not None and
+            _cached_file_path == data_file and
+            _last_mtime == current_mtime):
+            # Reconstruct objects from cached JSON data
+            return [Desktop.from_dict(item) for item in local_cache]
+
         with file_lock(LOCK_FILE_PATH):
+            # Read file
             with open(data_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                desktops = []
-                for item in data:
-                    desktop = Desktop.from_dict(item)
-                    desktops.append(desktop)
-                return desktops
+
+                # Update cache
+                _json_cache = data
+                _last_mtime = os.path.getmtime(data_file)
+                _cached_file_path = data_file
+
+                return [Desktop.from_dict(item) for item in _json_cache]
     except Exception as e:
         print(f"Fehler beim Laden der Desktops: {e}")
         return []
@@ -86,6 +109,7 @@ def save_desktops(desktops: List[Desktop]) -> bool:
     Returns:
         True bei Erfolg, False bei Fehler
     """
+    global _json_cache, _last_mtime, _cached_file_path
     data_file = get_data_file_path()
 
     # Stelle sicher, dass das Verzeichnis existiert
@@ -99,6 +123,11 @@ def save_desktops(desktops: List[Desktop]) -> bool:
 
             with open(data_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
+
+            # Invalidate cache to force reload next time
+            _json_cache = None
+            _last_mtime = 0.0
+            _cached_file_path = None
 
         return True
     except Exception as e:
