@@ -12,6 +12,7 @@ from ...shared.config import DATA_DIR
 DATA_FILE_PATH = os.path.join(DATA_DIR, "desktops.json")
 LOCK_FILE_PATH = os.path.join(DATA_DIR, "desktops.lock")
 
+@contextmanager
 def file_lock(lock_file, timeout=10):
     """
     A context manager for file-based locking.
