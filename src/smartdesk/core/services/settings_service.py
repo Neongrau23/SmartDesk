@@ -20,7 +20,8 @@ DEFAULTS = {
     "show_switch_animation": True,
     "activation_keys": "Ctrl+Shift",
     "action_modifier": "Alt",
-    "hold_duration": 0.5
+    "hold_duration": 0.5,
+    "github_pat": None
 }
 
 def load_settings() -> dict:

@@ -76,6 +76,17 @@
             <property name="text"><string>Aktuelle Version: v0.5.0</string></property>
            </widget>
           </item>
+          <item>
+           <widget class="QLabel" name="label_github_pat">
+            <property name="text"><string>GitHub Personal Access Token (PAT):</string></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="edit_github_pat">
+            <property name="echoMode"><enum>QLineEdit::Password</enum></property>
+            <property name="placeholderText"><string>Optional: Für höheres Rate Limit</string></property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>

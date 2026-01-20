@@ -4,6 +4,7 @@ import logging
 from typing import Optional, Tuple, Dict, Any
 from smartdesk import __version__
 from smartdesk.shared.logging_config import get_logger
+from smartdesk.core.services import settings_service # Import settings_service
 
 logger = get_logger(__name__)
 
@@ -25,15 +26,25 @@ class UpdateService:
         try:
             # Use a User-Agent to avoid being blocked by GitHub API
             headers = {'User-Agent': 'SmartDesk-Update-Checker'}
+
+            github_pat = settings_service.get_setting("github_pat")
+            if github_pat:
+                headers['Authorization'] = f'token {github_pat}'
+
             req = urllib.request.Request(self.GITHUB_API_URL, headers=headers)
 
             with urllib.request.urlopen(req, timeout=10) as response:
+                logger.debug(f"GitHub API response status: {response.status}")
                 if response.status == 200:
                     data = json.loads(response.read().decode())
                     self.latest_release_info = data
+                    logger.debug(f"GitHub API response data: {data}")
 
-                    # GitHub tag_name usually is 'v0.5.0' or just '0.5.0'
                     remote_version_raw = data.get("tag_name", "0.0.0")
+                    if not remote_version_raw:
+                        logger.warning("tag_name not found in GitHub API response.")
+                        return False, None
+                    
                     remote_version = remote_version_raw.lstrip('v')
 
                     if self._is_version_newer(__version__, remote_version):
@@ -45,7 +56,7 @@ class UpdateService:
                 else:
                     logger.error(f"GitHub API returned status code: {response.status}")
         except Exception as e:
-            logger.error(f"Failed to check for updates: {e}")
+            logger.error(f"Failed to check for updates: {e}", exc_info=True)
 
         return False, None
 

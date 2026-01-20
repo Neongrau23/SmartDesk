@@ -1,6 +1,6 @@
 import os
 import logging
-from PySide6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QCheckBox, QGroupBox, QPushButton, QLabel
+from PySide6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QCheckBox, QGroupBox, QPushButton, QLabel, QLineEdit
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice
 from PySide6.QtGui import QDesktopServices
@@ -60,6 +60,7 @@ class SettingsPage(QWidget):
         self.check_show_fade = self.ui.findChild(QCheckBox, "check_show_fade")
         self.btn_check_for_updates = self.ui.findChild(QPushButton, "btn_check_for_updates")
         self.lbl_update_status = self.ui.findChild(QLabel, "lbl_update_status")
+        self.edit_github_pat = self.ui.findChild(QLineEdit, "edit_github_pat")
 
     def setup_tabs(self):
         if self.layout_hotkeys:
@@ -95,6 +96,12 @@ class SettingsPage(QWidget):
         if self.lbl_update_status:
             self.lbl_update_status.setText(f"Aktuelle Version: v{__version__}")
 
+        # GitHub PAT
+        if self.edit_github_pat:
+            pat = settings_service.get_setting("github_pat", "")
+            if pat:
+                self.edit_github_pat.setText(pat)
+
     def setup_connections(self):
         """Verbindet die Signale der UI-Elemente."""
         if self.check_autoswitch:
@@ -105,6 +112,8 @@ class SettingsPage(QWidget):
             self.check_show_fade.toggled.connect(self.on_fade_toggled)
         if self.btn_check_for_updates:
             self.btn_check_for_updates.clicked.connect(self.check_for_updates)
+        if self.edit_github_pat:
+            self.edit_github_pat.textChanged.connect(self.on_github_pat_changed)
 
     def on_autoswitch_toggled(self, checked):
         settings_service.set_setting("auto_switch_enabled", checked)
@@ -117,6 +126,10 @@ class SettingsPage(QWidget):
     def on_fade_toggled(self, checked):
         settings_service.set_setting("show_switch_animation", checked)
         logger.info(f"Fade Animation setting changed to: {checked}")
+
+    def on_github_pat_changed(self, text):
+        settings_service.set_setting("github_pat", text)
+        logger.info("GitHub PAT updated in settings.")
 
     def check_for_updates(self):
         self.lbl_update_status.setText("Suche nach Updates...")
@@ -132,7 +145,6 @@ class SettingsPage(QWidget):
                 if download_url:
                     self.lbl_update_status.setText(f'<a href="{download_url}">Neue Version v{latest_version} verfügbar! Hier klicken zum Download.</a>')
                     self.lbl_update_status.setOpenExternalLinks(True)
-                
             elif latest_version:
                 self.lbl_update_status.setText(f"SmartDesk ist aktuell (v{__version__}).")
                 self.lbl_update_status.setStyleSheet("color: black;")
