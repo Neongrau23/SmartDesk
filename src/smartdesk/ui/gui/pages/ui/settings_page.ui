@@ -33,12 +33,11 @@
       <layout class="QVBoxLayout" name="verticalLayout_general">
        <item>
         <widget class="QGroupBox" name="group_tray">
-         <property name="title"><string>Tray Icon</string></property>
+         <property name="title"><string>System</string></property>
          <layout class="QVBoxLayout" name="layout_tray">
           <item>
-           <widget class="QCheckBox" name="check_tray_startup">
-            <property name="text"><string>Beim Systemstart minimiert starten</string></property>
-            <property name="enabled"><bool>false</bool></property>
+           <widget class="QCheckBox" name="check_autostart">
+            <property name="text"><string>SmartDesk mit Windows starten</string></property>
            </widget>
           </item>
           <item>
