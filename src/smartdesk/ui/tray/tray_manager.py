@@ -55,40 +55,40 @@ class TrayManager:
             elif existing_pid:
                 cleanup_tray_pid()
 
-            # Finde die relevanten Pfade
-            # Wir sind in src/smartdesk/ui/tray/tray_manager.py
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            # tray_icon.py liegt im selben Ordner
-            tray_icon_path = os.path.join(current_dir, 'tray_icon.py')
-            
-            # Projekt-Root finden (3 Ebenen hoch: tray -> ui -> smartdesk -> src -> root)
-            # src/smartdesk/ui/tray -> src/smartdesk/ui -> src/smartdesk -> src -> root
-            # Aber wir wollen das Root-Verzeichnis, wo main.py liegt? 
-            # Normalerweise wird cwd auf Project-Root gesetzt.
-            # Gehen wir sicher:
-            src_smartdesk_ui_tray = current_dir
-            src_smartdesk_ui = os.path.dirname(src_smartdesk_ui_tray)
-            src_smartdesk = os.path.dirname(src_smartdesk_ui)
-            src_dir = os.path.dirname(src_smartdesk)
-            project_root = os.path.dirname(src_dir)
+            if getattr(sys, 'frozen', False):
+                # Frozen Mode: Start exe
+                process = subprocess.Popen(
+                    [sys.executable],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                )
+            else:
+                # Dev Mode: Start script
+                # Finde die relevanten Pfade
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                tray_icon_path = os.path.join(current_dir, 'tray_icon.py')
 
-            if not os.path.exists(tray_icon_path):
-                msg = get_text('main.error.tray_not_found', path=tray_icon_path)
-                print(f"{PREFIX_ERROR} {msg}")
-                return False
+                # Projekt-Root finden
+                src_smartdesk_ui_tray = current_dir
+                src_smartdesk_ui = os.path.dirname(src_smartdesk_ui_tray)
+                src_smartdesk = os.path.dirname(src_smartdesk_ui)
+                src_dir = os.path.dirname(src_smartdesk)
+                project_root = os.path.dirname(src_dir)
 
-            # Finde den 'pythonw.exe' Interpreter (windowless)
-            pythonw_executable = sys.executable.replace("python.exe", "pythonw.exe")
-            if not os.path.exists(pythonw_executable):
-                # Fallback auf python.exe wenn pythonw.exe nicht da ist (z.B. venv)
-                pythonw_executable = sys.executable
+                if not os.path.exists(tray_icon_path):
+                    msg = get_text('main.error.tray_not_found', path=tray_icon_path)
+                    print(f"{PREFIX_ERROR} {msg}")
+                    return False
 
-            # Starte das Tray-Icon als neuen Prozess
-            process = subprocess.Popen(
-                [pythonw_executable, tray_icon_path],
-                cwd=project_root,
-                creationflags=subprocess.CREATE_NEW_CONSOLE,
-            )
+                # Finde den 'pythonw.exe' Interpreter
+                pythonw_executable = sys.executable.replace("python.exe", "pythonw.exe")
+                if not os.path.exists(pythonw_executable):
+                    pythonw_executable = sys.executable
+
+                process = subprocess.Popen(
+                    [pythonw_executable, tray_icon_path],
+                    cwd=project_root,
+                    creationflags=subprocess.CREATE_NEW_CONSOLE,
+                )
 
             save_tray_pid(process.pid)
 

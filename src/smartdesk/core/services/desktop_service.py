@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 from typing import List
 
-from ...shared.config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
+from ...shared.config import KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME, get_resource_path
 from ..services.system_service import restart_explorer
 from ..utils.registry_operations import update_registry_key, get_registry_value
 from ..utils.path_validator import ensure_directory_exists
@@ -332,13 +332,10 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     # 2. Animation starten (nur wenn aktiviert)
     if show_animation:
         try:
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            animation_script = os.path.join(
-                base_dir, '..', 'shared', 'animations', 'screen_fade.py'
-            )
+            animation_script = get_resource_path('smartdesk/shared/animations/screen_fade.py')
 
             if not os.path.exists(animation_script):
-                logger.warning("Animationsskript nicht gefunden")
+                logger.warning(f"Animationsskript nicht gefunden: {animation_script}")
             else:
                 cmd = [sys.executable, animation_script]
                 if lock_file:

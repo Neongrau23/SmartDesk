@@ -27,6 +27,7 @@ except ImportError:
 try:
     from smartdesk.core.services import desktop_service
     from smartdesk.hotkeys import hotkey_manager
+    from smartdesk.shared.config import get_resource_path
 except ImportError:
     # Mocking für Tests ohne Backend
     class FakeHotkeys:
@@ -99,13 +100,8 @@ class SmartDeskControlPanel(QWidget):
 
     def load_ui(self):
         loader = QUiLoader()
-        # Pfad flexibel halten
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_file_path = os.path.join(current_dir, "designer", "control_panel.ui")
-        
-        # Fallback falls "designer" Unterordner nicht existiert (für flache Struktur)
-        if not os.path.exists(ui_file_path):
-            ui_file_path = os.path.join(current_dir, "control_panel.ui")
+        # Use get_resource_path
+        ui_file_path = get_resource_path("smartdesk/ui/gui/designer/control_panel.ui")
 
         ui_file = QFile(ui_file_path)
         if not ui_file.open(QIODevice.ReadOnly):
@@ -123,7 +119,7 @@ class SmartDeskControlPanel(QWidget):
     def load_stylesheet(self):
         """Lädt die externe QSS Datei für saubere Trennung."""
         try:
-            style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "style.qss")
+            style_path = get_resource_path("smartdesk/ui/gui/style.qss")
             with open(style_path, "r") as f:
                 self.setStyleSheet(f.read())
         except Exception as e:
@@ -235,10 +231,15 @@ class SmartDeskControlPanel(QWidget):
         self._run_gui_script('gui_manage.py')
 
     def _run_gui_script(self, script_name):
-        # pythonw startet ohne Konsolenfenster
-        python_exe = sys.executable.replace("python.exe", "pythonw.exe")
-        script = os.path.join(os.path.dirname(__file__), script_name)
-        subprocess.Popen([python_exe, script], creationflags=subprocess.CREATE_NO_WINDOW)
+        # Use sys.executable for compatibility with frozen app
+        python_exe = sys.executable
+        script = get_resource_path(f"smartdesk/ui/gui/{script_name}")
+
+        flags = 0
+        if sys.platform == "win32":
+            flags = subprocess.CREATE_NO_WINDOW
+
+        subprocess.Popen([python_exe, script], creationflags=flags)
         self.close_panel()
 
     # --- Transition Logic ---

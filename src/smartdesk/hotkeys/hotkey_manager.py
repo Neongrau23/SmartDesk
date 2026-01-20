@@ -13,6 +13,7 @@ Die Implementierung nutzt intern den ListenerManager mit Dependency Injection.
 """
 
 import os
+import sys
 from typing import Optional
 
 # Interne Importe
@@ -61,10 +62,22 @@ LOG_FILE = os.path.join(DATA_DIR, "listener.log")
 ERR_FILE = os.path.join(DATA_DIR, "listener_error.log")
 
 # Python-Executable im venv
-PYTHON_EXECUTABLE = os.path.join(WORKING_DIRECTORY, ".venv", "Scripts", "python.exe")
+if getattr(sys, 'frozen', False):
+    PYTHON_EXECUTABLE = sys.executable
+    # In frozen app, import via -c to ensure package structure works
+    COMMAND_TO_RUN = [
+        PYTHON_EXECUTABLE,
+        "-c",
+        "from smartdesk.hotkeys.listener import start_listener; start_listener()"
+    ]
+else:
+    venv_python = os.path.join(WORKING_DIRECTORY, ".venv", "Scripts", "python.exe")
+    if os.path.exists(venv_python):
+        PYTHON_EXECUTABLE = venv_python
+    else:
+        PYTHON_EXECUTABLE = sys.executable
 
-# Befehl zum Starten des Listeners
-COMMAND_TO_RUN = [PYTHON_EXECUTABLE, "-m", "smartdesk.hotkeys.listener"]
+    COMMAND_TO_RUN = [PYTHON_EXECUTABLE, "-m", "smartdesk.hotkeys.listener"]
 
 # Timeout für graceful shutdown (Sekunden)
 TERMINATE_TIMEOUT = 3.0

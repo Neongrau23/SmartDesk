@@ -29,6 +29,7 @@ except ImportError:
 try:
     from smartdesk.core.services import desktop_service
     from smartdesk.shared.localization import get_text
+    from smartdesk.shared.config import get_resource_path
 except ImportError:
     def get_text(key, **kwargs): return key.split('.')[-1]
     class FakeDesktopService:
@@ -81,8 +82,7 @@ class CreateDesktopWindow(QWidget):
 
     def load_ui(self):
         loader = QUiLoader()
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_file_path = os.path.join(current_dir, "designer", "create.ui")
+        ui_file_path = get_resource_path("smartdesk/ui/gui/designer/create.ui")
         ui_file = QFile(ui_file_path)
 
         if not ui_file.open(QIODevice.ReadOnly):
