@@ -3,6 +3,7 @@
 import subprocess
 import time
 import psutil
+import os
 
 from ...shared.localization import get_text
 
@@ -10,51 +11,39 @@ from ...shared.localization import get_text
 def restart_explorer():
     """
     Startet den Windows Explorer Prozess neu.
+    Nutzt Stop-Process, um Windows zum automatischen Neustart der Shell zu zwingen,
+    was das Öffnen eines neuen Fensters verhindert.
     """
     print(get_text("system.info.restarting"))
 
     try:
-        # Finde und sammle alle Explorer Prozesse
-        explorer_procs = [
-            p for p in psutil.process_iter(['name']) if p.name().lower() == "explorer.exe"
-        ]
+        # Beende den Explorer via PowerShell. 
+        # Das löst unter Win 10/11 normalerweise einen automatischen, "stillen" Neustart der Shell aus.
+        subprocess.run(["powershell.exe", "-NoProfile", "-Command", "Stop-Process -Name explorer -Force"], capture_output=True)
 
-        if not explorer_procs:
-            print(get_text("system.warning.explorer_not_running"))
-            subprocess.Popen("explorer.exe")
+        # Warte kurz und prüfe, ob Windows den Explorer selbstständig neu gestartet hat
+        max_wait = 5
+        start_check = time.time()
+        restarted_by_system = False
+        
+        while time.time() - start_check < max_wait:
+            time.sleep(0.5)
+            if any(p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])):
+                restarted_by_system = True
+                break
+        
+        if restarted_by_system:
+            print(get_text("system.info.restarted"))
             return
 
-        # Beende Explorer
-        for p in explorer_procs:
-            try:
-                p.kill()
-            except psutil.NoSuchProcess:
-                pass
-        
-        # Warte bis Explorer wirklich beendet ist
-        gone, alive = psutil.wait_procs(explorer_procs, timeout=5)
-
-        if alive:
-            print(get_text("system.warning.explorer_timeout"))
-
-        # Zusätzliche kurze Pause für Systemstabilität
-        time.sleep(0.5)
-
-        # Starte Explorer neu
+        # Fallback: Falls der Autostart von Windows deaktiviert ist, manuell starten
+        print(get_text("system.warning.explorer_not_running"))
         subprocess.Popen("explorer.exe")
-
-        # Warte kurz und prüfe ob Explorer gestartet ist
-        time.sleep(1)
-        if any(
-            p.name().lower() == "explorer.exe" for p in psutil.process_iter(['name'])
-        ):
-            print(get_text("system.info.restarted"))
-        else:
-            print(get_text("system.error.restart_failed"))
 
     except Exception as e:
         print(get_text("system.error.restart_exception").format(error=str(e)))
         try:
+            # Letzter Rettungsversuch
             subprocess.Popen("explorer.exe")
         except Exception:
             pass
@@ -62,29 +51,13 @@ def restart_explorer():
 
 def restart_explorer_simple():
     """
-    Vereinfachte Version ohne psutil-Abhängigkeit.
+    Vereinfachte Version, die ebenfalls den PowerShell-Weg nutzt.
     """
     print(get_text("system.info.restarting"))
-
     try:
-        result = subprocess.run(
-            ["taskkill", "/F", "/IM", "explorer.exe"],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-
-        if result.returncode != 0 and "not found" not in result.stderr.lower():
-            print(get_text("system.warning.kill_failed"))
-
-        time.sleep(0.8)
-        subprocess.Popen("explorer.exe", shell=True)
-        time.sleep(0.5)
+        subprocess.run(["powershell.exe", "-NoProfile", "-Command", "Stop-Process -Name explorer -Force"], capture_output=True)
+        time.sleep(1.0)
         print(get_text("system.info.restarted"))
-
-    except Exception as e:
-        print(get_text("system.error.restart_exception").format(error=str(e)))
-        try:
-            subprocess.Popen("explorer.exe", shell=True)
-        except Exception:
-            pass
+    except Exception:
+        # Fallback auf die alte Methode
+        subprocess.Popen("explorer.exe", shell=True)
