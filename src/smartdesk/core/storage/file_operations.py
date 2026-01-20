@@ -12,27 +12,38 @@ from ...shared.config import DATA_DIR
 DATA_FILE_PATH = os.path.join(DATA_DIR, "desktops.json")
 LOCK_FILE_PATH = os.path.join(DATA_DIR, "desktops.lock")
 
-@contextmanager
 def file_lock(lock_file, timeout=10):
     """
     A context manager for file-based locking.
+    Uses exponential backoff to reduce polling frequency.
     """
     start_time = time.time()
+    sleep_time = 0.001  # Start with 1ms
+    max_sleep = 0.1     # Cap at 100ms
+
     while True:
         try:
             # Try to create the lock file in exclusive mode
-            with open(lock_file, 'x'):
-                break
+            fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.close(fd)
+            break
         except FileExistsError:
             if time.time() - start_time >= timeout:
                 raise TimeoutError("Could not acquire lock within the specified timeout.")
-            time.sleep(0.1)
+
+            time.sleep(sleep_time)
+            # Exponential backoff: double the wait time, but cap it
+            sleep_time = min(sleep_time * 2, max_sleep)
 
     try:
         yield
     finally:
         # Remove the lock file
-        os.remove(lock_file)
+        try:
+            os.remove(lock_file)
+        except OSError:
+            # Ignore errors during removal (e.g. if file was already removed)
+            pass
 
 
 def get_data_file_path() -> str:

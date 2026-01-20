@@ -19,7 +19,7 @@ from ...shared.localization import get_text
 from ...shared.logging_config import get_logger
 from .icon_service import get_current_icon_positions, set_icon_positions
 from . import wallpaper_service
-from . import settings_service  # Import settings_service
+from . import settings_service
 from ...ui.gui.dialogs import show_choice_dialog, show_confirmation_dialog
 
 logger = get_logger(__name__)
@@ -119,7 +119,7 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
     Geschützte Desktops (z.B. Original) können nicht gelöscht werden.
     """
-    desktops = get_all_desktops()
+    desktops = get_all_desktops(sync_registry=True)
     target_desktop = next((d for d in desktops if d.name == name), None)
 
     if not target_desktop:
@@ -199,14 +199,11 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
     return True
 
 
-def get_all_desktops() -> List[Desktop]:
+def synchronize_desktops_with_registry(desktops: List[Desktop]) -> bool:
     """
-    Gibt eine Liste aller Desktops zurück.
-    Synchronisiert dabei automatisch den 'is_active' Status mit der Registry.
-    Geschützte Desktops werden immer zuerst angezeigt.
+    Synchronisiert den 'is_active' Status der Desktops mit der Registry.
+    Gibt True zurück, wenn Änderungen gespeichert wurden.
     """
-    desktops = load_desktops()
-
     try:
         real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
 
@@ -226,10 +223,29 @@ def get_all_desktops() -> List[Desktop]:
 
             if data_changed:
                 save_desktops(desktops)
+                return True
 
     except Exception as e:
         msg = get_text('desktop_handler.warn.sync_failed', e=e)
         logger.warning(msg)
+        
+    return False
+
+
+def get_all_desktops(sync_registry: bool = False) -> List[Desktop]:
+    """
+    Gibt eine Liste aller Desktops zurück.
+
+    Args:
+        sync_registry: Wenn True, wird der Status mit der Registry abgeglichen (kann Disk-Write auslösen).
+                       Default ist False um implizite Disk-Writes zu vermeiden.
+
+    Geschützte Desktops werden immer zuerst angezeigt.
+    """
+    desktops = load_desktops()
+
+    if sync_registry:
+        synchronize_desktops_with_registry(desktops)
 
     # Sortierung: Geschützte Desktops zuerst, dann alphabetisch
     desktops.sort(key=lambda d: (not d.protected, d.name.lower()))
@@ -248,7 +264,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     """
     from ..utils.backup_service import create_backup_before_switch
 
-    desktops = get_all_desktops()
+    desktops = get_all_desktops(sync_registry=True)
 
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
     if not target_desktop:
@@ -433,7 +449,7 @@ def sync_desktop_state_and_apply_icons():
     """
     logger.info(get_text("desktop_handler.info.sync_after_restart"))
 
-    desktops = get_all_desktops()
+    desktops = get_all_desktops(sync_registry=True)
     new_active_desktop = next((d for d in desktops if d.is_active), None)
 
     if not new_active_desktop:
@@ -467,7 +483,7 @@ def save_current_desktop_icons() -> bool:
     Findet den aktuell aktiven Desktop, liest seine
     Icon-Positionen aus und speichert sie.
     """
-    desktops = get_all_desktops()
+    desktops = get_all_desktops(sync_registry=True)
     active_desktop = next((d for d in desktops if d.is_active), None)
 
     if not active_desktop:
@@ -503,7 +519,7 @@ def assign_wallpaper(desktop_name: str, source_image_path: str) -> bool:
         logger.error(msg)
         return False
 
-    desktops = get_all_desktops()
+    desktops = get_all_desktops(sync_registry=True)
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
 
     if not target_desktop:
