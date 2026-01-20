@@ -28,6 +28,7 @@ except ImportError:
 try:
     from smartdesk.core.services import desktop_service
     from smartdesk.shared.localization import get_text
+    from smartdesk.shared.config import get_resource_path
 except ImportError:
     # Mocks für Standalone-Test
     def get_text(key, **kwargs): return key.split('.')[-1]
@@ -85,11 +86,7 @@ class ManageDesktopsWindow(QWidget):
 
     def load_ui(self):
         loader = QUiLoader()
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        # Versuche verschiedene Pfade (Standalone vs. Package)
-        ui_path = os.path.join(current_dir, "designer", "manage.ui")
-        if not os.path.exists(ui_path):
-            ui_path = os.path.join(current_dir, "manage.ui")
+        ui_path = get_resource_path("smartdesk/ui/gui/designer/manage.ui")
 
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):
@@ -106,7 +103,7 @@ class ManageDesktopsWindow(QWidget):
 
     def load_stylesheet(self):
         try:
-            style_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "style.qss")
+            style_path = get_resource_path("smartdesk/ui/gui/style.qss")
             with open(style_path, "r") as f:
                 self.setStyleSheet(f.read())
         except Exception: pass

@@ -29,6 +29,7 @@ from smartdesk.hotkeys import hotkey_manager
 from smartdesk.core.services.auto_switch_service import AutoSwitchService
 from smartdesk.ui.gui.control_panel import SmartDeskControlPanel
 from smartdesk.shared.localization import get_text, init_localization
+from smartdesk.shared.config import get_resource_path
 
 # --- PID-Management ---
 PID_FILE_DIR = os.path.join(os.environ.get('APPDATA', ''), 'SmartDesk')
@@ -49,9 +50,8 @@ class SmartDeskTrayApp(QApplication):
         self.auto_switch_service.start()
 
         # --- Icons Laden ---
-        icon_path = os.path.join(smartdesk_dir, 'icons')
-        self.idle_icon = QIcon(os.path.join(icon_path, 'idle_icon.png'))
-        self.active_icon = QIcon(os.path.join(icon_path, 'activ_icon.png'))
+        self.idle_icon = QIcon(get_resource_path('smartdesk/icons/idle_icon.png'))
+        self.active_icon = QIcon(get_resource_path('smartdesk/icons/activ_icon.png'))
 
         # --- Tray Icon Erstellen ---
         self.tray_icon = QSystemTrayIcon(self.idle_icon, self)

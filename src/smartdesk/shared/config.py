@@ -38,6 +38,24 @@ DEV_WALLPAPERS_DIR = os.path.join(DEV_DATA_DIR, "wallpapers")
 
 
 # =============================================================================
+# Path Handling
+# =============================================================================
+def get_resource_path(relative_path):
+    """
+    Returns the absolute path to a resource.
+    Works for dev and for PyInstaller.
+    """
+    if getattr(sys, 'frozen', False):
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    else:
+        # In dev, relative to src folder
+        base_path = os.path.join(BASE_DIR, 'src')
+
+    return os.path.join(base_path, relative_path)
+
+
+# =============================================================================
 # Animation Configuration
 # =============================================================================
 class AnimationConfig:

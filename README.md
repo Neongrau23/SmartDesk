@@ -1,6 +1,6 @@
 # 🖥️ SmartDesk
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.4.1-blue)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -26,6 +26,8 @@ SmartDesk ermöglicht die Nutzung verschiedener Desktops durch das Umschalten de
 *   **Icon-Management:** SmartDesk speichert die X/Y-Koordinaten der Desktop-Icons und stellt diese beim Desktop-Wechsel wieder her.
 *   **Individuelle Wallpaper:** Jedem Desktop kann ein eigenes Hintergrundbild zugewiesen werden.
 *   **Hotkey-System:** Wechsel der Desktops über Tastenkombinationen.
+*   **Instant Overlay (HUD):** Visuelle Rückmeldung über verfügbare Desktops durch Gedrückthalten der `Alt`-Taste.
+*   **Desktop-Switch Animation:** Sanfte Übergänge (Fade-Effekt) beim Wechseln der Desktops.
 *   **System-Integration:** Läuft als Hintergrundanwendung (System Tray).
 
 ## Installation

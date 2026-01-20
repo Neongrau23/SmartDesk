@@ -33,7 +33,7 @@ try:
     from smartdesk.core.services import system_service
     from smartdesk.hotkeys import hotkey_manager
     from smartdesk.ui.tray import tray_manager
-    from smartdesk.shared.config import DATA_DIR
+    from smartdesk.shared.config import DATA_DIR, get_resource_path
     from smartdesk.shared.localization import get_text
     
     # Pages
@@ -67,24 +67,27 @@ class SmartDeskMainWindow(QMainWindow):
 
     def load_fonts(self):
         """Lädt benutzerdefinierte Schriftarten aus dem fonts/ Ordner."""
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        fonts_dir = os.path.join(current_dir, "fonts")
-        
-        if not os.path.exists(fonts_dir):
+        try:
+            fonts_dir = get_resource_path("smartdesk/ui/gui/fonts")
+
+            if not os.path.exists(fonts_dir):
+                return
+
+            loaded_families = []
+            for filename in os.listdir(fonts_dir):
+                if filename.lower().endswith((".ttf", ".otf")):
+                    font_path = os.path.join(fonts_dir, filename)
+                    font_id = QFontDatabase.addApplicationFont(font_path)
+                    if font_id != -1:
+                        families = QFontDatabase.applicationFontFamilies(font_id)
+                        loaded_families.extend(families)
+                        logger.debug(f"Font geladen: {filename} -> {families}")
+                    else:
+                        logger.warning(f"Konnte Font nicht laden: {filename}")
+        except Exception as e:
+            logger.error(f"Error loading fonts: {e}")
             return
 
-        loaded_families = []
-        for filename in os.listdir(fonts_dir):
-            if filename.lower().endswith((".ttf", ".otf")):
-                font_path = os.path.join(fonts_dir, filename)
-                font_id = QFontDatabase.addApplicationFont(font_path)
-                if font_id != -1:
-                    families = QFontDatabase.applicationFontFamilies(font_id)
-                    loaded_families.extend(families)
-                    logger.debug(f"Font geladen: {filename} -> {families}")
-                else:
-                    logger.warning(f"Konnte Font nicht laden: {filename}")
-        
         # Optional: Setze globale App-Font, falls Google Sans gefunden wurde
         if "Google Sans" in loaded_families:
             app = QApplication.instance()
@@ -96,8 +99,7 @@ class SmartDeskMainWindow(QMainWindow):
     def load_stylesheet(self):
         """Lädt das zentrale CSS Design."""
         try:
-            current_dir = os.path.dirname(os.path.abspath(__file__))
-            style_path = os.path.join(current_dir, "style.qss")
+            style_path = get_resource_path("smartdesk/ui/gui/style.qss")
             if os.path.exists(style_path):
                 with open(style_path, "r", encoding="utf-8") as f:
                     self.setStyleSheet(f.read())
@@ -108,8 +110,7 @@ class SmartDeskMainWindow(QMainWindow):
 
     def load_ui(self):
         loader = QUiLoader()
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_path = os.path.join(current_dir, "designer", "main.ui")
+        ui_path = get_resource_path("smartdesk/ui/gui/designer/main.ui")
         
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):

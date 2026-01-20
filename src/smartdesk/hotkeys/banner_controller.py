@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import subprocess
 import sys
 import os
+from smartdesk.shared.config import get_resource_path
 
 class BannerState(Enum):
     IDLE = auto()
@@ -143,10 +144,7 @@ class BannerController:
 
         try:
             python_exe = sys.executable
-            script_path = os.path.abspath(os.path.join(
-                os.path.dirname(__file__),
-                "..", "ui", "gui", "gui_overview.py"
-            ))
+            script_path = get_resource_path("smartdesk/ui/gui/gui_overview.py")
 
             if not os.path.exists(script_path):
                 self._log(f"GUI: Fehler - Skript nicht gefunden: {script_path}")
