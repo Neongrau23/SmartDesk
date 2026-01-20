@@ -2,6 +2,8 @@
 
 import winreg
 import psutil
+import os
+import sys
 
 from ...shared.style import PREFIX_ERROR
 from ...shared.localization import get_text
@@ -111,3 +113,50 @@ def cleanup_tray_pid():
         winreg.CloseKey(key)
     except Exception:
         pass
+
+
+def set_autostart(enable: bool) -> bool:
+    """Aktiviert oder deaktiviert den Autostart via Registry."""
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    app_name = "SmartDesk"
+    
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE) as key:
+            if enable:
+                # Pfad ermitteln: pythonw.exe + main.py
+                # pythonw.exe öffnet keine Konsole
+                python_exe = sys.executable.replace("python.exe", "pythonw.exe")
+                if not os.path.exists(python_exe):
+                    python_exe = sys.executable # Fallback
+                
+                # Pfad zu main.py im Root (4 Ebenen hoch von hier)
+                base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+                script_path = os.path.join(base_dir, "main.py")
+                
+                # command: "C:\...\pythonw.exe" "C:\...\main.py"
+                command = f'"{python_exe}" "{script_path}"'
+                
+                winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, command)
+            else:
+                try:
+                    winreg.DeleteValue(key, app_name)
+                except FileNotFoundError:
+                    pass # War schon nicht da
+        return True
+    except Exception as e:
+        print(f"[ERROR] Autostart Fehler: {e}")
+        return False
+
+
+def is_autostart_enabled() -> bool:
+    """Prüft, ob der Autostart aktiv ist."""
+    key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    app_name = "SmartDesk"
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ) as key:
+            winreg.QueryValueEx(key, app_name)
+            return True
+    except FileNotFoundError:
+        return False
+    except Exception:
+        return False
