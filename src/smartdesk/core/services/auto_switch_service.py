@@ -150,41 +150,55 @@ class AutoSwitchService:
         if not active_desktop:
             return
 
-        # 3. Get running processes (only names)
-        # Iterate over all running processes
-        running_process_names = set()
+        # 3. Check processes against rules efficiently
+        target_desktop_name = None
+        matched_process = None
+
+        with self._lock:
+            # Snapshot rules as a list of (process_name, desktop_name)
+            # Preserves priority order from JSON load (Python 3.7+ dicts preserve insertion order)
+            rules_snapshot = list(self._rules.items())
+
+        if not rules_snapshot:
+            return
+
+        # Map for O(1) lookup: process_name -> desktop_name
+        rules_map = dict(rules_snapshot)
+        # Map for O(1) priority lookup: process_name -> priority_index (0 is highest)
+        rules_priority = {name: i for i, (name, _) in enumerate(rules_snapshot)}
+
+        highest_priority_found_index = float('inf')
+
         try:
+            # Optimization: Iterate psutil.process_iter only once and check against rules
+            # instead of building a full set of ALL running processes.
+            # Bolt optimization: Stop early if the highest priority rule is found.
             for proc in psutil.process_iter(['name']):
                 try:
-                    if proc.info['name']:
-                        running_process_names.add(proc.info['name'].lower())
+                    pname = proc.info['name']
+                    if pname:
+                        pname_lower = pname.lower()
+
+                        if pname_lower in rules_map:
+                            # We found a matching process
+                            prio_index = rules_priority[pname_lower]
+
+                            if prio_index < highest_priority_found_index:
+                                highest_priority_found_index = prio_index
+                                matched_process = pname_lower
+                                target_desktop_name = rules_map[pname_lower]
+
+                                # CRITICAL OPTIMIZATION:
+                                # If we found the highest priority rule (index 0), we can STOP immediately.
+                                # No need to check other processes.
+                                if highest_priority_found_index == 0:
+                                    break
+
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     pass
         except Exception as e:
             logger.error(f"Error accessing process list: {e}")
             return
-
-        # 4. Check against rules
-        # We need to find if any priority process is running.
-        # If multiple rules match, which one takes precedence?
-        # For now, let's take the first one found in the rules list (arbitrary order).
-        # Or maybe we iterate rules and check if process is running.
-
-        target_desktop_name = None
-        matched_process = None
-
-        with self._lock:
-            # Check if any ruled process is running
-            for proc_name, desktop_name in self._rules.items():
-                if proc_name in running_process_names:
-                    # Found a running process that has a rule
-
-                    # Optimization: If we are already on the target desktop, we might want to stay there
-                    # But maybe there's another process that wants a different desktop?
-                    # Let's simple pick the first one.
-                    target_desktop_name = desktop_name
-                    matched_process = proc_name
-                    break
 
         if target_desktop_name:
             if active_desktop.name != target_desktop_name:

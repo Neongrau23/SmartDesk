@@ -1,9 +1,8 @@
 import pytest
 import os
 import json
-import time
-from unittest.mock import MagicMock, patch, call
-from smartdesk.core.services.auto_switch_service import AutoSwitchService, RULES_FILE
+from unittest.mock import MagicMock, patch
+from smartdesk.core.services.auto_switch_service import AutoSwitchService
 from smartdesk.core.models.desktop import Desktop
 
 # --- Fixtures ---
@@ -26,7 +25,12 @@ def auto_switch_service(temp_data_dir, mock_psutil_service, mock_desktop_service
     # We need to patch RULES_FILE because it is defined at module level and might have been
     # imported with the original DATA_DIR value.
     rules_file = os.path.join(temp_data_dir, "rules.json")
-    with patch('smartdesk.core.services.auto_switch_service.RULES_FILE', rules_file):
+    with patch('smartdesk.core.services.auto_switch_service.RULES_FILE', rules_file), \
+         patch('smartdesk.core.services.auto_switch_service.settings_service') as mock_settings:
+
+        # Mock settings to enable auto-switch by default for tests
+        mock_settings.get_setting.return_value = True
+
         service = AutoSwitchService(check_interval=1)
         yield service
         service.stop()
