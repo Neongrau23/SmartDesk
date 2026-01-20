@@ -43,7 +43,7 @@ except ImportError:
 
     hotkey_manager = FakeHotkeys()
     class FakeDesktopService:
-        def get_all_desktops(self): return []
+        def get_all_desktops(self, sync_registry=False): return []
     desktop_service = FakeDesktopService()
 
 # --- PID Paths ---
@@ -217,7 +217,7 @@ class SmartDeskControlPanel(QWidget):
     def update_active_desktop_label(self):
         if not self.desktop_name_label: return
         try:
-            desktops = desktop_service.get_all_desktops()
+            desktops = desktop_service.get_all_desktops(sync_registry=True)
             active_desktop = next((d for d in desktops if d.is_active), None)
             text = f"Desktop: {active_desktop.name}" if active_desktop else "Desktop: -"
             self.desktop_name_label.setText(text)

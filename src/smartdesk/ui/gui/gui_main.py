@@ -49,7 +49,7 @@ except ImportError as e:
     # Mocks für Standalone
     def get_text(key, **kwargs): return key
     class FakeService:
-        def get_all_desktops(self): return []
+        def get_all_desktops(self, sync_registry=False): return []
     desktop_service = FakeService()
     system_service = FakeService()
     hotkey_manager = FakeService()
@@ -208,7 +208,7 @@ class SmartDeskMainWindow(QMainWindow):
             status += f"Tray Status: {tray_status}\n" 
             
             # Active Desktop
-            desktops = desktop_service.get_all_desktops()
+            desktops = desktop_service.get_all_desktops(sync_registry=True)
             active = next((d.name for d in desktops if d.is_active), "None")
             status += f"Active Desktop: {active}\n"
             status += f"Data Dir: {DATA_DIR}\n"

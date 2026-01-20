@@ -190,7 +190,7 @@ class DesktopPage(QWidget):
         active_item = None
 
         try:
-            desktops = desktop_service.get_all_desktops()
+            desktops = desktop_service.get_all_desktops(sync_registry=True)
             for d in desktops:
                 # Icon basierend auf Status
                 display_text = f"  {d.name}"
@@ -229,7 +229,7 @@ class DesktopPage(QWidget):
 
     def load_details(self, name):
         try:
-            desktops = desktop_service.get_all_desktops()
+            desktops = desktop_service.get_all_desktops(sync_registry=True)
             desktop = next((d for d in desktops if d.name == name), None)
             
             if not desktop: return

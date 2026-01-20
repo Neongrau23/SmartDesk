@@ -183,7 +183,7 @@ def show_desktop_status(parent=None) -> TaskbarBanner:
         from ....core.services import desktop_service
         from .theme import DEFAULT_THEME
 
-        desktops = desktop_service.get_all_desktops()
+        desktops = desktop_service.get_all_desktops(sync_registry=True)
         icons = DEFAULT_THEME.icons
 
         if not desktops:

@@ -33,7 +33,7 @@ except ImportError:
     # Mocks für Standalone-Test
     def get_text(key, **kwargs): return key.split('.')[-1]
     class FakeService:
-        def get_all_desktops(self): 
+        def get_all_desktops(self, sync_registry=False):
             class D: 
                 def __init__(self, n, a): self.name=n; self.is_active=a; self.protected=False; self.wallpaper_path=""
             return [D("Default", True), D("Gaming", False), D("Work", False)]
@@ -134,7 +134,7 @@ class ManageDesktopsWindow(QWidget):
         self._set_actions_enabled(False)
 
         # 2. Desktops laden
-        desktops = desktop_service.get_all_desktops()
+        desktops = desktop_service.get_all_desktops(sync_registry=True)
         
         # 3. Buttons erstellen
         for d in desktops:
