@@ -59,19 +59,23 @@ SmartDesk wird über ein grafisches Control Panel oder über Hotkeys gesteuert.
 
 ### Hotkeys
 
-Das System nutzt ein **2-Stufen-System**, um Überschneidungen mit anderen Programmen zu vermeiden.
+Das System ist vollständig anpassbar, um Konflikte mit anderen Anwendungen zu vermeiden.
 
-**Hintergrund:**
-Da viele Anwendungen bereits `Alt`+`Zahl` nutzen, fungiert `Strg` + `Shift` als Aktivierung. Erst danach reagiert SmartDesk auf die Hotkeys zum Desktop-Wechsel.
+**Standard-Ablauf:**
 
-**Ablauf:**
-
-1.  **Aktivieren:** Drücke `Strg` + `Shift`.
+1.  **Aktivieren:** Drücke `Strg` + `Shift` gleichzeitig.
 2.  **Ausführen:**
-    *   Drücke `Alt` + `1-8` für den Wechsel zu einem Desktop.
-    *   Halte die `Alt`-Taste nach der Aktivierung gedrückt (~0.3s), um ein **Overlay (HUD)** anzuzeigen. Dieses informiert über den aktuellen Desktop und die Belegung der Tasten.
+    *   Drücke `Alt` + `1-8`, um zu einem Desktop zu wechseln.
+    *   Halte die `Alt`-Taste nach der Aktivierung gedrückt, um ein **Overlay (HUD)** anzuzeigen. Dieses informiert über den aktuellen Desktop und die Belegung der Tasten.
 
-| Tastenkombination | Aktion |
+**Anpassung:**
+
+Über das Einstellungsmenü (`Rechtsklick auf Taskleisten-Icon -> Einstellungen -> Hotkeys`) kannst du:
+*   Die **Aktivierungs-Tastenkombination** (Standard: `Strg` + `Shift`) ändern.
+*   Die **Aktions-Modifikatortaste** (Standard: `Alt`) ändern.
+*   Die **Halte-Dauer** (in Sekunden) einstellen, nach der das HUD erscheint.
+
+| Standard-Tastenkombination | Aktion                                  |
 | :--- | :--- |
 | `Alt` + `1` - `8` | Wechselt zu Desktop 1 bis 8 |
 | `Alt` + `9` | Speichert die aktuellen Icon-Positionen |
