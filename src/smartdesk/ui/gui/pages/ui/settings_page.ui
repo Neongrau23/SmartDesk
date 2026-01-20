@@ -62,6 +62,23 @@
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QGroupBox" name="group_updates">
+         <property name="title"><string>Updates</string></property>
+         <layout class="QVBoxLayout" name="layout_updates">
+          <item>
+           <widget class="QPushButton" name="btn_check_for_updates">
+            <property name="text"><string>Auf Updates prüfen</string></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="lbl_update_status">
+            <property name="text"><string>Aktuelle Version: v0.5.0</string></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item><spacer><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
       </layout>
      </widget>

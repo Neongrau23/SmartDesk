@@ -1,13 +1,16 @@
 import os
 import logging
-from PySide6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QCheckBox, QGroupBox
+from PySide6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QCheckBox, QGroupBox, QPushButton, QLabel
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice
+from PySide6.QtGui import QDesktopServices
 
 # Importiere die existierende HotkeyPage
 from .hotkey_page import HotkeyPage
 from smartdesk.core.services import settings_service
 from smartdesk.core.utils import registry_operations
+from smartdesk.core.services.update_service import UpdateService
+from smartdesk import __version__
 
 # Logger Setup
 try:
@@ -20,10 +23,11 @@ except ImportError:
 class SettingsPage(QWidget):
     def __init__(self):
         super().__init__()
+        self.update_service = UpdateService() # UpdateService Instanz
         self.load_ui()
         self.setup_tabs()
-        self.load_settings_to_ui() # Combined loader
-        self.setup_connections()   # Combined connections
+        self.load_settings_to_ui() 
+        self.setup_connections()   
 
     def load_ui(self):
         loader = QUiLoader()
@@ -54,6 +58,8 @@ class SettingsPage(QWidget):
         # General Tab Widgets
         self.check_autostart = self.ui.findChild(QCheckBox, "check_autostart")
         self.check_show_fade = self.ui.findChild(QCheckBox, "check_show_fade")
+        self.btn_check_for_updates = self.ui.findChild(QPushButton, "btn_check_for_updates")
+        self.lbl_update_status = self.ui.findChild(QLabel, "lbl_update_status")
 
     def setup_tabs(self):
         if self.layout_hotkeys:
@@ -84,6 +90,10 @@ class SettingsPage(QWidget):
         if self.check_show_fade:
             is_fade_enabled = settings_service.get_setting("show_switch_animation", True)
             self.check_show_fade.setChecked(is_fade_enabled)
+            
+        # Update Status
+        if self.lbl_update_status:
+            self.lbl_update_status.setText(f"Aktuelle Version: v{__version__}")
 
     def setup_connections(self):
         """Verbindet die Signale der UI-Elemente."""
@@ -93,6 +103,8 @@ class SettingsPage(QWidget):
             self.check_autostart.toggled.connect(self.on_autostart_toggled)
         if self.check_show_fade:
             self.check_show_fade.toggled.connect(self.on_fade_toggled)
+        if self.btn_check_for_updates:
+            self.btn_check_for_updates.clicked.connect(self.check_for_updates)
 
     def on_autoswitch_toggled(self, checked):
         settings_service.set_setting("auto_switch_enabled", checked)
@@ -105,6 +117,32 @@ class SettingsPage(QWidget):
     def on_fade_toggled(self, checked):
         settings_service.set_setting("show_switch_animation", checked)
         logger.info(f"Fade Animation setting changed to: {checked}")
+
+    def check_for_updates(self):
+        self.lbl_update_status.setText("Suche nach Updates...")
+        self.btn_check_for_updates.setEnabled(False)
+        
+        is_newer, latest_version = self.update_service.check_for_updates()
+        
+        if is_newer:
+            self.lbl_update_status.setText(f"Neue Version verfügbar: v{latest_version}! Klicken zum Download.")
+            self.lbl_update_status.setStyleSheet("color: green;")
+            # Optional: Button zum Öffnen der Download-Seite
+            download_url = self.update_service.get_download_url()
+            if download_url:
+                # Hier könnte man einen neuen Button/Link anzeigen
+                self.lbl_update_status.linkActivated.connect(lambda: QDesktopServices.openUrl(download_url))
+                self.lbl_update_status.setText(f'<a href="{download_url}">Neue Version v{latest_version} verfügbar! Hier klicken zum Download.</a>')
+                self.lbl_update_status.setOpenExternalLinks(True)
+            
+        elif latest_version:
+            self.lbl_update_status.setText(f"SmartDesk ist aktuell (v{__version__}).")
+            self.lbl_update_status.setStyleSheet("color: black;")
+        else:
+            self.lbl_update_status.setText("Fehler beim Prüfen auf Updates.")
+            self.lbl_update_status.setStyleSheet("color: red;")
+            
+        self.btn_check_for_updates.setEnabled(True)
 
     def refresh_hotkey_status(self):
         """Wrapper, um den Status der eingebetteten HotkeyPage zu aktualisieren."""
