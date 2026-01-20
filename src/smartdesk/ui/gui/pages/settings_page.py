@@ -145,13 +145,16 @@ class SettingsPage(QWidget):
                 if download_url:
                     self.lbl_update_status.setText(f'<a href="{download_url}">Neue Version v{latest_version} verfügbar! Hier klicken zum Download.</a>')
                     self.lbl_update_status.setOpenExternalLinks(True)
+            elif latest_version == "RATE_LIMIT_EXCEEDED":
+                self.lbl_update_status.setText("GitHub API Rate Limit erreicht. Bitte später versuchen oder Personal Access Token (PAT) eingeben.")
+                self.lbl_update_status.setStyleSheet("color: orange;")
             elif latest_version:
                 self.lbl_update_status.setText(f"SmartDesk ist aktuell (v{__version__}).")
                 self.lbl_update_status.setStyleSheet("color: black;")
             else:
-                # This case might happen if the check fails but no exception was raised (e.g., non-200 status)
-                self.lbl_update_status.setText("Fehler beim Prüfen auf Updates (API-Antwort).")
+                self.lbl_update_status.setText("Fehler beim Prüfen auf Updates (API-Antwort oder Netzwerk).")
                 self.lbl_update_status.setStyleSheet("color: red;")
+
 
         except Exception as e:
             logger.error(f"Update check failed with an exception: {e}")

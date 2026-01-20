@@ -55,6 +55,13 @@ class UpdateService:
                     return False, remote_version
                 else:
                     logger.error(f"GitHub API returned status code: {response.status}")
+        except urllib.error.HTTPError as http_e:
+            if http_e.code == 403:
+                logger.error(f"GitHub API rate limit exceeded: {http_e}", exc_info=True)
+                return False, "RATE_LIMIT_EXCEEDED"
+            else:
+                logger.error(f"Failed to check for updates (HTTP Error {http_e.code}): {http_e}", exc_info=True)
+                return False, None
         except Exception as e:
             logger.error(f"Failed to check for updates: {e}", exc_info=True)
 
