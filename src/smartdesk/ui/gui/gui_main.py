@@ -39,6 +39,11 @@ try:
     # Pages
     from smartdesk.ui.gui.pages.desktop_page import DesktopPage
     from smartdesk.ui.gui.pages.settings_page import SettingsPage
+    
+    # Utils
+    from smartdesk.utils.app_lock import AppLock
+    from smartdesk.utils.win_utils import activate_window_by_pid
+
 except ImportError as e:
     logger.error(f"Import Error: {e}")
     # Mocks für Standalone
@@ -52,6 +57,12 @@ except ImportError as e:
     DATA_DIR = "."
     DesktopPage = QWidget
     SettingsPage = QWidget
+    # Mock Utils
+    class AppLock:
+        def __init__(self, name): pass
+        def try_acquire(self): return True
+        def release(self): pass
+    def activate_window_by_pid(pid): pass
 
 class SmartDeskMainWindow(QMainWindow):
     def __init__(self):
@@ -194,7 +205,7 @@ class SmartDeskMainWindow(QMainWindow):
             
             # Tray Status
             tray_status = getattr(tray_manager, 'get_tray_status', lambda: (False, None))()
-            status += f"Tray Status: {tray_status}\n"
+            status += f"Tray Status: {tray_status}\n" 
             
             # Active Desktop
             desktops = desktop_service.get_all_desktops()
@@ -212,10 +223,24 @@ class SmartDeskMainWindow(QMainWindow):
 
 
 def launch_gui():
+    # Single Instance Check
+    lock = AppLock("manager")
+    if not lock.try_acquire():
+        logger.info(f"SmartDesk Manager läuft bereits (PID {lock.existing_pid}).")
+        if lock.existing_pid:
+            success = activate_window_by_pid(lock.existing_pid)
+            if not success:
+                logger.warning("Konnte existierendes Fenster nicht aktivieren.")
+        return
+
     app = QApplication.instance() or QApplication(sys.argv)
     window = SmartDeskMainWindow()
     window.show()
-    app.exec()
+    
+    try:
+        app.exec()
+    finally:
+        lock.release()
 
 if __name__ == "__main__":
     launch_gui()
