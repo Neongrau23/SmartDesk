@@ -21,11 +21,9 @@ class IconPosition:
         return {"index": self.index, "name": self.name, "x": self.x, "y": self.y}
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'IconPosition':
+    def from_dict(cls, data: dict) -> "IconPosition":
         """Erstellt ein Icon-Objekt aus einem Dictionary."""
-        return cls(
-            index=data.get("index", 0), name=data["name"], x=data["x"], y=data["y"]
-        )
+        return cls(index=data.get("index", 0), name=data["name"], x=data["x"], y=data["y"])
 
 
 @dataclass
@@ -55,7 +53,7 @@ class Desktop:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Desktop':
+    def from_dict(cls, data: Dict[str, Any]) -> "Desktop":
         """Erstellt ein Desktop-Objekt aus den JSON-Daten."""
         icons_data = data.get("icon_positionen", [])
         icons = [IconPosition.from_dict(icon_data) for icon_data in icons_data]
@@ -69,7 +67,7 @@ class Desktop:
             protected=data.get("protected", False),
             created_at=data.get("created_at", ""),
         )
-    
+
     def is_protected(self) -> bool:
         """Prüft ob der Desktop geschützt ist."""
         return self.protected

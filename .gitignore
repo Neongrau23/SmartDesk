@@ -58,7 +58,6 @@ __pypackages__/
 
 # Project specific
 data/
-# *.log
 .coverage
 coverage.xml
 *.cover

@@ -15,38 +15,40 @@ from smartdesk import __version__
 # Logger Setup
 try:
     from smartdesk.shared.logging_config import get_logger
+
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
+
 class SettingsPage(QWidget):
     def __init__(self):
         super().__init__()
-        self.update_service = UpdateService() # UpdateService Instanz
+        self.update_service = UpdateService()  # UpdateService Instanz
         self.load_ui()
         self.setup_tabs()
-        self.load_settings_to_ui() 
-        self.setup_connections()   
+        self.load_settings_to_ui()
+        self.setup_connections()
 
     def load_ui(self):
         loader = QUiLoader()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         ui_path = os.path.join(current_dir, "ui", "settings_page.ui")
-        
+
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):
             logger.error(f"UI file not found: {ui_path}")
             return
-            
+
         self.ui = loader.load(ui_file, self)
         ui_file.close()
-        
+
         layout = self.layout()
         if not layout:
             layout = QVBoxLayout(self)
             self.setLayout(layout)
-            
+
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.ui)
 
@@ -54,7 +56,7 @@ class SettingsPage(QWidget):
         self.tab_hotkeys = self.ui.findChild(QWidget, "tab_hotkeys")
         self.layout_hotkeys = self.ui.findChild(QVBoxLayout, "layout_hotkeys_container")
         self.layout_general = self.ui.findChild(QVBoxLayout, "verticalLayout_general")
-        
+
         # General Tab Widgets
         self.check_autostart = self.ui.findChild(QCheckBox, "check_autostart")
         self.check_show_fade = self.ui.findChild(QCheckBox, "check_show_fade")
@@ -67,10 +69,11 @@ class SettingsPage(QWidget):
             # HotkeyPage instanziieren und einbetten
             self.hotkey_page_widget = HotkeyPage()
             self.layout_hotkeys.addWidget(self.hotkey_page_widget)
-            
+
     def load_settings_to_ui(self):
         """Lädt alle Einstellungen und setzt den Zustand der UI-Elemente."""
-        if not self.layout_general: return
+        if not self.layout_general:
+            return
 
         # Auto-Switch (dynamisch erstellt, da es BETA ist)
         self.group_autopilot = QGroupBox("Auto-Pilot (BETA)")
@@ -91,7 +94,7 @@ class SettingsPage(QWidget):
         if self.check_show_fade:
             is_fade_enabled = settings_service.get_setting("show_switch_animation", True)
             self.check_show_fade.setChecked(is_fade_enabled)
-            
+
         # Update Status
         if self.lbl_update_status:
             self.lbl_update_status.setText(f"Aktuelle Version: v{__version__}")
@@ -134,10 +137,10 @@ class SettingsPage(QWidget):
     def check_for_updates(self):
         self.lbl_update_status.setText("Suche nach Updates...")
         self.btn_check_for_updates.setEnabled(False)
-        
+
         try:
             is_newer, latest_version = self.update_service.check_for_updates()
-            
+
             if is_newer:
                 self.lbl_update_status.setText(f"Neue Version verfügbar: v{latest_version}! Klicken zum Download.")
                 self.lbl_update_status.setStyleSheet("color: green;")
@@ -155,7 +158,6 @@ class SettingsPage(QWidget):
                 self.lbl_update_status.setText("Fehler beim Prüfen auf Updates (API-Antwort oder Netzwerk).")
                 self.lbl_update_status.setStyleSheet("color: red;")
 
-
         except Exception as e:
             logger.error(f"Update check failed with an exception: {e}")
             self.lbl_update_status.setText(f"Fehler: {e}")
@@ -165,5 +167,5 @@ class SettingsPage(QWidget):
 
     def refresh_hotkey_status(self):
         """Wrapper, um den Status der eingebetteten HotkeyPage zu aktualisieren."""
-        if hasattr(self, 'hotkey_page_widget'):
+        if hasattr(self, "hotkey_page_widget"):
             self.hotkey_page_widget.refresh_status()

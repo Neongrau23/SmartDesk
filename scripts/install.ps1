@@ -83,7 +83,7 @@ function Test-Prerequisites {
         return $false
     }
     Write-Success "Windows erkannt"
-    
+
     # Python prüfen
     try {
         $pythonVersion = python --version 2>&1
@@ -91,7 +91,7 @@ function Test-Prerequisites {
             $major = [int]$Matches[1]
             $minor = [int]$Matches[2]
             Write-Info "Python-Version: $major.$minor"
-            
+
             if ($major -lt 3 -or ($major -eq 3 -and $minor -lt 8)) {
                 Write-Error "Python 3.8+ erforderlich!"
                 return $false
@@ -103,14 +103,14 @@ function Test-Prerequisites {
         Write-Error "Python nicht gefunden! Bitte Python 3.8+ installieren."
         return $false
     }
-    
+
     # requirements.txt prüfen
     if (-not (Test-Path $RequirementsFile)) {
         Write-Error "requirements.txt nicht gefunden!"
         return $false
     }
     Write-Success "requirements.txt gefunden"
-    
+
     return $true
 }
 
@@ -120,10 +120,10 @@ function New-VirtualEnvironment {
         Write-Info "Virtual Environment existiert bereits"
         return $true
     }
-    
+
     Write-Info "Erstelle Virtual Environment..."
     python -m venv $VenvDir
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Virtual Environment erstellt"
         return $true
@@ -137,18 +137,18 @@ function New-VirtualEnvironment {
 # Abhängigkeiten installieren
 function Install-Dependencies {
     $pipPath = Join-Path $VenvDir "Scripts\pip.exe"
-    
+
     if (-not (Test-Path $pipPath)) {
         Write-Error "pip nicht gefunden!"
         return $false
     }
-    
+
     Write-Info "Aktualisiere pip..."
     & $pipPath install --upgrade pip 2>&1 | Out-Null
-    
+
     Write-Info "Installiere Abhängigkeiten..."
     & $pipPath install -r $RequirementsFile
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Success "Alle Abhängigkeiten installiert"
         return $true
@@ -163,13 +163,13 @@ function Install-Dependencies {
 function Invoke-FirstRunSetup {
     $pythonPath = Join-Path $VenvDir "Scripts\python.exe"
     $mainScript = Join-Path $SrcDir "smartdesk\main.py"
-    
+
     # Prüfe ob Setup bereits durchgeführt
     $setupFile = Join-Path $env:APPDATA "SmartDesk\setup.json"
-    
+
     if (Test-Path $setupFile) {
         Write-Info "Setup wurde bereits durchgeführt"
-        
+
         # Prüfe Original Desktop
         $desktopsFile = Join-Path $env:APPDATA "SmartDesk\desktops.json"
         if (Test-Path $desktopsFile) {
@@ -181,12 +181,12 @@ function Invoke-FirstRunSetup {
             }
         }
     }
-    
+
     Write-Info "Führe First-Run-Setup durch..."
-    
+
     Set-Location $ProjectRoot
     $env:PYTHONPATH = $SrcDir
-    
+
     & $pythonPath -c @"
 import sys
 sys.path.insert(0, 'src')
@@ -194,7 +194,7 @@ from smartdesk.shared.first_run import run_first_time_setup, create_original_des
 result = run_first_time_setup(silent=False)
 create_original_desktop(silent=False)
 "@
-    
+
     Write-Success "First-Run-Setup abgeschlossen"
     return $true
 }
@@ -202,7 +202,7 @@ create_original_desktop(silent=False)
 # Installation verifizieren
 function Test-Installation {
     $pythonPath = Join-Path $VenvDir "Scripts\python.exe"
-    
+
     Set-Location $ProjectRoot
     & $pythonPath -c @"
 import sys
@@ -215,7 +215,7 @@ for d in desktops:
     active = ' [AKTIV]' if d.is_active else ''
     print(f'  {status} {d.name}{active}')
 "@
-    
+
     return $LASTEXITCODE -eq 0
 }
 
@@ -223,9 +223,9 @@ for d in desktops:
 function Start-SmartDesk {
     $pythonPath = Join-Path $VenvDir "Scripts\python.exe"
     $mainScript = Join-Path $SrcDir "smartdesk\main.py"
-    
+
     Set-Location $ProjectRoot
-    
+
     Write-Info "Starte SmartDesk Tray-Icon..."
     Start-Process -FilePath $pythonPath -ArgumentList $mainScript, "start-tray" -WindowStyle Hidden
     Write-Success "Tray-Icon gestartet"
@@ -235,67 +235,67 @@ function Start-SmartDesk {
 # Hauptlogik
 function Main {
     Write-Header
-    
+
     $totalSteps = if ($Check) { 1 } else { 6 }
     $currentStep = 0
-    
+
     # Schritt 1: Voraussetzungen
     $currentStep++
     Write-Step -Step $currentStep -Total $totalSteps -Message "Voraussetzungen prüfen"
-    
+
     if (-not (Test-Prerequisites)) {
         return 1
     }
-    
+
     if ($Check) {
         Write-Host ""
         Write-Host "✅ Alle Voraussetzungen erfüllt!" -ForegroundColor Green
         return 0
     }
-    
+
     # Schritt 2: Virtual Environment
     $currentStep++
     Write-Step -Step $currentStep -Total $totalSteps -Message "Virtual Environment einrichten"
-    
+
     if (-not (New-VirtualEnvironment)) {
         return 1
     }
-    
+
     # Schritt 3: Abhängigkeiten
     $currentStep++
     Write-Step -Step $currentStep -Total $totalSteps -Message "Abhängigkeiten installieren"
-    
+
     if (-not (Install-Dependencies)) {
         return 1
     }
-    
+
     # Schritt 4: First-Run Setup
     $currentStep++
     Write-Step -Step $currentStep -Total $totalSteps -Message "SmartDesk einrichten"
-    
+
     Invoke-FirstRunSetup | Out-Null
-    
+
     # Schritt 5: Verifizierung
     $currentStep++
     Write-Step -Step $currentStep -Total $totalSteps -Message "Installation überprüfen"
-    
+
     if (Test-Installation) {
         Write-Success "Installation erfolgreich!"
     }
     else {
         Write-Warning "Verifikation fehlgeschlagen (nicht kritisch)"
     }
-    
+
     # Schritt 6: Start
     $currentStep++
     Write-Step -Step $currentStep -Total $totalSteps -Message "SmartDesk starten"
-    
+
     Write-Host ""
     Write-Host "=" * 60 -ForegroundColor Green
     Write-Host "  ✅ Installation abgeschlossen!" -ForegroundColor Green
     Write-Host "=" * 60 -ForegroundColor Green
     Write-Host ""
-    
+
     if ($NoStart) {
         Write-Info "Start übersprungen (-NoStart)"
         Write-Host ""
@@ -305,12 +305,12 @@ function Main {
         Write-Host "    python src\smartdesk\main.py" -ForegroundColor White
         return 0
     }
-    
+
     Start-SmartDesk
-    
+
     Write-Host ""
     Read-Host "Drücken Sie Enter zum Beenden"
-    
+
     return 0
 }
 

@@ -43,10 +43,7 @@ class PsutilProcessController:
             self._psutil = psutil
         except ImportError:
             logger.error("psutil ist nicht installiert")
-            raise ImportError(
-                "psutil wird für die Prozessverwaltung benötigt. "
-                "Installiere es mit: pip install psutil"
-            )
+            raise ImportError("psutil wird für die Prozessverwaltung benötigt. " "Installiere es mit: pip install psutil")
 
     def exists(self, pid: int) -> bool:
         """Prüft, ob ein Prozess existiert."""
@@ -144,9 +141,7 @@ class PsutilProcessController:
             process.wait(timeout=3.0)
 
             logger.info(f"Prozess {pid} erzwungen beendet (kill)")
-            return ProcessResult(
-                success=True, state=ProcessState.KILLED, message="killed", pid=pid
-            )
+            return ProcessResult(success=True, state=ProcessState.KILLED, message="killed", pid=pid)
 
         except self._psutil.NoSuchProcess:
             return ProcessResult(
@@ -208,7 +203,7 @@ class FilePidStorage:
             return None
 
         try:
-            with open(self._filepath, 'r', encoding='utf-8') as f:
+            with open(self._filepath, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if not content:
                     return None
@@ -226,7 +221,7 @@ class FilePidStorage:
     def write(self, pid: int) -> bool:
         """Speichert eine PID."""
         try:
-            with open(self._filepath, 'w', encoding='utf-8') as f:
+            with open(self._filepath, "w", encoding="utf-8") as f:
                 f.write(str(pid))
             logger.debug(f"PID {pid} in {self._filepath} geschrieben")
             return True
@@ -291,27 +286,25 @@ class SubprocessStarter:
             return StartResult(
                 success=False,
                 message="executable_not_found",
-                error=FileNotFoundError(
-                    f"Ausführbare Datei nicht gefunden: {executable}"
-                ),
+                error=FileNotFoundError(f"Ausführbare Datei nicht gefunden: {executable}"),
             )
 
         try:
             # Plattform-spezifische Flags
             creation_flags = 0
-            if os.name == 'nt' and self._hide_window:
+            if os.name == "nt" and self._hide_window:
                 creation_flags = subprocess.CREATE_NO_WINDOW
 
             # Umgebungsvariablen - PYTHONPATH für Modul-Auflösung
             env = os.environ.copy()
             # Füge src-Verzeichnis zum PYTHONPATH hinzu
-            src_dir = os.path.join(working_dir, 'src')
+            src_dir = os.path.join(working_dir, "src")
             if os.path.isdir(src_dir):
-                current_pythonpath = env.get('PYTHONPATH', '')
+                current_pythonpath = env.get("PYTHONPATH", "")
                 if current_pythonpath:
-                    env['PYTHONPATH'] = f"{src_dir};{current_pythonpath}"
+                    env["PYTHONPATH"] = f"{src_dir};{current_pythonpath}"
                 else:
-                    env['PYTHONPATH'] = src_dir
+                    env["PYTHONPATH"] = src_dir
 
             # Log-Dateien öffnen
             stdout_handle = subprocess.DEVNULL
@@ -320,11 +313,11 @@ class SubprocessStarter:
             err_f = None
 
             if log_file:
-                log_f = open(log_file, 'a', buffering=1, encoding='utf-8')
+                log_f = open(log_file, "a", buffering=1, encoding="utf-8")
                 stdout_handle = log_f
 
             if error_file:
-                err_f = open(error_file, 'a', buffering=1, encoding='utf-8')
+                err_f = open(error_file, "a", buffering=1, encoding="utf-8")
                 stderr_handle = err_f
 
             # Prozess starten
@@ -336,7 +329,7 @@ class SubprocessStarter:
                 stderr=stderr_handle,
                 stdin=subprocess.DEVNULL,
                 creationflags=creation_flags,
-                close_fds=(os.name != 'nt'),  # close_fds=False auf Windows
+                close_fds=(os.name != "nt"),  # close_fds=False auf Windows
             )
 
             logger.info(f"Prozess gestartet mit PID {process.pid}")

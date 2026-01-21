@@ -4,23 +4,28 @@ import sys
 import os
 
 # Adjust path to allow imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../src')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 
 # Mock pynput BEFORE importing listener
 mock_pynput = MagicMock()
-sys.modules['pynput'] = mock_pynput
-sys.modules['pynput.keyboard'] = mock_pynput
+sys.modules["pynput"] = mock_pynput
+sys.modules["pynput.keyboard"] = mock_pynput
+
 
 # Define mock classes for pynput
 class MockListener:
     def __init__(self, on_press=None, on_release=None):
         pass
+
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
+
     def join(self):
         pass
+
 
 mock_pynput.Listener = MockListener
 mock_pynput.Key = MagicMock()
@@ -28,6 +33,7 @@ mock_pynput.KeyCode = MagicMock()
 
 # Now we can import listener
 from smartdesk.hotkeys import listener
+
 
 def test_controller_synchronization_fix():
     """
@@ -43,10 +49,9 @@ def test_controller_synchronization_fix():
     listener._banner_controller = mock_ctrl
 
     # Mock helpers
-    with patch('smartdesk.hotkeys.listener.is_action_key', return_value=True), \
-         patch('smartdesk.hotkeys.listener.is_any_action_key_held', return_value=False), \
-         patch('smartdesk.hotkeys.listener.is_part_of_activation', return_value=False), \
-         patch('smartdesk.hotkeys.listener.get_registry') as mock_registry:
+    with patch("smartdesk.hotkeys.listener.is_action_key", return_value=True), patch("smartdesk.hotkeys.listener.is_any_action_key_held", return_value=False), patch(
+        "smartdesk.hotkeys.listener.is_part_of_activation", return_value=False
+    ), patch("smartdesk.hotkeys.listener.get_registry") as mock_registry:
 
         # Setup registry mock
         mock_reg_instance = MagicMock()
@@ -64,7 +69,6 @@ def test_controller_synchronization_fix():
 
         # Verify order
         calls = mock_ctrl.method_calls
-        relevant_calls = [c[0] for c in calls if c[0] in ('on_ctrl_shift_triggered', 'on_alt_pressed')]
+        relevant_calls = [c[0] for c in calls if c[0] in ("on_ctrl_shift_triggered", "on_alt_pressed")]
 
-        assert relevant_calls == ['on_ctrl_shift_triggered', 'on_alt_pressed'], \
-            f"Expected call order [ARMED, HOLDING], but got {relevant_calls}"
+        assert relevant_calls == ["on_ctrl_shift_triggered", "on_alt_pressed"], f"Expected call order [ARMED, HOLDING], but got {relevant_calls}"

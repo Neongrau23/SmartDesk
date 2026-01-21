@@ -11,11 +11,7 @@ Testet:
 import json
 from unittest.mock import patch
 
-from smartdesk.core.storage.file_operations import (
-    load_desktops,
-    save_desktops,
-    get_data_file_path
-)
+from smartdesk.core.storage.file_operations import load_desktops, save_desktops, get_data_file_path
 from smartdesk.core.models.desktop import Desktop
 
 
@@ -38,23 +34,17 @@ class TestLoadDesktops:
 
     def test_load_empty_file_returns_empty_list(self, tmp_path):
         """Test: Leere/nicht existierende Datei gibt leere Liste."""
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(tmp_path / "not_exists.json")
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(tmp_path / "not_exists.json")):
             result = load_desktops()
             assert result == []
 
     def test_load_valid_json(self, tmp_path, sample_desktops_data):
         """Test: Valide JSON-Datei wird korrekt geladen."""
         json_file = tmp_path / "desktops.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump(sample_desktops_data, f)
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = load_desktops()
 
             assert len(result) == 3
@@ -66,39 +56,30 @@ class TestLoadDesktops:
     def test_load_corrupted_json_returns_empty_list(self, tmp_path):
         """Test: Korrupte JSON gibt leere Liste zurück."""
         json_file = tmp_path / "corrupted.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             f.write("{invalid json content")
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = load_desktops()
             assert result == []
 
     def test_load_empty_json_array(self, tmp_path):
         """Test: Leeres JSON-Array gibt leere Liste."""
         json_file = tmp_path / "empty.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump([], f)
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = load_desktops()
             assert result == []
 
     def test_load_single_desktop(self, tmp_path, sample_desktop_data):
         """Test: Einzelner Desktop wird korrekt geladen."""
         json_file = tmp_path / "single.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump([sample_desktop_data], f)
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = load_desktops()
 
             assert len(result) == 1
@@ -106,25 +87,24 @@ class TestLoadDesktops:
 
     def test_load_preserves_icon_positions(self, tmp_path):
         """Test: Icon-Positionen werden korrekt geladen."""
-        data = [{
-            "name": "Test",
-            "path": "C:\\Test",
-            "is_active": False,
-            "wallpaper_path": "",
-            "icon_positionen": [
-                {"index": 0, "name": "Icon1", "x": 100, "y": 200},
-                {"index": 1, "name": "Icon2", "x": 300, "y": 400},
-            ]
-        }]
+        data = [
+            {
+                "name": "Test",
+                "path": "C:\\Test",
+                "is_active": False,
+                "wallpaper_path": "",
+                "icon_positionen": [
+                    {"index": 0, "name": "Icon1", "x": 100, "y": 200},
+                    {"index": 1, "name": "Icon2", "x": 300, "y": 400},
+                ],
+            }
+        ]
 
         json_file = tmp_path / "icons.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump(data, f)
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = load_desktops()
 
             assert len(result[0].icon_positionen) == 2
@@ -133,22 +113,13 @@ class TestLoadDesktops:
 
     def test_load_unicode_content(self, tmp_path):
         """Test: Unicode-Zeichen werden korrekt geladen."""
-        data = [{
-            "name": "Büro",
-            "path": "C:\\Users\\Müller\\Desktop",
-            "is_active": True,
-            "wallpaper_path": "",
-            "icon_positionen": []
-        }]
+        data = [{"name": "Büro", "path": "C:\\Users\\Müller\\Desktop", "is_active": True, "wallpaper_path": "", "icon_positionen": []}]
 
         json_file = tmp_path / "unicode.json"
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = load_desktops()
 
             assert result[0].name == "Büro"
@@ -162,10 +133,7 @@ class TestSaveDesktops:
         """Test: Datei wird erstellt."""
         json_file = tmp_path / "new_desktops.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = save_desktops(sample_desktops)
 
             assert result is True
@@ -175,13 +143,10 @@ class TestSaveDesktops:
         """Test: Gespeicherte Datei enthält valides JSON."""
         json_file = tmp_path / "valid.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             save_desktops(sample_desktops)
 
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             assert len(data) == 3
@@ -192,10 +157,7 @@ class TestSaveDesktops:
         nested_dir = tmp_path / "nested" / "dir"
         json_file = nested_dir / "desktops.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = save_desktops(sample_desktops)
 
             assert result is True
@@ -206,32 +168,23 @@ class TestSaveDesktops:
         """Test: Leere Liste speichern."""
         json_file = tmp_path / "empty.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             result = save_desktops([])
 
             assert result is True
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
             assert data == []
 
     def test_save_preserves_unicode(self, tmp_path):
         """Test: Unicode wird korrekt gespeichert."""
-        desktop = Desktop(
-            name="Büro",
-            path="C:\\Users\\Müller\\Desktop"
-        )
+        desktop = Desktop(name="Büro", path="C:\\Users\\Müller\\Desktop")
         json_file = tmp_path / "unicode.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             save_desktops([desktop])
 
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             assert "Büro" in content
@@ -242,16 +195,13 @@ class TestSaveDesktops:
         json_file = tmp_path / "overwrite.json"
 
         # Erste Speicherung
-        with open(json_file, 'w', encoding='utf-8') as f:
+        with open(json_file, "w", encoding="utf-8") as f:
             json.dump([{"name": "Alt", "path": "C:\\Alt"}], f)
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             save_desktops(sample_desktops)
 
-            with open(json_file, 'r', encoding='utf-8') as f:
+            with open(json_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             assert len(data) == 3
@@ -262,10 +212,7 @@ class TestSaveDesktops:
         # Ungültiger Pfad - Test überprüft Fehlerbehandlung
         invalid_path = "Z:\\NonExistent\\Dir\\file.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=invalid_path
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=invalid_path):
             # Die Funktion sollte bei ungültigem Pfad False zurückgeben
             # oder eine Exception werfen die gefangen wird
             try:
@@ -284,10 +231,7 @@ class TestRoundtrip:
         """Test: Gespeicherte Daten können wieder geladen werden."""
         json_file = tmp_path / "roundtrip.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             # Speichern
             save_desktops(sample_desktops)
 
@@ -304,10 +248,7 @@ class TestRoundtrip:
         """Test: Mehrere Speicher-Lade-Zyklen."""
         json_file = tmp_path / "cycles.json"
 
-        with patch(
-            'smartdesk.core.storage.file_operations.get_data_file_path',
-            return_value=str(json_file)
-        ):
+        with patch("smartdesk.core.storage.file_operations.get_data_file_path", return_value=str(json_file)):
             # Zyklus 1
             desktops1 = [Desktop(name="V1", path="C:\\V1")]
             save_desktops(desktops1)

@@ -1,6 +1,7 @@
 """
 Service zur Verwaltung von Anwendungseinstellungen (settings.json).
 """
+
 import json
 import os
 from typing import Any
@@ -21,8 +22,9 @@ DEFAULTS = {
     "activation_keys": "Ctrl+Shift",
     "action_modifier": "Alt",
     "hold_duration": 0.5,
-    "github_pat": None
+    "github_pat": None,
 }
+
 
 def load_settings() -> dict:
     """Lädt die Einstellungen aus der JSON-Datei."""
@@ -30,7 +32,7 @@ def load_settings() -> dict:
         return DEFAULTS.copy()
 
     try:
-        with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
+        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
             # Merge mit Defaults, falls neue Keys dazu kamen
             settings = DEFAULTS.copy()
@@ -40,20 +42,23 @@ def load_settings() -> dict:
         logger.error(f"Fehler beim Laden der Einstellungen: {e}")
         return DEFAULTS.copy()
 
+
 def save_settings(settings: dict) -> bool:
     """Speichert die Einstellungen."""
     try:
-        with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
+        with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=4, ensure_ascii=False)
         return True
     except Exception as e:
         logger.error(f"Fehler beim Speichern der Einstellungen: {e}")
         return False
 
+
 def get_setting(key: str, default: Any = None) -> Any:
     """Holt einen einzelnen Einstellungswert."""
     settings = load_settings()
     return settings.get(key, default if default is not None else DEFAULTS.get(key))
+
 
 def set_setting(key: str, value: Any) -> bool:
     """Setzt einen einzelnen Einstellungswert und speichert."""

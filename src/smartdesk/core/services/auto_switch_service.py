@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 
 RULES_FILE = os.path.join(DATA_DIR, "rules.json")
 
+
 class AutoSwitchService:
     def __init__(self, check_interval: int = 2):
         self.check_interval = check_interval
@@ -39,8 +40,8 @@ class AutoSwitchService:
             try:
                 mtime = os.path.getmtime(RULES_FILE)
                 self._rules_mtime = mtime
-                
-                with open(RULES_FILE, 'r', encoding='utf-8') as f:
+
+                with open(RULES_FILE, "r", encoding="utf-8") as f:
                     self._rules = json.load(f)
             except Exception as e:
                 logger.error(f"Error loading rules: {e}")
@@ -49,8 +50,8 @@ class AutoSwitchService:
     def _check_rules_file(self):
         """Reloads rules if file has changed on disk."""
         if not os.path.exists(RULES_FILE):
-             return
-        
+            return
+
         try:
             mtime = os.path.getmtime(RULES_FILE)
             if mtime > self._rules_mtime:
@@ -65,9 +66,9 @@ class AutoSwitchService:
             try:
                 # Ensure directory exists
                 os.makedirs(os.path.dirname(RULES_FILE), exist_ok=True)
-                with open(RULES_FILE, 'w', encoding='utf-8') as f:
+                with open(RULES_FILE, "w", encoding="utf-8") as f:
                     json.dump(self._rules, f, indent=4)
-                
+
                 # Update mtime to avoid reload loop
                 if os.path.exists(RULES_FILE):
                     self._rules_mtime = os.path.getmtime(RULES_FILE)
@@ -120,7 +121,7 @@ class AutoSwitchService:
         """The main loop checking processes."""
         while self._running:
             try:
-                self._check_rules_file() # Check for external changes
+                self._check_rules_file()  # Check for external changes
                 self._check_and_switch()
             except Exception as e:
                 logger.error(f"Error in AutoSwitchService loop: {e}")
@@ -167,15 +168,15 @@ class AutoSwitchService:
         # Map for O(1) priority lookup: process_name -> priority_index (0 is highest)
         rules_priority = {name: i for i, (name, _) in enumerate(rules_snapshot)}
 
-        highest_priority_found_index = float('inf')
+        highest_priority_found_index = float("inf")
 
         try:
             # Optimization: Iterate psutil.process_iter only once and check against rules
             # instead of building a full set of ALL running processes.
             # Bolt optimization: Stop early if the highest priority rule is found.
-            for proc in psutil.process_iter(['name']):
+            for proc in psutil.process_iter(["name"]):
                 try:
-                    pname = proc.info['name']
+                    pname = proc.info["name"]
                     if pname:
                         pname_lower = pname.lower()
 

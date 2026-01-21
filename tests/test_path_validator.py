@@ -71,12 +71,9 @@ class TestEnsureDirectoryExists:
 
     def test_returns_false_on_permission_error(self):
         """Test: Gibt False bei Permission Error zurück."""
-        with patch('os.path.exists', return_value=False):
-            with patch('os.makedirs') as mock_makedirs:
-                mock_makedirs.side_effect = OSError(
-                    13,
-                    "Permission denied"
-                )
+        with patch("os.path.exists", return_value=False):
+            with patch("os.makedirs") as mock_makedirs:
+                mock_makedirs.side_effect = OSError(13, "Permission denied")
 
                 result = ensure_directory_exists("C:\\Protected\\Dir")
 
@@ -84,12 +81,9 @@ class TestEnsureDirectoryExists:
 
     def test_returns_false_on_os_error(self):
         """Test: Gibt False bei allgemeinem OS Error zurück."""
-        with patch('os.path.exists', return_value=False):
-            with patch('os.makedirs') as mock_makedirs:
-                mock_makedirs.side_effect = OSError(
-                    22,
-                    "Invalid argument"
-                )
+        with patch("os.path.exists", return_value=False):
+            with patch("os.makedirs") as mock_makedirs:
+                mock_makedirs.side_effect = OSError(22, "Invalid argument")
 
                 result = ensure_directory_exists("Z:\\Invalid\\Path")
 
@@ -100,8 +94,8 @@ class TestEnsureDirectoryExists:
         existing_dir = tmp_path / "exists"
         existing_dir.mkdir()
 
-        with patch('os.makedirs') as mock_makedirs:
-            with patch('os.path.exists', return_value=True):
+        with patch("os.makedirs") as mock_makedirs:
+            with patch("os.path.exists", return_value=True):
                 ensure_directory_exists(str(existing_dir))
 
                 # makedirs sollte nicht aufgerufen werden

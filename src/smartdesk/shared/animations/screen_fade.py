@@ -27,7 +27,7 @@ except ImportError:
             FADE_OUT_DURATION = 0.3
             VISIBLE_DURATION = 3.5
             FADE_STEPS = 100
-            BACKGROUND_COLOR = 'Black'
+            BACKGROUND_COLOR = "Black"
             SHOW_LOGO = True
             HIDE_CURSOR = True
             TOPMOST = True
@@ -70,7 +70,7 @@ class MultiMonitorFade:
         self.root.overrideredirect(True)
 
         if self.config.TOPMOST:
-            self.root.attributes('-topmost', True)
+            self.root.attributes("-topmost", True)
 
         self.root.configure(bg=self.config.BACKGROUND_COLOR)
 
@@ -80,7 +80,7 @@ class MultiMonitorFade:
 
         # ESC zum Beenden
         if self.config.ALLOW_ESC_EXIT:
-            self.root.bind('<Escape>', lambda e: self.cleanup_and_exit())
+            self.root.bind("<Escape>", lambda e: self.cleanup_and_exit())
 
         # Variablen für die Gesamtgröße
         self.virtual_width = 0
@@ -93,9 +93,7 @@ class MultiMonitorFade:
         self.setup_fullscreen()
 
         # Canvas für Fade-Effekt
-        self.canvas = tk.Canvas(
-            self.root, bg=self.config.BACKGROUND_COLOR, highlightthickness=0
-        )
+        self.canvas = tk.Canvas(self.root, bg=self.config.BACKGROUND_COLOR, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Schwarzes Rechteck als Overlay
@@ -105,7 +103,7 @@ class MultiMonitorFade:
             self.virtual_width,
             self.virtual_height,
             fill=self.config.BACKGROUND_COLOR,
-            outline='',
+            outline="",
         )
 
     def setup_fullscreen(self):
@@ -127,7 +125,7 @@ class MultiMonitorFade:
             self.virtual_height = win32api.GetSystemMetrics(SM_CYVIRTUALSCREEN)
 
             # Erstelle den Geometrie-String: 'BreitexHöhe+X+Y'
-            geometry = f'{self.virtual_width}x{self.virtual_height}+{x}+{y}'
+            geometry = f"{self.virtual_width}x{self.virtual_height}+{x}+{y}"
 
             if self.config.DEBUG:
                 print(f"Erkannter virtueller Desktop: {geometry}")
@@ -138,12 +136,10 @@ class MultiMonitorFade:
             # FALLBACK (Alte Methode, nur primärer Monitor)
             self.virtual_width = self.root.winfo_screenwidth()
             self.virtual_height = self.root.winfo_screenheight()
-            geometry = f'{self.virtual_width}x{self.virtual_height}+0+0'
+            geometry = f"{self.virtual_width}x{self.virtual_height}+0+0"
 
             if self.config.DEBUG:
-                print(
-                    f"Erkannte Bildschirmgröße (Fallback): {self.virtual_width}x{self.virtual_height}"
-                )
+                print(f"Erkannte Bildschirmgröße (Fallback): {self.virtual_width}x{self.virtual_height}")
 
         # Setze die Fenstergeometrie
         self.root.geometry(geometry)
@@ -156,7 +152,7 @@ class MultiMonitorFade:
         try:
             # Pfad zur logo.py ermitteln
             script_dir = os.path.dirname(os.path.abspath(__file__))
-            logo_script = os.path.join(script_dir, 'logo.py')
+            logo_script = os.path.join(script_dir, "logo.py")
 
             if not os.path.exists(logo_script):
                 if self.config.DEBUG:
@@ -170,7 +166,7 @@ class MultiMonitorFade:
 
             # Logo-Prozess starten
             # DETACHED_PROCESS sorgt dafür, dass das Logo-Fenster unabhängig läuft
-            if sys.platform == 'win32':
+            if sys.platform == "win32":
                 # Windows: Verwende CREATE_NO_WINDOW Flag
                 CREATE_NO_WINDOW = 0x08000000
                 self.logo_process = subprocess.Popen(
@@ -181,9 +177,7 @@ class MultiMonitorFade:
                 )
             else:
                 # Linux/Mac
-                self.logo_process = subprocess.Popen(
-                    cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-                )
+                self.logo_process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
             if self.config.DEBUG:
                 print(f"Logo-Prozess gestartet (PID: {self.logo_process.pid})")
@@ -212,7 +206,7 @@ class MultiMonitorFade:
 
         for i in range(steps + 1):
             alpha = i / steps
-            self.root.attributes('-alpha', alpha)
+            self.root.attributes("-alpha", alpha)
             self.root.update()
             time.sleep(delay)
 
@@ -224,14 +218,14 @@ class MultiMonitorFade:
 
         for i in range(steps, -1, -1):
             alpha = i / steps
-            self.root.attributes('-alpha', alpha)
+            self.root.attributes("-alpha", alpha)
             self.root.update()
             time.sleep(delay)
 
     def run(self):
         """Hauptablauf: Einblenden -> Warten -> Ausblenden"""
         # Fenster initial unsichtbar machen
-        self.root.attributes('-alpha', 0.0)
+        self.root.attributes("-alpha", 0.0)
         self.root.update()
 
         # Kurz warten bis Fenster vollständig initialisiert ist
@@ -298,9 +292,7 @@ class MultiMonitorFade:
         if not self.signal_file:
             # Fallback auf feste Zeit, wenn keine Signaldatei übergeben wurde
             if self.config.DEBUG:
-                print(
-                    f"Keine Signaldatei. Nutze feste Dauer: {self.config.VISIBLE_DURATION}s"
-                )
+                print(f"Keine Signaldatei. Nutze feste Dauer: {self.config.VISIBLE_DURATION}s")
             time.sleep(self.config.VISIBLE_DURATION)
             return
 

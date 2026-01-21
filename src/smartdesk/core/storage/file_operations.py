@@ -12,6 +12,7 @@ from ...shared.config import DATA_DIR
 DATA_FILE_PATH = os.path.join(DATA_DIR, "desktops.json")
 LOCK_FILE_PATH = os.path.join(DATA_DIR, "desktops.lock")
 
+
 @contextmanager
 def file_lock(lock_file, timeout=10):
     """
@@ -20,7 +21,7 @@ def file_lock(lock_file, timeout=10):
     """
     start_time = time.time()
     sleep_time = 0.001  # Start with 1ms
-    max_sleep = 0.1     # Cap at 100ms
+    max_sleep = 0.1  # Cap at 100ms
 
     while True:
         try:
@@ -64,7 +65,7 @@ def load_desktops() -> List[Desktop]:
 
     try:
         with file_lock(LOCK_FILE_PATH):
-            with open(data_file, 'r', encoding='utf-8') as f:
+            with open(data_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 desktops = []
                 for item in data:
@@ -97,7 +98,7 @@ def save_desktops(desktops: List[Desktop]) -> bool:
             for desktop in desktops:
                 data.append(desktop.to_dict())
 
-            with open(data_file, 'w', encoding='utf-8') as f:
+            with open(data_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
 
         return True

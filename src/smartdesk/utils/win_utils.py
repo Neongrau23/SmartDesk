@@ -5,10 +5,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def activate_window_by_pid(pid):
     """
     Sucht das Hauptfenster eines Prozesses und bringt es in den Vordergrund.
     """
+
     def callback(hwnd, hwnds):
         try:
             _, found_pid = win32process.GetWindowThreadProcessId(hwnd)
@@ -32,9 +34,9 @@ def activate_window_by_pid(pid):
             # Falls minimiert, wiederherstellen
             if win32gui.IsIconic(hwnd):
                 win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-            
+
             # In den Vordergrund zwingen
-            # Unter Windows 10/11 ist das manchmal blockiert. 
+            # Unter Windows 10/11 ist das manchmal blockiert.
             # Ein Trick ist das Senden eines Hotkeys oder AttachThreadInput, aber SetForegroundWindow ist der erste Schritt.
             try:
                 win32gui.SetForegroundWindow(hwnd)
@@ -42,9 +44,9 @@ def activate_window_by_pid(pid):
                 logger.warning(f"Konnte Fenster nicht in den Vordergrund setzen (Windows Restriction): {e}")
                 # Fallback: Flash Window?
                 pass
-                
+
             return True
         except Exception as e:
             logger.error(f"Fehler beim Aktivieren des Fensters: {e}")
-    
+
     return False

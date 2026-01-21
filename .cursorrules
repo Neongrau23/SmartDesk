@@ -8,31 +8,31 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
 - **Clean Code:** Follow PEP 8. Use type hints (`typing`) strictly. Docstrings for complex functions.
 
 ## 🏗️ Architecture & Features (v0.4.1+)
-- **Persistent GUI Overlay:** 
+- **Persistent GUI Overlay:**
   - The hotkey overview (`gui_overview.py`) runs as a persistent background process managed by `BannerController`.
   - Communication happens via `stdin` commands: `SHOW`, `HIDE`, `QUIT`.
   - **Do not** revert to spawning a new process per keypress.
-- **Hotkey Logic:** 
+- **Hotkey Logic:**
   - Triggers are "On-Release" (key up) to prevent conflicts.
   - Supports an "Instant Mode" (0.0s delay) which bypasses timer threads entirely.
   - State Machine: `IDLE` -> `ARMED` -> `HOLDING` -> `SHOWING`.
-- **Desktop Switching Workflow:** 
+- **Desktop Switching Workflow:**
   - Sequence: Create Lock File -> Create Registry Backup -> Save Icons -> Update Registry -> Restart Windows Explorer -> Restore Icons/Wallpaper.
   - The fullscreen fade animation (`screen_fade.py`) is critical to hide the desktop flickering during this restart.
 
 ## ⚙️ Technical Implementation Details
-- **Threading & Locks:** 
+- **Threading & Locks:**
   - Services requiring recursive internal calls (e.g., `add_rule` calling `save_rules`) **must** use `threading.RLock` instead of `threading.Lock` to avoid deadlocks.
   - When iterating over system resources based on a shared locked resource, make a copy of the resource within the lock, then release the lock before starting the long iteration.
-- **Performance (psutil):** 
+- **Performance (psutil):**
   - To check running processes against rules, iterate through `psutil.process_iter()` and check each process individually. Stop as soon as a match is found. Do not create a large set of all process names first.
   - For process termination checks, prefer `psutil.wait_procs` with a pre-filtered list over polling loops.
-- **Environment:** 
+- **Environment:**
   - Network access can be unreliable; avoid unnecessary `pip install` commands.
 
 ## 🧪 Testing & Development
 - **Framework:** `pytest`. Run via `python -m pytest` to ensure correct environment.
-- **Requirements:** 
+- **Requirements:**
   - Must set `PYTHONPATH=src` and provide the `APPDATA` environment variable.
   - **Mocking:** Since SmartDesk is Windows-heavy, mock `win32*`, `ctypes`, `PySide6`, `PIL`, and `pynput` in `tests/conftest.py` to allow execution in limited environments.
 
@@ -46,8 +46,8 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
   - `ui/`: PySide6 GUI & Tray
   - `hotkeys/`: pynput Listeners
   - `shared/`: Config & Logging
-- **Logging:** 
-  - Use `smartdesk.shared.logging_config.get_logger`. 
+- **Logging:**
+  - Use `smartdesk.shared.logging_config.get_logger`.
   - **Never** use `print()` in production code (it crashes in `.pyw` no-console mode).
 
 ## 📦 Tech Stack

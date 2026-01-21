@@ -21,17 +21,17 @@ from .banner import (
 FadeConfig = AnimationConfig
 
 __all__ = [
-    'MultiMonitorFade',
-    'AnimationConfig',
-    'FadeConfig',
+    "MultiMonitorFade",
+    "AnimationConfig",
+    "FadeConfig",
     # Banner
-    'TaskbarBanner',
-    'BannerConfig',
-    'BannerTheme',
-    'show_desktop_status',
-    'show_notification',
-    'DEFAULT_THEME',
-    'DARK_THEME',
-    'FAST_CONFIG',
-    'SLOW_CONFIG',
+    "TaskbarBanner",
+    "BannerConfig",
+    "BannerTheme",
+    "show_desktop_status",
+    "show_notification",
+    "DEFAULT_THEME",
+    "DARK_THEME",
+    "FAST_CONFIG",
+    "SLOW_CONFIG",
 ]

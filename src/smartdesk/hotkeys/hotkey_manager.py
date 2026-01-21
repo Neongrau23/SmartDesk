@@ -26,9 +26,7 @@ except ImportError:
     # Fallback für isoliertes Testen
     import logging
 
-    BASE_DIR = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', '..', '..')
-    )
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
     DATA_DIR = BASE_DIR
 
     def get_text(key, **kwargs):
@@ -62,14 +60,10 @@ LOG_FILE = os.path.join(DATA_DIR, "listener.log")
 ERR_FILE = os.path.join(DATA_DIR, "listener_error.log")
 
 # Python-Executable im venv
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     PYTHON_EXECUTABLE = sys.executable
     # In frozen app, import via -c to ensure package structure works
-    COMMAND_TO_RUN = [
-        PYTHON_EXECUTABLE,
-        "-c",
-        "from smartdesk.hotkeys.listener import start_listener; start_listener()"
-    ]
+    COMMAND_TO_RUN = [PYTHON_EXECUTABLE, "-c", "from smartdesk.hotkeys.listener import start_listener; start_listener()"]
 else:
     venv_python = os.path.join(WORKING_DIRECTORY, ".venv", "Scripts", "python.exe")
     if os.path.exists(venv_python):
@@ -182,9 +176,9 @@ def _format_message(result: ManagerResult) -> str:
 
     kwargs = {}
     if result.pid:
-        kwargs['pid'] = result.pid
+        kwargs["pid"] = result.pid
     if result.error:
-        kwargs['e'] = result.error
+        kwargs["e"] = result.error
 
     return get_text(key, **kwargs) if kwargs else get_text(key)
 
@@ -223,25 +217,17 @@ def start_listener() -> bool:
 
     if result.success:
         logger.info(f"Listener gestartet mit PID {result.pid}")
-        print(
-            f"{PREFIX_OK} {get_text('hotkey_manager.info.start_success', pid=result.pid)}"
-        )
+        print(f"{PREFIX_OK} {get_text('hotkey_manager.info.start_success', pid=result.pid)}")
     elif result.message == "already_running":
         logger.warning(f"Listener läuft bereits (PID {result.pid})")
         print(f"{PREFIX_WARN} {get_text('hotkey_manager.warn.already_running')}")
     elif result.message == "python_not_found":
         logger.error(f"Python nicht gefunden: {PYTHON_EXECUTABLE}")
-        print(
-            f"{PREFIX_ERROR} {get_text('hotkey_manager.error.python_not_found', path=PYTHON_EXECUTABLE)}"
-        )
-        print(
-            f"{PREFIX_WARN} Stelle sicher, dass das venv '.venv' heißt oder passe den Pfad an."
-        )
+        print(f"{PREFIX_ERROR} {get_text('hotkey_manager.error.python_not_found', path=PYTHON_EXECUTABLE)}")
+        print(f"{PREFIX_WARN} Stelle sicher, dass das venv '.venv' heißt oder passe den Pfad an.")
     else:
         logger.error(f"Start fehlgeschlagen: {result.message}")
-        print(
-            f"{PREFIX_ERROR} {get_text('hotkey_manager.error.start_failed', e=result.error or result.message)}"
-        )
+        print(f"{PREFIX_ERROR} {get_text('hotkey_manager.error.start_failed', e=result.error or result.message)}")
 
     return result.success
 
@@ -266,33 +252,23 @@ def stop_listener() -> bool:
     if result.success:
         if result.forced:
             logger.warning(f"Listener erzwungen beendet (PID {result.pid})")
-            print(
-                f"{PREFIX_WARN} {get_text('hotkey_manager.warn.force_kill', pid=result.pid)}"
-            )
+            print(f"{PREFIX_WARN} {get_text('hotkey_manager.warn.force_kill', pid=result.pid)}")
         else:
             logger.info(f"Listener beendet (PID {result.pid})")
-        print(
-            f"{PREFIX_OK} {get_text('hotkey_manager.info.stop_success', pid=result.pid)}"
-        )
+        print(f"{PREFIX_OK} {get_text('hotkey_manager.info.stop_success', pid=result.pid)}")
         print(f"{PREFIX_OK} {get_text('hotkey_manager.info.pid_cleaned')}")
     elif result.message == "not_running":
         logger.info("Kein Listener läuft")
         print(f"{PREFIX_WARN} {get_text('hotkey_manager.warn.not_running')}")
     elif result.message == "process_not_found":
         logger.warning(f"Prozess {result.pid} nicht gefunden")
-        print(
-            f"{PREFIX_WARN} {get_text('hotkey_manager.warn.process_not_found', pid=result.pid)}"
-        )
+        print(f"{PREFIX_WARN} {get_text('hotkey_manager.warn.process_not_found', pid=result.pid)}")
     elif result.message == "access_denied":
         logger.error(f"Zugriff auf Prozess {result.pid} verweigert")
-        print(
-            f"{PREFIX_ERROR} {get_text('hotkey_manager.error.access_denied', pid=result.pid)}"
-        )
+        print(f"{PREFIX_ERROR} {get_text('hotkey_manager.error.access_denied', pid=result.pid)}")
     else:
         logger.error(f"Stop fehlgeschlagen: {result.message}")
-        print(
-            f"{PREFIX_ERROR} {get_text('hotkey_manager.error.stop_failed', e=result.error or result.message)}"
-        )
+        print(f"{PREFIX_ERROR} {get_text('hotkey_manager.error.stop_failed', e=result.error or result.message)}")
 
     return result.success
 
@@ -309,14 +285,10 @@ def restart_listener() -> bool:
 
     if result.success:
         logger.info(f"Listener neu gestartet (PID {result.pid})")
-        print(
-            f"{PREFIX_OK} {get_text('hotkey_manager.info.restart_success', pid=result.pid)}"
-        )
+        print(f"{PREFIX_OK} {get_text('hotkey_manager.info.restart_success', pid=result.pid)}")
     else:
         logger.error(f"Neustart fehlgeschlagen: {result.message}")
-        print(
-            f"{PREFIX_ERROR} {get_text('hotkey_manager.error.restart_failed', e=result.error or result.message)}"
-        )
+        print(f"{PREFIX_ERROR} {get_text('hotkey_manager.error.restart_failed', e=result.error or result.message)}")
 
     return result.success
 

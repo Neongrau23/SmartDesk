@@ -1,10 +1,7 @@
 import os
 import sys
 import logging
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QFileDialog, QMessageBox,
-    QLineEdit, QPushButton, QRadioButton, QLabel, QVBoxLayout
-)
+from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QMessageBox, QLineEdit, QPushButton, QRadioButton, QLabel, QVBoxLayout
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer, QEvent
 
@@ -20,6 +17,7 @@ if __name__ == "__main__" or __package__ is None:
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
+
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
@@ -31,9 +29,14 @@ try:
     from smartdesk.shared.localization import get_text
     from smartdesk.shared.config import get_resource_path
 except ImportError:
-    def get_text(key, **kwargs): return key.split('.')[-1]
+
+    def get_text(key, **kwargs):
+        return key.split(".")[-1]
+
     class FakeDesktopService:
-        def create_desktop(self, *args, **kwargs): return False
+        def create_desktop(self, *args, **kwargs):
+            return False
+
     desktop_service = FakeDesktopService()
 
 
@@ -43,11 +46,11 @@ class CreateDesktopWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        
+
         # Initialisiere Variablen BEVOR UI geladen wird
-        self.wants_to_go_back = False 
+        self.wants_to_go_back = False
         self.is_browsing = False
-        self.ignore_focus_loss = True # Startet mit Schutz
+        self.ignore_focus_loss = True  # Startet mit Schutz
         self.is_closing = False
 
         self.load_ui()
@@ -69,15 +72,22 @@ class CreateDesktopWindow(QWidget):
         self.label_path = self.findChild(QLabel, "label_path")
 
         # Signale verbinden
-        if self.btn_browse: self.btn_browse.clicked.connect(self.browse_folder)
-        if self.btn_create: self.btn_create.clicked.connect(self.create_desktop)
-        if self.btn_cancel: self.btn_cancel.clicked.connect(self.handle_cancel)
-        if self.radio_existing: self.radio_existing.toggled.connect(self.on_mode_change)
-        if self.radio_new: self.radio_new.toggled.connect(self.on_mode_change)
+        if self.btn_browse:
+            self.btn_browse.clicked.connect(self.browse_folder)
+        if self.btn_create:
+            self.btn_create.clicked.connect(self.create_desktop)
+        if self.btn_cancel:
+            self.btn_cancel.clicked.connect(self.handle_cancel)
+        if self.radio_existing:
+            self.radio_existing.toggled.connect(self.on_mode_change)
+        if self.radio_new:
+            self.radio_new.toggled.connect(self.on_mode_change)
 
-        if self.radio_existing: self.on_mode_change()
-        if self.name_entry: self.name_entry.setFocus()
-        
+        if self.radio_existing:
+            self.on_mode_change()
+        if self.name_entry:
+            self.name_entry.setFocus()
+
         self.setup_positioning()
 
     def load_ui(self):
@@ -88,7 +98,7 @@ class CreateDesktopWindow(QWidget):
         if not ui_file.open(QIODevice.ReadOnly):
             logger.error(f"Cannot open UI file: {ui_file.errorString()}")
             sys.exit(-1)
-        
+
         container_widget = loader.load(ui_file)
         ui_file.close()
 
@@ -100,15 +110,15 @@ class CreateDesktopWindow(QWidget):
     def setup_positioning(self):
         screen = QApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
-        
+
         self.adjustSize()
         self.window_width = 420
         self.window_height = 294
         self.resize(self.window_width, self.window_height)
-        
+
         padding_x = 20
         padding_y = 20
-        
+
         self.target_x = screen_geometry.width() - self.window_width - padding_x
         self.target_y = screen_geometry.height() - self.window_height - padding_y
         self.start_x = screen_geometry.width()
@@ -118,16 +128,16 @@ class CreateDesktopWindow(QWidget):
     def show_animated(self):
         # 1. Schutz aktivieren: Fokusverlust für 500ms ignorieren
         self.ignore_focus_loss = True
-        
+
         # 2. Fenster anzeigen und fokussieren
         self.show()
         self.raise_()
         self.activateWindow()
         self.setFocus()
-        
+
         # 3. Timer starten, um Schutz nach 500ms aufzuheben
         QTimer.singleShot(500, self.enable_auto_close)
-        
+
         self.is_closing = False
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(300)
@@ -141,9 +151,10 @@ class CreateDesktopWindow(QWidget):
         self.ignore_focus_loss = False
 
     def close_panel_animated(self):
-        if self.is_closing: return
+        if self.is_closing:
+            return
         self.is_closing = True
-        
+
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(300)
         self.animation.setStartValue(self.geometry())
@@ -167,7 +178,7 @@ class CreateDesktopWindow(QWidget):
             if event.type() == QEvent.Type.WindowDeactivate:
                 if not self.is_closing and not self.isActiveWindow():
                     self.close_panel_animated()
-                    
+
         except Exception as e:
             # Sicherheitsnetz: Fehler loggen, aber nicht abstürzen
             logger.error(f"Fehler im Event-Handler: {e}")
@@ -185,17 +196,17 @@ class CreateDesktopWindow(QWidget):
             self.label_path.setText(get_text("gui.create_dialog.label_path_existing"))
         else:
             self.label_path.setText(get_text("gui.create_dialog.label_path_new"))
-    
+
     def browse_folder(self):
         # Schutz AN
         self.is_browsing = True
-        
+
         title = "Ordner wählen"
         folder = QFileDialog.getExistingDirectory(self, title)
-        
+
         # Schutz AUS
         self.is_browsing = False
-        
+
         # Fokus explizit zurückholen
         self.activateWindow()
         self.raise_()
@@ -208,7 +219,8 @@ class CreateDesktopWindow(QWidget):
         name = self.name_entry.text().strip()
         path = self.path_entry.text().strip().strip('"')
 
-        if not name or not path: return
+        if not name or not path:
+            return
 
         create_if_missing = self.radio_new.isChecked()
         final_path = os.path.join(path, name) if create_if_missing else path
@@ -221,11 +233,13 @@ class CreateDesktopWindow(QWidget):
         else:
             QMessageBox.critical(self, "Fehler", "Konnte Desktop nicht erstellen.")
 
+
 def show_create_desktop_window():
     app = QApplication.instance() or QApplication(sys.argv)
     window = CreateDesktopWindow()
     window.show_animated()
     app.exec()
+
 
 if __name__ == "__main__":
     logger.info("Starte Create Desktop GUI im Testmodus...")

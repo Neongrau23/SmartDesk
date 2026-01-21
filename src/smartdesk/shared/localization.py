@@ -172,7 +172,7 @@ TEXT = {
                 "success_restore": "Registry-Wiederherstellung abgeschlossen!",
                 "info_data_dir": "Daten-Verzeichnis:\n{path}",
             },
-             "generic_errors": {
+            "generic_errors": {
                 "save": "Fehler beim Speichern: {e}",
                 "start": "Fehler beim Starten: {e}",
                 "stop": "Fehler beim Stoppen: {e}",
@@ -183,7 +183,7 @@ TEXT = {
                 "restart": "Fehler beim Neustart: {e}",
                 "restore": "Fehler bei der Wiederherstellung: {e}",
                 "not_on_windows": "Nur unter Windows verfügbar!",
-            }
+            },
         },
         "manage_dialog": {
             "title": "SmartDesk - Desktops verwalten",
@@ -297,7 +297,7 @@ TEXT = {
         },
     },
     "main": {
-         "error": {
+        "error": {
             "import": "Import Fehler: {e}",
             "import_hint_1": "Stelle sicher, dass du das Skript aus dem Projekt-Root ausführst.",
             "import_hint_2": "Und stelle sicher, dass die virtuelle Umgebung (.venv) aktiviert ist.",
@@ -323,9 +323,7 @@ TEXT = {
             "load": "Konnte Desktops nicht laden: {e}",
         }
     },
-    "path_validator": {
-        "error": {"create_dir": "Fehler beim Erstellen des Verzeichnisses {path}: {e}"}
-    },
+    "path_validator": {"error": {"create_dir": "Fehler beim Erstellen des Verzeichnisses {path}: {e}"}},
     "hotkey_manager": {
         "error": {
             "read_pid": "Fehler beim Lesen der PID-Datei: {e}",
@@ -363,9 +361,7 @@ TEXT = {
             "action_fallback": "FEHLER: Aktion {n} nicht geladen",
             "generic": "Ein Fehler ist aufgetreten: {e}",
         },
-        "warn": {
-            "pid_clean_failed": "Warnung: PID-Datei konnte nicht bereinigt werden: {e}"
-        },
+        "warn": {"pid_clean_failed": "Warnung: PID-Datei konnte nicht bereinigt werden: {e}"},
         "info": {
             "starting": "Hotkey-Listener wird gestartet...",
             "pid_cleaned": "PID-Datei bereinigt.",
@@ -401,15 +397,7 @@ TEXT = {
             "copy": "Hintergrundbild kopiert nach: {path}",
         },
     },
-    "tray": {
-        "menu": {
-            "control_panel": "Control Panel",
-            "manager": "SmartDesk Manager",
-            "activate": "Aktivieren",
-            "deactivate": "Deaktivieren",
-            "quit": "Beenden"
-        }
-    }
+    "tray": {"menu": {"control_panel": "Control Panel", "manager": "SmartDesk Manager", "activate": "Aktivieren", "deactivate": "Deaktivieren", "quit": "Beenden"}},
 }
 
 
@@ -420,6 +408,7 @@ def init_localization():
     """
     pass
 
+
 # Diese Funktion wird von allen anderen Modulen importiert
 def get_text(key: str, **kwargs) -> str:
     """
@@ -427,7 +416,7 @@ def get_text(key: str, **kwargs) -> str:
 
     Holt einen Textbaustein anhand seines Schlüssels (Punkt-Notation) und formatiert ihn.
     """
-    keys = key.split('.')
+    keys = key.split(".")
     value = TEXT
 
     try:

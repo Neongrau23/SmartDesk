@@ -1,8 +1,6 @@
 import os
 import logging
-from PySide6.QtWidgets import (
-    QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox, QDoubleSpinBox
-)
+from PySide6.QtWidgets import QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox, QDoubleSpinBox
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, QTimer
 
@@ -12,10 +10,12 @@ from smartdesk.core.services.settings_service import get_setting, set_setting
 # Logger Setup
 try:
     from smartdesk.shared.logging_config import get_logger
+
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
+
 
 class HotkeyPage(QWidget):
     def __init__(self):
@@ -23,17 +23,17 @@ class HotkeyPage(QWidget):
         self.load_ui()
         self.setup_connections()
         self.setup_table()
-        
+
         # Initialer Status
         self.load_config_to_ui()
         self.refresh_status()
         self.load_hotkeys()
-        
+
         # Timer für Status-Updates (alle 2 Sekunden)
         self.status_timer = QTimer(self)
         self.status_timer.timeout.connect(self.refresh_status)
         self.status_timer.start(2000)
-        
+
         # Timer für Nachrichten (Einmalig)
         self.msg_timer = QTimer(self)
         self.msg_timer.setSingleShot(True)
@@ -43,21 +43,22 @@ class HotkeyPage(QWidget):
         loader = QUiLoader()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         ui_path = os.path.join(current_dir, "ui", "hotkey_page.ui")
-        
+
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):
             logger.error(f"UI file not found: {ui_path}")
             return
-            
+
         self.ui = loader.load(ui_file, self)
         ui_file.close()
-        
+
         layout = self.layout()
         if not layout:
             from PySide6.QtWidgets import QVBoxLayout
+
             layout = QVBoxLayout(self)
             self.setLayout(layout)
-            
+
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.ui)
 
@@ -69,7 +70,7 @@ class HotkeyPage(QWidget):
         self.btn_stop = self.ui.findChild(QPushButton, "btn_stop")
         self.btn_restart = self.ui.findChild(QPushButton, "btn_restart")
         self.table = self.ui.findChild(QTableWidget, "table_hotkeys")
-        
+
         # Config Elemente
         self.combo_activation = self.ui.findChild(QComboBox, "combo_activation")
         self.combo_action = self.ui.findChild(QComboBox, "combo_action")
@@ -77,13 +78,18 @@ class HotkeyPage(QWidget):
         self.btn_save_config = self.ui.findChild(QPushButton, "btn_save_config")
 
     def setup_connections(self):
-        if self.btn_start: self.btn_start.clicked.connect(self.action_start)
-        if self.btn_stop: self.btn_stop.clicked.connect(self.action_stop)
-        if self.btn_restart: self.btn_restart.clicked.connect(self.action_restart)
-        if self.btn_save_config: self.btn_save_config.clicked.connect(self.save_config)
+        if self.btn_start:
+            self.btn_start.clicked.connect(self.action_start)
+        if self.btn_stop:
+            self.btn_stop.clicked.connect(self.action_stop)
+        if self.btn_restart:
+            self.btn_restart.clicked.connect(self.action_restart)
+        if self.btn_save_config:
+            self.btn_save_config.clicked.connect(self.save_config)
 
     def setup_table(self):
-        if not self.table: return
+        if not self.table:
+            return
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
@@ -94,7 +100,7 @@ class HotkeyPage(QWidget):
         act_key = get_setting("activation_keys", "Ctrl+Shift")
         act_mod = get_setting("action_modifier", "Alt")
         duration = get_setting("hold_duration", 0.5)
-        
+
         if self.combo_activation:
             self.combo_activation.setCurrentText(act_key)
         if self.combo_action:
@@ -104,23 +110,24 @@ class HotkeyPage(QWidget):
 
     def save_config(self):
         """Speichert die Settings und startet den Listener neu."""
-        if not self.combo_activation or not self.combo_action: return
-        
+        if not self.combo_activation or not self.combo_action:
+            return
+
         new_act = self.combo_activation.currentText()
         new_mod = self.combo_action.currentText()
         new_duration = 0.5
         if self.spin_hold_duration:
             new_duration = self.spin_hold_duration.value()
-        
+
         set_setting("activation_keys", new_act)
         set_setting("action_modifier", new_mod)
         set_setting("hold_duration", new_duration)
-        
+
         self.show_message("Konfiguration gespeichert. Starte Listener neu...", success=True)
-        
+
         # UI Update (Tabelle)
         self.load_hotkeys()
-        
+
         # Neustart erzwingen
         hotkey_manager.restart_listener()
         self.refresh_status()
@@ -129,7 +136,7 @@ class HotkeyPage(QWidget):
         try:
             is_running = hotkey_manager.is_listener_running()
             pid = hotkey_manager.get_listener_pid()
-            
+
             if is_running:
                 self.lbl_status_icon.setText("🟢")
                 self.lbl_status_text.setText(f"Läuft (PID: {pid})")
@@ -140,18 +147,19 @@ class HotkeyPage(QWidget):
                 self.lbl_status_text.setText("Gestoppt")
                 self.btn_start.setEnabled(True)
                 self.btn_stop.setEnabled(False)
-                
+
         except Exception as e:
             logger.error(f"Error refreshing status: {e}")
             self.lbl_status_text.setText("Fehler bei Statusabfrage")
 
     def load_hotkeys(self):
-        if not self.table: return
+        if not self.table:
+            return
         self.table.setRowCount(0)
-        
+
         # Aktions-Key aus Settings laden für die Anzeige
         mod = get_setting("action_modifier", "Alt")
-        
+
         hotkeys = [
             (f"{mod} + 1", "Wechsel zu Desktop 1"),
             (f"{mod} + 2", "Wechsel zu Desktop 2"),
@@ -163,19 +171,20 @@ class HotkeyPage(QWidget):
             (f"{mod} + 8", "Wechsel zu Desktop 8"),
             (f"{mod} + 9", "Speichere aktuelle Icon-Positionen"),
         ]
-        
+
         self.table.setRowCount(len(hotkeys))
         for row, (keys, action) in enumerate(hotkeys):
             self.table.setItem(row, 0, QTableWidgetItem(keys))
             self.table.setItem(row, 1, QTableWidgetItem(action))
 
     def show_message(self, text, success=True):
-        if not self.lbl_message: return
-        
+        if not self.lbl_message:
+            return
+
         color = "#1a7a65" if success else "#cc4444"
         self.lbl_message.setText(text)
         self.lbl_message.setStyleSheet(f"color: {color}; font-weight: bold; margin-top: 5px;")
-        
+
         self.msg_timer.start(3000)
 
     def clear_message(self):

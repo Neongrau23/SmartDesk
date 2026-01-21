@@ -5,14 +5,10 @@ setup(
     version="0.3.0",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    install_requires=[
-        "psutil",
-        "pynput",
-        "pywin32"
-    ],
+    install_requires=["psutil", "pynput", "pywin32"],
     entry_points={
-        'console_scripts': [
-            'smartdesk=smartdesk.main:main',
+        "console_scripts": [
+            "smartdesk=smartdesk.main:main",
         ],
     },
 )

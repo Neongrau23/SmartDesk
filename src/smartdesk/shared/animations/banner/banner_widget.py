@@ -70,26 +70,26 @@ class BannerWidget:
         self.root.overrideredirect(True)
         self.root.configure(bg=self.theme.colors.background_dark)
 
-        if sys.platform == 'win32':
+        if sys.platform == "win32":
             if self.config.behavior.always_on_top:
-                self.root.wm_attributes('-topmost', 1)
+                self.root.wm_attributes("-topmost", 1)
             if self.config.behavior.tool_window:
-                self.root.attributes('-toolwindow', True)
+                self.root.attributes("-toolwindow", True)
         else:
             if self.config.behavior.always_on_top:
-                self.root.attributes('-topmost', True)
+                self.root.attributes("-topmost", True)
 
         # Starte unsichtbar
-        self.root.attributes('-alpha', 0.0)
+        self.root.attributes("-alpha", 0.0)
 
     def _create_ui(self) -> None:
         """Erstellt die UI-Elemente mit modernem Design."""
         theme = self.theme
         cfg = self.config.size
-        
+
         # Hole Farben mit Fallbacks für Kompatibilität
         bg_color = theme.colors.background
-        surface_color = getattr(theme.colors, 'surface', theme.colors.background)
+        surface_color = getattr(theme.colors, "surface", theme.colors.background)
         accent_color = theme.colors.accent
         border_color = theme.colors.border
 
@@ -111,8 +111,8 @@ class BannerWidget:
 
         # Dezenter Akzent-Streifen am linken Rand (moderner als oben)
         accent_stripe = tk.Frame(
-            main_frame, 
-            bg=accent_color, 
+            main_frame,
+            bg=accent_color,
             width=3,  # Schmal und elegant
         )
         accent_stripe.pack(side=tk.LEFT, fill=tk.Y)
@@ -149,20 +149,20 @@ class BannerWidget:
 
         # Nachricht mit verbesserter Typografie
         font_family = theme.fonts.primary_family
-        fallback = getattr(theme.fonts, 'fallback_family', 'Segoe UI')
-        
+        fallback = getattr(theme.fonts, "fallback_family", "Segoe UI")
+
         self.message_font = tkFont.Font(
             family=font_family,
             size=theme.fonts.message_size,
         )
-        
+
         self.message_label = tk.Label(
             content_frame,
             text=self.message,
             font=self.message_font,
             fg=theme.colors.text_primary,
             bg=bg_color,
-            anchor='w',
+            anchor="w",
         )
         self.message_label.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -174,12 +174,12 @@ class BannerWidget:
             font=(theme.fonts.primary_family, theme.fonts.close_button_size),
             fg=theme.colors.text_secondary,
             bg=close_btn_bg,
-            cursor='hand2',
+            cursor="hand2",
             padx=8,
             pady=4,
         )
         close_btn.pack(side=tk.RIGHT)
-        
+
         # Speichere Referenz für Hover
         self._close_btn = close_btn
         self._close_btn_bg = close_btn_bg
@@ -188,18 +188,18 @@ class BannerWidget:
         def on_enter(e):
             close_btn.config(
                 fg=theme.colors.text_hover,
-                bg=getattr(theme.colors, 'surface', bg_color),
+                bg=getattr(theme.colors, "surface", bg_color),
             )
-        
+
         def on_leave(e):
             close_btn.config(
                 fg=theme.colors.text_secondary,
                 bg=close_btn_bg,
             )
 
-        close_btn.bind('<Button-1>', lambda e: self._on_close_click())
-        close_btn.bind('<Enter>', on_enter)
-        close_btn.bind('<Leave>', on_leave)
+        close_btn.bind("<Button-1>", lambda e: self._on_close_click())
+        close_btn.bind("<Enter>", on_enter)
+        close_btn.bind("<Leave>", on_leave)
 
     def _on_close_click(self) -> None:
         """Handler für Schließen-Button."""
@@ -221,12 +221,7 @@ class BannerWidget:
 
         # Breite basierend auf Text + mehr Padding für modernes Aussehen
         text_width = self.message_font.measure(self.message)
-        static_width = (
-            40  # Icon + Padding
-            + cfg_size.content_padding_x * 2
-            + cfg_size.close_button_padding_x * 2
-            + 30  # Extra Breathing Room
-        )
+        static_width = 40 + cfg_size.content_padding_x * 2 + cfg_size.close_button_padding_x * 2 + 30  # Icon + Padding  # Extra Breathing Room
         calculated_width = text_width + static_width
 
         max_width = screen_width - cfg_size.max_width_margin * 2
@@ -234,9 +229,9 @@ class BannerWidget:
         window_height = cfg_size.height
 
         # Horizontale Position
-        if cfg_pos.horizontal_align == 'left':
+        if cfg_pos.horizontal_align == "left":
             x_pos = cfg_pos.margin_horizontal
-        elif cfg_pos.horizontal_align == 'right':
+        elif cfg_pos.horizontal_align == "right":
             x_pos = screen_width - window_width - cfg_pos.margin_horizontal
         else:  # center
             x_pos = (screen_width - window_width) // 2
@@ -249,7 +244,7 @@ class BannerWidget:
 
     def set_geometry(self, width: int, height: int, x: int, y: int) -> None:
         """Setzt die Fenstergeometrie."""
-        self.root.geometry(f'{width}x{height}+{x}+{y}')
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
 
     def update_message(self, message: str, icon: Optional[str] = None) -> None:
         """Aktualisiert den angezeigten Text."""

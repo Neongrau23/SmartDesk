@@ -19,15 +19,24 @@ try:
     from ...shared.localization import get_text
 except ImportError:
     # Fallback für isolierte Tests
-    def get_text(key, **kwargs): return key
+    def get_text(key, **kwargs):
+        return key
+
     PREFIX_OK = "[OK]"
     PREFIX_WARN = "[WARN]"
     PREFIX_ERROR = "[ERR]"
-    
-    def is_process_running(pid): return False
-    def get_tray_pid(): return None
-    def save_tray_pid(pid): pass
-    def cleanup_tray_pid(): pass
+
+    def is_process_running(pid):
+        return False
+
+    def get_tray_pid():
+        return None
+
+    def save_tray_pid(pid):
+        pass
+
+    def cleanup_tray_pid():
+        pass
 
 
 TRAY_START_VALIDATION_DELAY = 0.5
@@ -42,20 +51,20 @@ class TrayManager:
     def start() -> bool:
         """
         Startet das Tray-Icon in einem separaten, fensterlosen Prozess.
-        
+
         Returns:
             True wenn erfolgreich gestartet, sonst False.
         """
         try:
             existing_pid = get_tray_pid()
             if existing_pid and is_process_running(existing_pid):
-                msg = get_text('main.warn.tray_already_running', pid=existing_pid)
+                msg = get_text("main.warn.tray_already_running", pid=existing_pid)
                 print(f"{PREFIX_WARN} {msg}")
                 return False
             elif existing_pid:
                 cleanup_tray_pid()
 
-            if getattr(sys, 'frozen', False):
+            if getattr(sys, "frozen", False):
                 # Frozen Mode: Start exe
                 process = subprocess.Popen(
                     [sys.executable],
@@ -65,7 +74,7 @@ class TrayManager:
                 # Dev Mode: Start script
                 # Finde die relevanten Pfade
                 current_dir = os.path.dirname(os.path.abspath(__file__))
-                tray_icon_path = os.path.join(current_dir, 'tray_icon.py')
+                tray_icon_path = os.path.join(current_dir, "tray_icon.py")
 
                 # Projekt-Root finden
                 src_smartdesk_ui_tray = current_dir
@@ -75,7 +84,7 @@ class TrayManager:
                 project_root = os.path.dirname(src_dir)
 
                 if not os.path.exists(tray_icon_path):
-                    msg = get_text('main.error.tray_not_found', path=tray_icon_path)
+                    msg = get_text("main.error.tray_not_found", path=tray_icon_path)
                     print(f"{PREFIX_ERROR} {msg}")
                     return False
 
@@ -95,19 +104,17 @@ class TrayManager:
             # Validierung nach dem Start
             time.sleep(TRAY_START_VALIDATION_DELAY)
             if not is_process_running(process.pid):
-                msg = get_text(
-                    'main.error.tray_failed', e='Prozess wurde nach Start beendet'
-                )
+                msg = get_text("main.error.tray_failed", e="Prozess wurde nach Start beendet")
                 print(f"{PREFIX_ERROR} {msg}")
                 cleanup_tray_pid()
                 return False
 
-            msg = get_text('main.success.tray_started')
+            msg = get_text("main.success.tray_started")
             print(f"{PREFIX_OK} {msg}")
             return True
 
         except Exception as e:
-            msg = get_text('main.error.tray_failed', e=e)
+            msg = get_text("main.error.tray_failed", e=e)
             print(f"{PREFIX_ERROR} {msg}")
             return False
 
@@ -115,7 +122,7 @@ class TrayManager:
     def stop() -> bool:
         """
         Stoppt das laufende Tray-Icon.
-        
+
         Returns:
             True wenn erfolgreich gestoppt, sonst False.
         """
@@ -123,12 +130,12 @@ class TrayManager:
             pid = get_tray_pid()
 
             if not pid:
-                msg = get_text('tray_manager.warn.not_running')
+                msg = get_text("tray_manager.warn.not_running")
                 print(f"{PREFIX_WARN} {msg}")
                 return False
 
             if not is_process_running(pid):
-                msg = get_text('tray_manager.warn.pid_not_found', pid=pid)
+                msg = get_text("tray_manager.warn.pid_not_found", pid=pid)
                 print(f"{PREFIX_WARN} {msg}")
                 cleanup_tray_pid()
                 return False
@@ -147,12 +154,12 @@ class TrayManager:
 
             cleanup_tray_pid()
 
-            msg = get_text('tray_manager.success.stopped')
+            msg = get_text("tray_manager.success.stopped")
             print(f"{PREFIX_OK} {msg}")
             return True
 
         except Exception as e:
-            msg = get_text('tray_manager.error.stop_failed', e=e)
+            msg = get_text("tray_manager.error.stop_failed", e=e)
             print(f"{PREFIX_ERROR} {msg}")
             return False
 
@@ -160,7 +167,7 @@ class TrayManager:
     def get_status() -> Tuple[bool, Optional[int]]:
         """
         Gibt zurück, ob das Tray-Icon läuft und die PID.
-        
+
         Returns:
             (is_running, pid)
         """
@@ -178,11 +185,14 @@ class TrayManager:
 
 # --- Wrapper-Funktionen für Rückwärtskompatibilität ---
 
+
 def start_tray() -> bool:
     return TrayManager.start()
 
+
 def stop_tray() -> bool:
     return TrayManager.stop()
+
 
 def get_tray_status() -> Tuple[bool, Optional[int]]:
     return TrayManager.get_status()

@@ -1,11 +1,7 @@
 import os
 import sys
 import logging
-from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, 
-    QPushButton, QLabel, QStackedWidget, QListWidget, QListWidgetItem,
-    QTextEdit
-)
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QStackedWidget, QListWidget, QListWidgetItem, QTextEdit
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, Slot, QTimer
 from PySide6.QtGui import QFontDatabase, QFont
@@ -22,6 +18,7 @@ if __name__ == "__main__" or __package__ is None:
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
+
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
@@ -35,21 +32,26 @@ try:
     from smartdesk.ui.tray import tray_manager
     from smartdesk.shared.config import DATA_DIR, get_resource_path
     from smartdesk.shared.localization import get_text
-    
+
     # Pages
     from smartdesk.ui.gui.pages.desktop_page import DesktopPage
     from smartdesk.ui.gui.pages.settings_page import SettingsPage
-    
+
     # Utils
     from smartdesk.utils.app_lock import AppLock
     from smartdesk.utils.win_utils import activate_window_by_pid
 
 except ImportError as e:
     logger.error(f"Import Error: {e}")
+
     # Mocks für Standalone
-    def get_text(key, **kwargs): return key
+    def get_text(key, **kwargs):
+        return key
+
     class FakeService:
-        def get_all_desktops(self): return []
+        def get_all_desktops(self):
+            return []
+
     desktop_service = FakeService()
     system_service = FakeService()
     hotkey_manager = FakeService()
@@ -57,22 +59,31 @@ except ImportError as e:
     DATA_DIR = "."
     DesktopPage = QWidget
     SettingsPage = QWidget
+
     # Mock Utils
     class AppLock:
-        def __init__(self, name): pass
-        def try_acquire(self): return True
-        def release(self): pass
-    def activate_window_by_pid(pid): pass
+        def __init__(self, name):
+            pass
+
+        def try_acquire(self):
+            return True
+
+        def release(self):
+            pass
+
+    def activate_window_by_pid(pid):
+        pass
+
 
 class SmartDeskMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.load_fonts() # Fonts laden bevor UI
+        self.load_fonts()  # Fonts laden bevor UI
         self.load_ui()
-        self.load_stylesheet() # Style laden
+        self.load_stylesheet()  # Style laden
         self.setup_pages()
         self.setup_connections()
-        
+
         # Start auf Dashboard
         self.show_dashboard()
 
@@ -122,41 +133,41 @@ class SmartDeskMainWindow(QMainWindow):
     def load_ui(self):
         loader = QUiLoader()
         ui_path = get_resource_path("smartdesk/ui/gui/designer/main.ui")
-        
+
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):
             logger.error(f"UI file not found: {ui_path}")
             sys.exit(-1)
-            
+
         self.ui = loader.load(ui_file, self)
         ui_file.close()
-        
+
         self.setCentralWidget(self.ui)
         self.setWindowTitle("SmartDesk Manager")
         self.resize(1100, 700)
 
         # UI Elemente finden
         self.stacked_widget = self.ui.findChild(QStackedWidget, "stackedWidget")
-        
+
         # Nav Buttons
         self.btn_dash = self.ui.findChild(QPushButton, "btn_nav_dashboard")
         self.btn_desktops = self.ui.findChild(QPushButton, "btn_nav_desktops")
-        
+
         # Entfernt: btn_nav_create, btn_nav_wallpaper, btn_nav_hotkeys, btn_nav_tray
-        
+
         self.btn_settings = self.ui.findChild(QPushButton, "btn_nav_settings")
-        
+
         # Pages (Existing placeholders)
         self.page_dash = self.ui.findChild(QWidget, "page_dashboard")
-        
+
         # Dashboard Widgets
         self.text_status = self.ui.findChild(QTextEdit, "text_status_log")
         self.btn_refresh_dash = self.ui.findChild(QPushButton, "btn_refresh_dashboard")
-        
 
     def setup_pages(self):
         """Initialisiert und fügt die dynamischen Pages hinzu."""
-        if not self.stacked_widget: return
+        if not self.stacked_widget:
+            return
 
         # 1. Desktop Page
         self.page_desktop_widget = DesktopPage()
@@ -167,16 +178,21 @@ class SmartDeskMainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.page_settings_widget)
 
     def setup_connections(self):
-        if self.btn_dash: self.btn_dash.clicked.connect(self.show_dashboard)
-        if self.btn_desktops: self.btn_desktops.clicked.connect(self.show_desktops)
-        if self.btn_settings: self.btn_settings.clicked.connect(self.show_settings)
-        
+        if self.btn_dash:
+            self.btn_dash.clicked.connect(self.show_dashboard)
+        if self.btn_desktops:
+            self.btn_desktops.clicked.connect(self.show_desktops)
+        if self.btn_settings:
+            self.btn_settings.clicked.connect(self.show_settings)
+
         # Aufräumen: Verstecke Buttons, die nicht mehr genutzt werden, falls sie noch im UI sind
         for btn_name in ["btn_nav_create", "btn_nav_wallpaper", "btn_nav_hotkeys", "btn_nav_tray"]:
             btn = self.ui.findChild(QPushButton, btn_name)
-            if btn: btn.setVisible(False)
-        
-        if self.btn_refresh_dash: self.btn_refresh_dash.clicked.connect(self.refresh_status)
+            if btn:
+                btn.setVisible(False)
+
+        if self.btn_refresh_dash:
+            self.btn_refresh_dash.clicked.connect(self.refresh_status)
 
     def show_dashboard(self):
         if self.stacked_widget and self.page_dash:
@@ -190,29 +206,30 @@ class SmartDeskMainWindow(QMainWindow):
 
     def show_settings(self):
         if self.stacked_widget and self.page_settings_widget:
-            self.page_settings_widget.refresh_hotkey_status() # Status updaten
+            self.page_settings_widget.refresh_hotkey_status()  # Status updaten
             self.stacked_widget.setCurrentWidget(self.page_settings_widget)
 
     def refresh_status(self):
-        if not self.text_status: return
-        
-        self.text_status.clear() 
-        
+        if not self.text_status:
+            return
+
+        self.text_status.clear()
+
         try:
             # Hotkey Status
-            hotkey_pid = getattr(hotkey_manager, 'get_listener_pid', lambda: None)()
-            status = f"Hotkey Listener PID: {hotkey_pid}\n" 
-            
+            hotkey_pid = getattr(hotkey_manager, "get_listener_pid", lambda: None)()
+            status = f"Hotkey Listener PID: {hotkey_pid}\n"
+
             # Tray Status
-            tray_status = getattr(tray_manager, 'get_tray_status', lambda: (False, None))()
-            status += f"Tray Status: {tray_status}\n" 
-            
+            tray_status = getattr(tray_manager, "get_tray_status", lambda: (False, None))()
+            status += f"Tray Status: {tray_status}\n"
+
             # Active Desktop
             desktops = desktop_service.get_all_desktops()
             active = next((d.name for d in desktops if d.is_active), "None")
             status += f"Active Desktop: {active}\n"
             status += f"Data Dir: {DATA_DIR}\n"
-            
+
             self.text_status.setPlainText(status)
         except Exception as e:
             self.text_status.setPlainText(f"Error refreshing status: {e}")
@@ -236,11 +253,12 @@ def launch_gui():
     app = QApplication.instance() or QApplication(sys.argv)
     window = SmartDeskMainWindow()
     window.show()
-    
+
     try:
         app.exec()
     finally:
         lock.release()
+
 
 if __name__ == "__main__":
     launch_gui()

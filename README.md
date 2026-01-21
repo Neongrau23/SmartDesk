@@ -14,7 +14,7 @@
 SmartDesk ermöglicht die Nutzung verschiedener Desktops durch das Umschalten des System-Pfades:
 
 1.  **Registry-Umschaltung:** Jedes Mal, wenn du den Desktop wechselst, ändert SmartDesk den Pfad für den System-Ordner "Desktop" in der Windows-Registry (`User Shell Folders`).
-2.  **Explorer-Refresh:** Damit Windows diese Änderung übernimmt, wird der Explorer-Prozess (`explorer.exe`) kurzzeitig aktualisiert oder neu gestartet. 
+2.  **Explorer-Refresh:** Damit Windows diese Änderung übernimmt, wird der Explorer-Prozess (`explorer.exe`) kurzzeitig aktualisiert oder neu gestartet.
 3.  **Inhalts-Isolation:** Da Windows nun auf einen anderen Ordner zugreift, siehst du sofort andere Dateien und Icons. Deine **geöffneten Fenster und Programme bleiben dabei erhalten** und sichtbar – nur die "Unterlage" (der Desktop-Inhalt) ändert sich.
 4.  **Icon-Positionierung:** Da Windows beim Pfadwechsel oft die Icon-Anordnung vergisst, werden bei jedem Desktop Wechsel, die Icons automatisch wieder an die Positionen verschoben, an denen sie waren als du das Desktop verlassen hast.
 
@@ -46,7 +46,7 @@ SmartDesk ermöglicht die Nutzung verschiedener Desktops durch das Umschalten de
 
 2.  **Installation:**
     Das Installations-Skript erstellt eine virtuelle Python-Umgebung (`.venv`), installiert die Abhängigkeiten aus der `requirements.txt` und führt die Ersteinrichtung durch.
-    
+
     Ausführung über:
     `scripts\install.bat`
 

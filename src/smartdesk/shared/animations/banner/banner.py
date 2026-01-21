@@ -241,8 +241,6 @@ def show_notification(
     Returns:
         TaskbarBanner-Instanz
     """
-    banner = TaskbarBanner(
-        message=message, icon=icon, theme=theme, config=config, parent=parent
-    )
+    banner = TaskbarBanner(message=message, icon=icon, theme=theme, config=config, parent=parent)
     banner.show(auto_close_ms=auto_close_ms)
     return banner

@@ -5,6 +5,7 @@ from pynput import keyboard
 ctrl_gedrueckt = False
 shift_gedrueckt = False
 
+
 def fokus_auf_taskleiste_setzen():
     """Sucht das Fensterhandle der Taskleiste und setzt den Fokus darauf."""
     try:
@@ -18,6 +19,7 @@ def fokus_auf_taskleiste_setzen():
             print("Taskleiste nicht gefunden.")
     except Exception as e:
         print(f"Ein Fehler ist aufgetreten: {e}")
+
 
 def bei_tastendruck(key):
     """Wird aufgerufen, wenn eine Taste gedrückt wird."""
@@ -34,28 +36,29 @@ def bei_tastendruck(key):
             print("Hotkey Strg+Shift+Alt erkannt!")
             fokus_auf_taskleiste_setzen()
 
+
 def bei_tastenloslassen(key):
     """Wird aufgerufen, wenn eine Taste losgelassen wird."""
     global ctrl_gedrueckt, shift_gedrueckt
-    
+
     # Zustand zurücksetzen, wenn die Tasten losgelassen werden
     if key in {keyboard.Key.ctrl_l, keyboard.Key.ctrl_r}:
         ctrl_gedrueckt = False
     elif key in {keyboard.Key.shift_l, keyboard.Key.shift_r}:
         shift_gedrueckt = False
-    
+
     # Das Skript mit der Escape-Taste beenden
     if key == keyboard.Key.esc:
         return False
+
 
 # Hauptteil des Skripts
 if __name__ == "__main__":
     print("Listener für Hotkey Strg+Shift+Alt gestartet...")
     print("Drücken Sie ESC, um das Skript zu beenden.")
-    
+
     # Startet den Listener, der im Hintergrund auf Tastatureingaben wartet
     with keyboard.Listener(on_press=bei_tastendruck, on_release=bei_tastenloslassen) as listener:
         listener.join()
-        
-    print("Listener beendet.")
 
+    print("Listener beendet.")

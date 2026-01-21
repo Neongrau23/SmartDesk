@@ -17,10 +17,10 @@ from unittest.mock import MagicMock, patch
 from typing import List, Dict, Any
 
 # Projekt-Root zum Path hinzufügen für Imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 # Mock winreg before any imports that depend on it (for non-Windows platforms)
-if 'winreg' not in sys.modules:
+if "winreg" not in sys.modules:
     mock_winreg = MagicMock()
     mock_winreg.HKEY_CURRENT_USER = 0x80000001
     mock_winreg.KEY_READ = 0x20019
@@ -28,10 +28,10 @@ if 'winreg' not in sys.modules:
     mock_winreg.REG_SZ = 1
     mock_winreg.REG_EXPAND_SZ = 2
     mock_winreg.REG_DWORD = 4
-    sys.modules['winreg'] = mock_winreg
+    sys.modules["winreg"] = mock_winreg
 
 # Mock win32 libraries and PySide6
-for lib in ['win32gui', 'win32con', 'win32api', 'win32process', 'ctypes', 'ctypes.wintypes', 'PySide6', 'PySide6.QtWidgets', 'PySide6.QtGui', 'PySide6.QtCore']:
+for lib in ["win32gui", "win32con", "win32api", "win32process", "ctypes", "ctypes.wintypes", "PySide6", "PySide6.QtWidgets", "PySide6.QtGui", "PySide6.QtCore"]:
     if lib not in sys.modules:
         sys.modules[lib] = MagicMock()
 
@@ -42,15 +42,11 @@ from smartdesk.core.models.desktop import Desktop, IconPosition
 # Sample Data Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def sample_icon_data() -> Dict[str, Any]:
     """Beispiel-Daten für ein einzelnes Icon."""
-    return {
-        "index": 0,
-        "name": "Papierkorb",
-        "x": 100,
-        "y": 200
-    }
+    return {"index": 0, "name": "Papierkorb", "x": 100, "y": 200}
 
 
 @pytest.fixture
@@ -86,7 +82,7 @@ def sample_desktop_data() -> Dict[str, Any]:
         "icon_positionen": [
             {"index": 0, "name": "Papierkorb", "x": 0, "y": 0},
             {"index": 1, "name": "Projekt.docx", "x": 100, "y": 0},
-        ]
+        ],
     }
 
 
@@ -107,7 +103,7 @@ def sample_desktops_data() -> List[Dict[str, Any]]:
             "wallpaper_path": "",
             "icon_positionen": [
                 {"index": 0, "name": "Papierkorb", "x": 0, "y": 0},
-            ]
+            ],
         },
         {
             "name": "Arbeit",
@@ -117,15 +113,9 @@ def sample_desktops_data() -> List[Dict[str, Any]]:
             "icon_positionen": [
                 {"index": 0, "name": "Papierkorb", "x": 0, "y": 0},
                 {"index": 1, "name": "Projekt.docx", "x": 100, "y": 0},
-            ]
+            ],
         },
-        {
-            "name": "Gaming",
-            "path": "C:\\Users\\Test\\Desktop_Gaming",
-            "is_active": False,
-            "wallpaper_path": "",
-            "icon_positionen": []
-        },
+        {"name": "Gaming", "path": "C:\\Users\\Test\\Desktop_Gaming", "is_active": False, "wallpaper_path": "", "icon_positionen": []},
     ]
 
 
@@ -139,6 +129,7 @@ def sample_desktops(sample_desktops_data) -> List[Desktop]:
 # Temporary Directory Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def temp_data_dir(tmp_path):
     """
@@ -147,10 +138,10 @@ def temp_data_dir(tmp_path):
     """
     data_dir = tmp_path / "smartdesk_data"
     data_dir.mkdir()
-    
-    with patch('smartdesk.shared.config.DATA_DIR', str(data_dir)):
-        with patch('smartdesk.shared.config.DESKTOPS_FILE', str(data_dir / "desktops.json")):
-            with patch('smartdesk.shared.config.WALLPAPERS_DIR', str(data_dir / "wallpapers")):
+
+    with patch("smartdesk.shared.config.DATA_DIR", str(data_dir)):
+        with patch("smartdesk.shared.config.DESKTOPS_FILE", str(data_dir / "desktops.json")):
+            with patch("smartdesk.shared.config.WALLPAPERS_DIR", str(data_dir / "wallpapers")):
                 yield data_dir
 
 
@@ -160,7 +151,7 @@ def temp_desktops_file(temp_data_dir, sample_desktops_data):
     Erstellt eine temporäre desktops.json mit Beispieldaten.
     """
     desktops_file = temp_data_dir / "desktops.json"
-    with open(desktops_file, 'w', encoding='utf-8') as f:
+    with open(desktops_file, "w", encoding="utf-8") as f:
         json.dump(sample_desktops_data, f, indent=4, ensure_ascii=False)
     return desktops_file
 
@@ -169,13 +160,14 @@ def temp_desktops_file(temp_data_dir, sample_desktops_data):
 # Windows Registry Mock Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def mock_winreg():
     """
     Mock für das winreg-Modul.
     Simuliert erfolgreiche Registry-Operationen.
     """
-    with patch('smartdesk.core.utils.registry_operations.winreg') as mock:
+    with patch("smartdesk.core.utils.registry_operations.winreg") as mock:
         # Konstanten definieren
         mock.HKEY_CURRENT_USER = 0x80000001
         mock.KEY_READ = 0x20019
@@ -183,18 +175,18 @@ def mock_winreg():
         mock.REG_SZ = 1
         mock.REG_EXPAND_SZ = 2
         mock.REG_DWORD = 4
-        
+
         # Context Manager für OpenKey simulieren
         mock_key = MagicMock()
         mock.OpenKey.return_value.__enter__ = MagicMock(return_value=mock_key)
         mock.OpenKey.return_value.__exit__ = MagicMock(return_value=False)
-        
+
         # CreateKey simulieren
         mock.CreateKey.return_value = mock_key
-        
+
         # Standard-Rückgabewerte
         mock.QueryValueEx.return_value = ("C:\\Users\\Test\\Desktop", mock.REG_EXPAND_SZ)
-        
+
         yield mock
 
 
@@ -203,21 +195,22 @@ def mock_winreg_failure():
     """
     Mock für winreg mit simulierten Fehlern.
     """
-    with patch('smartdesk.core.utils.registry_operations.winreg') as mock:
+    with patch("smartdesk.core.utils.registry_operations.winreg") as mock:
         mock.HKEY_CURRENT_USER = 0x80000001
         mock.KEY_READ = 0x20019
         mock.KEY_SET_VALUE = 0x0002
-        
+
         # Simuliere WindowsError
         mock.OpenKey.side_effect = WindowsError(5, "Zugriff verweigert")
         mock.CreateKey.side_effect = WindowsError(5, "Zugriff verweigert")
-        
+
         yield mock
 
 
 # =============================================================================
 # Filesystem Mock Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def mock_filesystem():
@@ -229,24 +222,24 @@ def mock_filesystem():
         "C:\\Users\\Test\\Desktop",
         "C:\\Users\\Test\\Desktop_Arbeit",
     }
-    
+
     def mock_exists(path):
         return os.path.normpath(path) in existing_paths or path in existing_paths
-    
+
     def mock_isdir(path):
         return mock_exists(path)
-    
-    with patch('os.path.exists', side_effect=mock_exists):
-        with patch('os.path.isdir', side_effect=mock_isdir):
-            with patch('os.makedirs') as mock_makedirs:
-                with patch('shutil.rmtree') as mock_rmtree:
-                    with patch('shutil.move') as mock_move:
+
+    with patch("os.path.exists", side_effect=mock_exists):
+        with patch("os.path.isdir", side_effect=mock_isdir):
+            with patch("os.makedirs") as mock_makedirs:
+                with patch("shutil.rmtree") as mock_rmtree:
+                    with patch("shutil.move") as mock_move:
                         yield {
-                            'exists': mock_exists,
-                            'makedirs': mock_makedirs,
-                            'rmtree': mock_rmtree,
-                            'move': mock_move,
-                            'existing_paths': existing_paths,
+                            "exists": mock_exists,
+                            "makedirs": mock_makedirs,
+                            "rmtree": mock_rmtree,
+                            "move": mock_move,
+                            "existing_paths": existing_paths,
                         }
 
 
@@ -255,14 +248,15 @@ def mock_filesystem_failure():
     """
     Mock für Filesystem mit simulierten Fehlern.
     """
-    with patch('os.path.exists', return_value=False):
-        with patch('os.makedirs', side_effect=OSError(13, "Permission denied")):
+    with patch("os.path.exists", return_value=False):
+        with patch("os.makedirs", side_effect=OSError(13, "Permission denied")):
             yield
 
 
 # =============================================================================
 # Combined Fixtures für Integration Tests
 # =============================================================================
+
 
 @pytest.fixture
 def mock_all(mock_winreg, mock_filesystem, temp_data_dir):
@@ -271,9 +265,9 @@ def mock_all(mock_winreg, mock_filesystem, temp_data_dir):
     Ideal für Integration-Tests des desktop_handler.
     """
     return {
-        'winreg': mock_winreg,
-        'filesystem': mock_filesystem,
-        'data_dir': temp_data_dir,
+        "winreg": mock_winreg,
+        "filesystem": mock_filesystem,
+        "data_dir": temp_data_dir,
     }
 
 
@@ -281,12 +275,13 @@ def mock_all(mock_winreg, mock_filesystem, temp_data_dir):
 # psutil Mock Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def mock_psutil():
     """
     Mock für psutil (Prozess-Management).
     """
-    with patch('smartdesk.core.utils.registry_operations.psutil') as mock:
+    with patch("smartdesk.core.utils.registry_operations.psutil") as mock:
         mock.pid_exists.return_value = True
         mock_process = MagicMock()
         mock_process.is_running.return_value = True
@@ -299,7 +294,7 @@ def mock_psutil_no_process():
     """
     Mock für psutil wenn Prozess nicht existiert.
     """
-    with patch('smartdesk.core.utils.registry_operations.psutil') as mock:
+    with patch("smartdesk.core.utils.registry_operations.psutil") as mock:
         mock.pid_exists.return_value = False
         yield mock
 
@@ -308,16 +303,18 @@ def mock_psutil_no_process():
 # Localization Mock
 # =============================================================================
 
+
 @pytest.fixture
 def mock_localization():
     """
     Mock für get_text Funktion.
     Gibt den Key als Text zurück für einfaches Testen.
     """
+
     def mock_get_text(key, **kwargs):
         return f"[{key}]"
-    
-    with patch('smartdesk.shared.localization.get_text', side_effect=mock_get_text):
+
+    with patch("smartdesk.shared.localization.get_text", side_effect=mock_get_text):
         yield mock_get_text
 
 
@@ -325,18 +322,19 @@ def mock_localization():
 # Helper Functions
 # =============================================================================
 
+
 def create_temp_desktops_json(directory, desktops_data):
     """
     Hilfsfunktion zum Erstellen einer temporären desktops.json.
-    
+
     Args:
         directory: Pfad zum Verzeichnis
         desktops_data: Liste von Desktop-Dicts
-    
+
     Returns:
         Pfad zur erstellten Datei
     """
     file_path = os.path.join(directory, "desktops.json")
-    with open(file_path, 'w', encoding='utf-8') as f:
+    with open(file_path, "w", encoding="utf-8") as f:
         json.dump(desktops_data, f, indent=4, ensure_ascii=False)
     return file_path

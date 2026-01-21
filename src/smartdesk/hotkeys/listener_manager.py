@@ -240,9 +240,7 @@ class ListenerManager:
 
         if not result.success:
             logger.error(f"Start fehlgeschlagen: {result.message}")
-            return ManagerResult(
-                success=False, message=result.message, error=result.error
-            )
+            return ManagerResult(success=False, message=result.message, error=result.error)
 
         # PID speichern
         if result.pid:
@@ -287,15 +285,11 @@ class ListenerManager:
         if result.success:
             self._storage.delete()
             self._notify_stop(pid)
-            return ManagerResult(
-                success=True, message="terminated", pid=pid, forced=False
-            )
+            return ManagerResult(success=True, message="terminated", pid=pid, forced=False)
 
         # Sanftes Beenden fehlgeschlagen
         if result.state == ProcessState.ACCESS_DENIED:
-            return ManagerResult(
-                success=False, message="access_denied", pid=pid, error=result.error
-            )
+            return ManagerResult(success=False, message="access_denied", pid=pid, error=result.error)
 
         # Force Kill
         logger.warning("Sanftes Beenden fehlgeschlagen, erzwinge Kill...")
@@ -308,9 +302,7 @@ class ListenerManager:
 
         # Auch Kill fehlgeschlagen
         logger.error(f"Konnte Prozess {pid} nicht beenden")
-        return ManagerResult(
-            success=False, message="stop_failed", pid=pid, error=kill_result.error
-        )
+        return ManagerResult(success=False, message="stop_failed", pid=pid, error=kill_result.error)
 
     # -------------------------------------------------------------------------
     # Restart

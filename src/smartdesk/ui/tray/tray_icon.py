@@ -8,8 +8,8 @@ from PySide6.QtWidgets import QSystemTrayIcon, QMenu
 from PIL import Image
 
 # --- Grundlegendes Logging ---
-logging.basicConfig(level=logging.DEBUG, format='[%(levelname)s] %(message)s')
-logger = logging.getLogger('smartdesk.tray')
+logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")
+logger = logging.getLogger("smartdesk.tray")
 
 # --- Path Hack ---
 try:
@@ -32,34 +32,35 @@ from smartdesk.shared.localization import get_text, init_localization
 from smartdesk.shared.config import get_resource_path
 
 # --- PID-Management ---
-PID_FILE_DIR = os.path.join(os.environ.get('APPDATA', ''), 'SmartDesk')
-LISTENER_PID_FILE = os.path.join(PID_FILE_DIR, 'listener.pid')
+PID_FILE_DIR = os.path.join(os.environ.get("APPDATA", ""), "SmartDesk")
+LISTENER_PID_FILE = os.path.join(PID_FILE_DIR, "listener.pid")
+
 
 class SmartDeskTrayApp(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
-        self.setQuitOnLastWindowClosed(False) 
+        self.setQuitOnLastWindowClosed(False)
 
         # Lade explizit die Lokalisierung, bevor UI-Elemente erstellt werden
         init_localization()
 
         self.control_panel = None
-        
+
         # --- Auto Switch Service ---
         self.auto_switch_service = AutoSwitchService()
         self.auto_switch_service.start()
 
         # --- Icons Laden ---
-        self.idle_icon = QIcon(get_resource_path('smartdesk/icons/idle_icon.png'))
-        self.active_icon = QIcon(get_resource_path('smartdesk/icons/activ_icon.png'))
+        self.idle_icon = QIcon(get_resource_path("smartdesk/icons/idle_icon.png"))
+        self.active_icon = QIcon(get_resource_path("smartdesk/icons/activ_icon.png"))
 
         # --- Tray Icon Erstellen ---
         self.tray_icon = QSystemTrayIcon(self.idle_icon, self)
         self.tray_icon.setToolTip("SmartDesk")
-        
+
         # --- Menü Erstellen ---
         menu = QMenu()
-        
+
         open_panel_action = QAction(get_text("tray.menu.control_panel"), self)
         open_panel_action.triggered.connect(self.open_control_panel)
         menu.addAction(open_panel_action)
@@ -68,23 +69,23 @@ class SmartDeskTrayApp(QApplication):
         open_manager_action = QAction(get_text("tray.menu.manager"), self)
         open_manager_action.triggered.connect(self.open_manager_placeholder)
         menu.addAction(open_manager_action)
-        
+
         menu.addSeparator()
 
         self.activate_action = QAction(get_text("tray.menu.activate"), self)
         self.activate_action.triggered.connect(self.activate_hotkeys)
         menu.addAction(self.activate_action)
-        
+
         self.deactivate_action = QAction(get_text("tray.menu.deactivate"), self)
         self.deactivate_action.triggered.connect(self.deactivate_hotkeys)
         menu.addAction(self.deactivate_action)
-        
+
         menu.addSeparator()
-        
+
         quit_action = QAction(get_text("tray.menu.quit"), self)
         quit_action.triggered.connect(self.quit)
         menu.addAction(quit_action)
-        
+
         self.tray_icon.setContextMenu(menu)
         # Linksklick-Aktion hinzufügen
         self.tray_icon.activated.connect(self.on_tray_activated)
@@ -102,7 +103,7 @@ class SmartDeskTrayApp(QApplication):
 
     def on_tray_activated(self, reason):
         """Wird aufgerufen, wenn auf das Tray-Icon geklickt wird."""
-        if reason == QSystemTrayIcon.ActivationReason.Trigger: # Trigger ist der normale Linksklick
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:  # Trigger ist der normale Linksklick
             self.open_control_panel()
 
     def open_control_panel(self):
@@ -125,7 +126,7 @@ class SmartDeskTrayApp(QApplication):
 
     def deactivate_hotkeys(self):
         hotkey_manager.stop_listener()
-        
+
     def monitor_status(self):
         while True:
             if os.path.exists(LISTENER_PID_FILE):
@@ -141,14 +142,15 @@ class SmartDeskTrayApp(QApplication):
             threading.Event().wait(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         from smartdesk.core.utils.registry_operations import save_tray_pid, cleanup_tray_pid
+
         save_tray_pid(os.getpid())
-        
+
         app = SmartDeskTrayApp(sys.argv)
         exit_code = app.exec()
-        
+
         cleanup_tray_pid()
         sys.exit(exit_code)
     except Exception as e:

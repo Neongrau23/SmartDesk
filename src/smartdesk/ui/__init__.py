@@ -4,4 +4,4 @@
 from . import tray
 from . import gui
 
-__all__ = ['tray', 'gui']
+__all__ = ["tray", "gui"]

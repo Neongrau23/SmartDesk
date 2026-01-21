@@ -14,17 +14,20 @@ import sys
 import os
 from smartdesk.shared.config import get_resource_path
 
+
 class BannerState(Enum):
     IDLE = auto()
     ARMED = auto()
     HOLDING = auto()
     SHOWING = auto()
 
+
 @dataclass
 class BannerConfig:
     hold_duration_sec: float = 0.5
     arm_timeout_sec: float = 5.0
     check_interval_ms: int = 10
+
 
 class BannerController:
     def __init__(
@@ -64,7 +67,7 @@ class BannerController:
             if self._state == BannerState.ARMED:
                 self._state = BannerState.HOLDING
                 self._hold_start_time = time.time()
-                
+
                 if self.config.hold_duration_sec <= 0:
                     self._log("Controller: Instant Show (0s delay)")
                     self._show_banner()
@@ -139,7 +142,7 @@ class BannerController:
         """Startet den GUI-Prozess im Hintergrund, falls er nicht läuft."""
         if self._gui_process is not None:
             if self._gui_process.poll() is None:
-                return # Läuft noch
+                return  # Läuft noch
             self._log(f"GUI: Prozess war beendet (Code {self._gui_process.returncode}). Starte neu...")
 
         try:
@@ -156,11 +159,9 @@ class BannerController:
                 stdin=subprocess.PIPE,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
-                creationflags=(
-                    subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
-                ),
-                text=True, # Text-Modus für einfacheres Schreiben
-                bufsize=1  # Line buffering
+                creationflags=(subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0),
+                text=True,  # Text-Modus für einfacheres Schreiben
+                bufsize=1,  # Line buffering
             )
             self._log(f"GUI: Prozess gestartet (PID: {self._gui_process.pid})")
         except Exception as e:
@@ -169,7 +170,7 @@ class BannerController:
     def _send_command(self, cmd: str) -> None:
         if not self._gui_process or self._gui_process.poll() is not None:
             self._ensure_process_running()
-        
+
         if self._gui_process and self._gui_process.stdin:
             try:
                 self._gui_process.stdin.write(f"{cmd}\n")
@@ -184,9 +185,11 @@ class BannerController:
     def _hide_banner(self) -> None:
         self._send_command("HIDE")
 
+
 # Singleton
 _controller: Optional[BannerController] = None
 _controller_lock = threading.Lock()
+
 
 def get_banner_controller() -> BannerController:
     global _controller
@@ -195,9 +198,10 @@ def get_banner_controller() -> BannerController:
             _controller = BannerController()
         return _controller
 
+
 def set_banner_controller(controller: BannerController) -> None:
     global _controller
     with _controller_lock:
         if _controller:
-            _controller.shutdown() # Cleanup old one
+            _controller.shutdown()  # Cleanup old one
         _controller = controller

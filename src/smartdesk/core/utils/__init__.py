@@ -10,11 +10,11 @@ from .registry_operations import (
 from .path_validator import ensure_directory_exists
 
 __all__ = [
-    'update_registry_key',
-    'get_registry_value',
-    'save_tray_pid',
-    'get_tray_pid',
-    'is_process_running',
-    'cleanup_tray_pid',
-    'ensure_directory_exists',
+    "update_registry_key",
+    "get_registry_value",
+    "save_tray_pid",
+    "get_tray_pid",
+    "is_process_running",
+    "cleanup_tray_pid",
+    "ensure_directory_exists",
 ]

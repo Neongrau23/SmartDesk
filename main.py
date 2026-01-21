@@ -3,11 +3,12 @@ import os
 import traceback
 import argparse
 
+
 def main():
     """Main function to run the SmartDesk application."""
     # --- PATH SETUP ---
     try:
-        if getattr(sys, 'frozen', False):
+        if getattr(sys, "frozen", False):
             project_root = os.path.dirname(sys.executable)
         else:
             project_root = os.path.dirname(os.path.abspath(__file__))
@@ -23,13 +24,7 @@ def main():
 
     # --- ARGUMENT PARSING ---
     parser = argparse.ArgumentParser(description="SmartDesk Application")
-    parser.add_argument(
-        "command",
-        nargs="?",
-        default="start-tray",
-        choices=["start-tray"],
-        help="Command to execute (default: start-tray)"
-    )
+    parser.add_argument("command", nargs="?", default="start-tray", choices=["start-tray"], help="Command to execute (default: start-tray)")
     args = parser.parse_args()
 
     # --- APPLICATION LAUNCH ---
@@ -53,6 +48,7 @@ def main():
                 traceback.print_exc(file=f)
                 f.write(f"\nAn unexpected error occurred: {e}\n")
             sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

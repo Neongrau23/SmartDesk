@@ -9,13 +9,13 @@ import os
 import sys
 
 # Logging-Level über Umgebungsvariable steuerbar
-DEBUG_MODE = os.environ.get('SMARTDESK_DEBUG', '').lower() in ('1', 'true', 'yes')
+DEBUG_MODE = os.environ.get("SMARTDESK_DEBUG", "").lower() in ("1", "true", "yes")
 
 # Log-Datei im AppData-Verzeichnis
 try:
-    LOG_DIR = os.path.join(os.environ['APPDATA'], 'SmartDesk', 'logs')
+    LOG_DIR = os.path.join(os.environ["APPDATA"], "SmartDesk", "logs")
     os.makedirs(LOG_DIR, exist_ok=True)
-    LOG_FILE = os.path.join(LOG_DIR, 'smartdesk.log')
+    LOG_FILE = os.path.join(LOG_DIR, "smartdesk.log")
 except Exception:
     LOG_DIR = None
     LOG_FILE = None
@@ -42,8 +42,8 @@ def get_logger(name: str) -> logging.Logger:
 
         # Formatter
         formatter = logging.Formatter(
-            fmt='[%(asctime)s] [%(levelname)s] %(name)s: %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
+            fmt="[%(asctime)s] [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
         # Console Handler (nur Warnungen+ in Produktion)
@@ -55,7 +55,7 @@ def get_logger(name: str) -> logging.Logger:
         # File Handler (alles loggen)
         if LOG_FILE:
             try:
-                file_handler = logging.FileHandler(LOG_FILE, encoding='utf-8', mode='a')
+                file_handler = logging.FileHandler(LOG_FILE, encoding="utf-8", mode="a")
                 file_handler.setLevel(logging.DEBUG)
                 file_handler.setFormatter(formatter)
                 logger.addHandler(file_handler)
@@ -72,7 +72,7 @@ def enable_debug_mode():
 
     # Alle existierenden Logger aktualisieren
     for name in logging.Logger.manager.loggerDict:
-        if name.startswith('smartdesk'):
+        if name.startswith("smartdesk"):
             logger = logging.getLogger(name)
             logger.setLevel(logging.DEBUG)
             for handler in logger.handlers:
@@ -86,7 +86,7 @@ def disable_debug_mode():
     DEBUG_MODE = False
 
     for name in logging.Logger.manager.loggerDict:
-        if name.startswith('smartdesk'):
+        if name.startswith("smartdesk"):
             logger = logging.getLogger(name)
             logger.setLevel(logging.INFO)
             for handler in logger.handlers:

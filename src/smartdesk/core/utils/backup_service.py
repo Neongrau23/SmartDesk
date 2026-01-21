@@ -48,7 +48,7 @@ def create_registry_backup(reason: str = "manual") -> Optional[str]:
             return None
 
         # .reg Datei erstellen
-        with open(backup_file, 'w', encoding='utf-16') as f:
+        with open(backup_file, "w", encoding="utf-16") as f:
             f.write("Windows Registry Editor Version 5.00\n\n")
 
             # User Shell Folders
@@ -57,9 +57,7 @@ def create_registry_backup(reason: str = "manual") -> Optional[str]:
                 f.write(f"[{key_path}]\n")
                 # Backslashes escapen für .reg Format
                 escaped_value = user_shell_value.replace("\\", "\\\\")
-                f.write(
-                    f'"{VALUE_NAME}"=hex(2):{_string_to_reg_hex(user_shell_value)}\n\n'
-                )
+                f.write(f'"{VALUE_NAME}"=hex(2):{_string_to_reg_hex(user_shell_value)}\n\n')
 
             # Legacy Shell Folders
             if legacy_shell_value:
@@ -98,9 +96,9 @@ def _string_to_reg_hex(s: str) -> str:
     Für .reg Dateien wird UTF-16LE mit null-terminator verwendet.
     """
     # In UTF-16LE kodieren + null-terminator
-    encoded = (s + '\0').encode('utf-16-le')
+    encoded = (s + "\0").encode("utf-16-le")
     # Als Hex-Bytes mit Komma getrennt
-    hex_bytes = ','.join(f'{b:02x}' for b in encoded)
+    hex_bytes = ",".join(f"{b:02x}" for b in encoded)
     return hex_bytes
 
 
@@ -116,21 +114,21 @@ def list_backups() -> list[dict]:
 
     try:
         for filename in os.listdir(backup_dir):
-            if filename.endswith('.reg'):
+            if filename.endswith(".reg"):
                 filepath = os.path.join(backup_dir, filename)
                 stat = os.stat(filepath)
                 backups.append(
                     {
-                        'filename': filename,
-                        'path': filepath,
-                        'size': stat.st_size,
-                        'created': datetime.fromtimestamp(stat.st_ctime),
-                        'modified': datetime.fromtimestamp(stat.st_mtime),
+                        "filename": filename,
+                        "path": filepath,
+                        "size": stat.st_size,
+                        "created": datetime.fromtimestamp(stat.st_ctime),
+                        "modified": datetime.fromtimestamp(stat.st_mtime),
                     }
                 )
 
         # Nach Datum sortieren (neueste zuerst)
-        backups.sort(key=lambda x: x['created'], reverse=True)
+        backups.sort(key=lambda x: x["created"], reverse=True)
 
     except Exception as e:
         logger.error(f"Fehler beim Auflisten der Backups: {e}")
@@ -147,7 +145,7 @@ def get_latest_backup() -> Optional[str]:
     """
     backups = list_backups()
     if backups:
-        return backups[0]['path']
+        return backups[0]["path"]
     return None
 
 
@@ -169,9 +167,7 @@ def restore_from_backup(backup_path: str) -> bool:
 
     try:
         # reg import ausführen (erfordert keine Admin-Rechte für HKCU)
-        result = subprocess.run(
-            ['reg', 'import', backup_path], capture_output=True, text=True
-        )
+        result = subprocess.run(["reg", "import", backup_path], capture_output=True, text=True)
 
         if result.returncode == 0:
             logger.info(f"Registry wiederhergestellt aus: {backup_path}")
@@ -204,7 +200,7 @@ def cleanup_old_backups(keep_count: int = 10) -> int:
     # Lösche alle außer den neuesten keep_count
     for backup in backups[keep_count:]:
         try:
-            os.remove(backup['path'])
+            os.remove(backup["path"])
             deleted += 1
             logger.debug(f"Altes Backup gelöscht: {backup['filename']}")
         except Exception as e:

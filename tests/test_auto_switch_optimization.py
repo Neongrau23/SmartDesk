@@ -3,15 +3,16 @@ from unittest.mock import MagicMock, patch
 from smartdesk.core.services.auto_switch_service import AutoSwitchService
 from smartdesk.core.models.desktop import Desktop
 
+
 @pytest.fixture
 def mock_dependencies():
-    with patch('smartdesk.core.services.auto_switch_service.psutil') as mock_psutil, \
-         patch('smartdesk.core.services.auto_switch_service.desktop_service') as mock_desktop, \
-         patch('smartdesk.core.services.auto_switch_service.settings_service') as mock_settings, \
-         patch('smartdesk.core.services.auto_switch_service.RULES_FILE', 'dummy_rules.json'):
+    with patch("smartdesk.core.services.auto_switch_service.psutil") as mock_psutil, patch("smartdesk.core.services.auto_switch_service.desktop_service") as mock_desktop, patch(
+        "smartdesk.core.services.auto_switch_service.settings_service"
+    ) as mock_settings, patch("smartdesk.core.services.auto_switch_service.RULES_FILE", "dummy_rules.json"):
 
         mock_settings.get_setting.return_value = True
         yield mock_psutil, mock_desktop, mock_settings
+
 
 def test_optimization_stops_early(mock_dependencies):
     """
@@ -38,12 +39,12 @@ def test_optimization_stops_early(mock_dependencies):
     def process_generator():
         # 1. Some random process
         p1 = MagicMock()
-        p1.info = {'name': 'random.exe'}
+        p1.info = {"name": "random.exe"}
         yield p1
 
         # 2. The high priority process!
         p2 = MagicMock()
-        p2.info = {'name': 'high_prio.exe'}
+        p2.info = {"name": "high_prio.exe"}
         yield p2
 
         # 3. This should NOT be reached if optimization works
@@ -56,6 +57,7 @@ def test_optimization_stops_early(mock_dependencies):
 
     # Verify switch happened
     mock_desktop.switch_to_desktop.assert_called_with("HighPrio")
+
 
 def test_priority_logic_mixed_order(mock_dependencies):
     """
@@ -79,15 +81,15 @@ def test_priority_logic_mixed_order(mock_dependencies):
     # Process list where Low Prio appears BEFORE High Prio
     def process_generator():
         p1 = MagicMock()
-        p1.info = {'name': 'low_prio.exe'}
+        p1.info = {"name": "low_prio.exe"}
         yield p1
 
         p2 = MagicMock()
-        p2.info = {'name': 'random.exe'}
+        p2.info = {"name": "random.exe"}
         yield p2
 
         p3 = MagicMock()
-        p3.info = {'name': 'high_prio.exe'}
+        p3.info = {"name": "high_prio.exe"}
         yield p3
 
         # We can yield more, it doesn't matter, we should have found the winner.
@@ -99,6 +101,7 @@ def test_priority_logic_mixed_order(mock_dependencies):
 
     # Should switch to HighPrio because it is first in rules, even if found later in process list
     mock_desktop.switch_to_desktop.assert_called_with("HighPrio")
+
 
 def test_no_match_iterates_all(mock_dependencies):
     """
@@ -112,8 +115,8 @@ def test_no_match_iterates_all(mock_dependencies):
     mock_desktop.get_all_desktops.return_value = [Desktop("Idle", "p", is_active=True)]
 
     def process_generator():
-        yield MagicMock(info={'name': 'p1.exe'})
-        yield MagicMock(info={'name': 'p2.exe'})
+        yield MagicMock(info={"name": "p1.exe"})
+        yield MagicMock(info={"name": "p2.exe"})
 
     mock_psutil.process_iter.side_effect = lambda attrs: process_generator()
 

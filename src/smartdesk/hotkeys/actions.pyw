@@ -15,7 +15,7 @@ except ImportError as e:
     PREFIX_ERROR = "[FEHLER]"
     PREFIX_OK = "[OK]"
     print(f"{PREFIX_ERROR} Kritischer Fehler in hotkeys/actions.py: {e}")
-    
+
     # Versuche DATA_DIR zu erraten, falls Import fehlgeschlagen
     try:
         DATA_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,6 +26,7 @@ except ImportError as e:
         def __getattr__(self, name):
             def method(*args, **kwargs):
                 print(f"{PREFIX_ERROR} Handler nicht geladen. Aktion '{name}' kann nicht ausgeführt werden.")
+
             return method
 
     desktop_handler = FakeHandler()
@@ -37,19 +38,20 @@ except ImportError as e:
 
 # --- 2. Hilfsfunktionen ---
 
+
 def _switch_to_desktop_by_index(desktop_index: int):
     """
     Holt alle Desktops, wählt einen anhand des Index (0=erster, 1=zweiter, ...)
     und wechselt zu ihm, inklusive Explorer-Neustart.
     """
-    log_file = os.path.join(DATA_DIR, 'actions.log')
+    log_file = os.path.join(DATA_DIR, "actions.log")
 
     try:
-        with open(log_file, 'a', encoding='utf-8') as log:
+        with open(log_file, "a", encoding="utf-8") as log:
             # Timestamp für Log
-            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             log.write(f"[{timestamp}] --- Switching to desktop {desktop_index} ---\n")
-            
+
             # 1. Alle Desktops laden
             try:
                 desktops = desktop_handler.get_all_desktops()
@@ -80,11 +82,11 @@ def _switch_to_desktop_by_index(desktop_index: int):
 
 def _save_icons():
     """Speichert die aktuellen Icon-Positionen."""
-    log_file = os.path.join(DATA_DIR, 'actions.log')
+    log_file = os.path.join(DATA_DIR, "actions.log")
 
     try:
-        with open(log_file, 'a', encoding='utf-8') as log:
-            timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+        with open(log_file, "a", encoding="utf-8") as log:
+            timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
             log.write(f"[{timestamp}] --- Saving icons ---\n")
             try:
                 desktop_handler.save_current_desktop_icons()
@@ -98,12 +100,38 @@ def _save_icons():
 
 # --- 3. Zentrale Aktions-Definitionen ---
 
-def aktion_alt_1(): _switch_to_desktop_by_index(0)
-def aktion_alt_2(): _switch_to_desktop_by_index(1)
-def aktion_alt_3(): _switch_to_desktop_by_index(2)
-def aktion_alt_4(): _switch_to_desktop_by_index(3)
-def aktion_alt_5(): _switch_to_desktop_by_index(4)
-def aktion_alt_6(): _switch_to_desktop_by_index(5)
-def aktion_alt_7(): _switch_to_desktop_by_index(6)
-def aktion_alt_8(): _switch_to_desktop_by_index(7)
-def aktion_alt_9(): _save_icons()
+
+def aktion_alt_1():
+    _switch_to_desktop_by_index(0)
+
+
+def aktion_alt_2():
+    _switch_to_desktop_by_index(1)
+
+
+def aktion_alt_3():
+    _switch_to_desktop_by_index(2)
+
+
+def aktion_alt_4():
+    _switch_to_desktop_by_index(3)
+
+
+def aktion_alt_5():
+    _switch_to_desktop_by_index(4)
+
+
+def aktion_alt_6():
+    _switch_to_desktop_by_index(5)
+
+
+def aktion_alt_7():
+    _switch_to_desktop_by_index(6)
+
+
+def aktion_alt_8():
+    _switch_to_desktop_by_index(7)
+
+
+def aktion_alt_9():
+    _save_icons()

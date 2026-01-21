@@ -66,15 +66,15 @@ class StatsPage(QWidget):
         loader = QUiLoader()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         ui_path = os.path.join(current_dir, "ui", "stats_page.ui")
-        
+
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):
             print(f"Error: {ui_path} not found")
             return
-            
+
         self.ui = loader.load(ui_file, self)
         ui_file.close()
-        
+
         # Layout Hack für eingebettete Widgets
         layout = self.layout()
         if not layout:
@@ -83,7 +83,7 @@ class StatsPage(QWidget):
             self.setLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.ui)
-        
+
         # Elemente finden
         # self.btn_refresh = self.ui.findChild(QPushButton, "btn_refresh")
 ```

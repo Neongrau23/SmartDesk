@@ -1,17 +1,12 @@
 from PySide6.QtWidgets import QMessageBox
 
+
 def show_confirmation_dialog(parent, title, message):
     """
     Displays a confirmation dialog with a title and message.
     Returns True if the user clicks "Yes", and False otherwise.
     """
-    reply = QMessageBox.question(
-        parent,
-        title,
-        message,
-        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-        QMessageBox.StandardButton.No
-    )
+    reply = QMessageBox.question(parent, title, message, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
     return reply == QMessageBox.StandardButton.Yes
 
 

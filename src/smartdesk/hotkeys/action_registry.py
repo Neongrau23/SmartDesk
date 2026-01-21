@@ -1,4 +1,3 @@
-
 # src/smartdesk/hotkeys/action_registry.py
 
 from typing import Callable, Dict, Optional
@@ -17,14 +16,18 @@ try:
         aktion_alt_8,
         aktion_alt_9,
     )
+
     # Importiere hier weitere Aktionen, wenn du sie in actions.pyw hinzuf├╝gst.
 except ImportError as e:
     print(f"Fehler beim Importieren der Aktionen: {e}")
+
     # Definiere Dummy-Funktionen als Fallback, damit der Listener nicht abst├╝rzt.
     def create_dummy_action(name: str) -> Callable[[], None]:
         def dummy_action():
             print(f"Aktion '{name}' nicht verf├╝gbar.")
+
         return dummy_action
+
     aktion_alt_1 = create_dummy_action("aktion_alt_1")
     aktion_alt_2 = create_dummy_action("aktion_alt_2")
     aktion_alt_3 = create_dummy_action("aktion_alt_3")
@@ -74,33 +77,37 @@ class ActionRegistry:
     def set_log_func(self, log_func: Callable[[str], None]):
         """Setzt die Log-Funktion, die vom Listener verwendet wird."""
         self._log_func = log_func
-        
+
     def has_hold_action(self) -> bool:
         return False
-        
+
     def execute_hold(self):
         pass
+
 
 # --- 3. Singleton-Instanz ---
 # Wir erstellen eine einzige Instanz der Registry, die im gesamten Programm verwendet wird.
 _registry_instance = ActionRegistry()
 
+
 def setup_actions():
     """Registriert alle Aktionen in der Registry."""
-    _registry_instance.register_combo_action('1', aktion_alt_1, "Wechsel zu Desktop 1")
-    _registry_instance.register_combo_action('2', aktion_alt_2, "Wechsel zu Desktop 2")
-    _registry_instance.register_combo_action('3', aktion_alt_3, "Wechsel zu Desktop 3")
-    _registry_instance.register_combo_action('4', aktion_alt_4, "Wechsel zu Desktop 4")
-    _registry_instance.register_combo_action('5', aktion_alt_5, "Wechsel zu Desktop 5")
-    _registry_instance.register_combo_action('6', aktion_alt_6, "Wechsel zu Desktop 6")
-    _registry_instance.register_combo_action('7', aktion_alt_7, "Wechsel zu Desktop 7")
-    _registry_instance.register_combo_action('8', aktion_alt_8, "Wechsel zu Desktop 8")
-    _registry_instance.register_combo_action('9', aktion_alt_9, "Speichere Icons")
+    _registry_instance.register_combo_action("1", aktion_alt_1, "Wechsel zu Desktop 1")
+    _registry_instance.register_combo_action("2", aktion_alt_2, "Wechsel zu Desktop 2")
+    _registry_instance.register_combo_action("3", aktion_alt_3, "Wechsel zu Desktop 3")
+    _registry_instance.register_combo_action("4", aktion_alt_4, "Wechsel zu Desktop 4")
+    _registry_instance.register_combo_action("5", aktion_alt_5, "Wechsel zu Desktop 5")
+    _registry_instance.register_combo_action("6", aktion_alt_6, "Wechsel zu Desktop 6")
+    _registry_instance.register_combo_action("7", aktion_alt_7, "Wechsel zu Desktop 7")
+    _registry_instance.register_combo_action("8", aktion_alt_8, "Wechsel zu Desktop 8")
+    _registry_instance.register_combo_action("9", aktion_alt_9, "Speichere Icons")
     # F├╝ge hier weitere Aktionen hinzu.
+
 
 def get_registry() -> ActionRegistry:
     """Gibt die Singleton-Instanz der ActionRegistry zur├╝ck."""
     return _registry_instance
+
 
 # --- 4. Initialisierung ---
 # Dieser Aufruf sorgt daf├╝r, dass die Aktionen beim Importieren des Moduls registriert werden.

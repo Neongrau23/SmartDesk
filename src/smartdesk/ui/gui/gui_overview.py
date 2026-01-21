@@ -16,12 +16,18 @@ from PySide6.QtGui import QScreen, QFont
 try:
     from smartdesk.core.utils.win_utils import release_taskbar_from_top, ensure_taskbar_on_top
 except ImportError:
-    def release_taskbar_from_top(): pass
-    def ensure_taskbar_on_top(): pass
+
+    def release_taskbar_from_top():
+        pass
+
+    def ensure_taskbar_on_top():
+        pass
+
 
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
+
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
@@ -30,29 +36,30 @@ except ImportError:
 
 class CommandWatcher(QObject):
     """Liest Befehle von stdin (SHOW, HIDE, QUIT)."""
+
     command_received = Signal(str)
-    
+
     def __init__(self):
         super().__init__()
         self._stop = threading.Event()
         self._thread = None
-    
+
     def start(self):
         self._thread = threading.Thread(target=self._watch_stdin, daemon=True)
         self._thread.start()
-    
+
     def stop(self):
         self._stop.set()
-    
+
     def _watch_stdin(self):
         try:
             while not self._stop.is_set():
                 # Blockierendes Lesen einer Zeile
                 line = sys.stdin.readline()
-                if not line: # EOF
+                if not line:  # EOF
                     self.command_received.emit("QUIT")
                     break
-                
+
                 cmd = line.strip().upper()
                 if cmd:
                     logger.debug(f"Kommando empfangen: {cmd}")
@@ -71,28 +78,28 @@ class OverviewWindow(QWidget):
         self.desktops_data: List[Dict] = []
         self.desktop_labels: List[QLabel] = []
         self._last_mtime = 0
-        
+
         # Hauptcontainer aus UI laden
         self.load_ui()
-        
+
         self.setWindowTitle("Overview")
-        
+
         # STIL: Rahmenlos, immer oben, kein Taskleisten-Icon
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        
+
         # Desktop-Liste laden und anzeigen
         self.load_desktops()
         self.populate_desktop_list()
-        
+
         # Initial verstecken (wird via SHOW angezeigt)
         self.setup_positioning()
-        
+
         # Command Watcher
         self.watcher = CommandWatcher()
         self.watcher.command_received.connect(self.handle_command)
         self.watcher.start()
-        
+
         logger.info("Overview GUI gestartet und bereit.")
 
     @Slot(str)
@@ -108,8 +115,9 @@ class OverviewWindow(QWidget):
             QApplication.quit()
 
     def get_desktops_file_path(self) -> Path:
-        appdata = os.getenv('APPDATA')
-        if not appdata: return Path()
+        appdata = os.getenv("APPDATA")
+        if not appdata:
+            return Path()
         return Path(appdata) / "SmartDesk" / "desktops.json"
 
     def load_desktops(self) -> bool:
@@ -125,7 +133,7 @@ class OverviewWindow(QWidget):
             if current_mtime == self._last_mtime:
                 return False
 
-            with open(json_path, 'r', encoding='utf-8') as f:
+            with open(json_path, "r", encoding="utf-8") as f:
                 self.desktops_data = json.load(f)
 
             self._last_mtime = current_mtime
@@ -139,31 +147,33 @@ class OverviewWindow(QWidget):
     def populate_desktop_list(self):
         try:
             container = self.findChild(QWidget, "desktops_container")
-            if not container: return
-            
+            if not container:
+                return
+
             if container.layout():
                 while container.layout().count():
                     item = container.layout().takeAt(0)
-                    if item.widget(): item.widget().deleteLater()
+                    if item.widget():
+                        item.widget().deleteLater()
             else:
                 layout = QHBoxLayout(container)
                 layout.setContentsMargins(0, 0, 0, 0)
                 layout.setSpacing(12)
-            
+
             self.desktop_labels.clear()
-            
+
             if not self.desktops_data:
                 label = self._create_desktop_label("Keine Desktops", is_active=False, is_placeholder=True)
                 container.layout().addWidget(label)
                 return
-            
+
             for desktop in self.desktops_data:
                 desktop_name = desktop.get("name", "Unbenannt")
                 is_active = desktop.get("is_active", False)
                 label = self._create_desktop_label(desktop_name, is_active)
                 self.desktop_labels.append(label)
                 container.layout().addWidget(label)
-            
+
             container.layout().addStretch()
         except Exception as e:
             logger.error(f"Fehler beim Erstellen der Desktop-Labels: {e}")
@@ -172,9 +182,10 @@ class OverviewWindow(QWidget):
         label = QLabel(text)
         label.setAlignment(Qt.AlignCenter)
         font = QFont("Segoe UI", 10)
-        if is_active: font.setWeight(QFont.DemiBold)
+        if is_active:
+            font.setWeight(QFont.DemiBold)
         label.setFont(font)
-        
+
         if is_placeholder:
             label.setStyleSheet("QLabel { background-color: transparent; color: #888; padding: 8px 16px; border-radius: 8px; font-style: italic; }")
         elif is_active:
@@ -191,19 +202,19 @@ class OverviewWindow(QWidget):
         main_widget = QWidget()
         main_widget.setObjectName("Form")
         main_widget.setStyleSheet("#Form { background-color: #2b2b2b; border: 1px solid #454545; border-radius: 15px; } QWidget { color: #ffffff; }")
-        
+
         main_layout = QHBoxLayout(main_widget)
         main_layout.setContentsMargins(20, 15, 20, 15)
         main_layout.setSpacing(10)
-        
+
         desktops_container = QWidget()
         desktops_container.setObjectName("desktops_container")
         main_layout.addWidget(desktops_container)
-        
+
         window_layout = QHBoxLayout(self)
         window_layout.setContentsMargins(10, 0, 0, 0)
         window_layout.addWidget(main_widget)
-        
+
         self.setMinimumSize(300, 70)
         self.setMaximumHeight(70)
 
@@ -211,7 +222,7 @@ class OverviewWindow(QWidget):
         screen = QApplication.primaryScreen()
         screen_geometry = screen.availableGeometry()
         full_geometry = screen.geometry()
-        
+
         self.adjustSize()
         self.window_width = self.width()
         self.window_height = 80
@@ -221,13 +232,14 @@ class OverviewWindow(QWidget):
         self.setGeometry(self.target_x, self.start_y, self.window_width, self.window_height)
 
     def show_animated(self):
-        if self.is_visible: return # Schon sichtbar
-        
+        if self.is_visible:
+            return  # Schon sichtbar
+
         self.is_visible = True
         self.show()
         self.raise_()
         ensure_taskbar_on_top()
-        
+
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(450)
         self.animation.setStartValue(QRect(self.target_x, self.start_y, self.width(), self.height()))
@@ -242,21 +254,22 @@ class OverviewWindow(QWidget):
         self.setFocus()
 
     def animate_out(self):
-        if not self.is_visible: return
-        
+        if not self.is_visible:
+            return
+
         self.is_visible = False
         ensure_taskbar_on_top()
-        
+
         self.animation = QPropertyAnimation(self, b"geometry")
         self.animation.setDuration(450)
         self.animation.setStartValue(self.geometry())
         self.animation.setEndValue(QRect(self.target_x, self.start_y, self.width(), self.height()))
         self.animation.setEasingCurve(QEasingCurve.InCubic)
-        self.animation.finished.connect(self.hide) # Nur verstecken, nicht schließen
+        self.animation.finished.connect(self.hide)  # Nur verstecken, nicht schließen
         self.animation.start()
 
     def event(self, event):
-        # Optional: Deaktivierung schließt Fenster? 
+        # Optional: Deaktivierung schließt Fenster?
         # Hier besser: HIDE senden, wenn Fokus verloren geht?
         # Vorerst lassen wir das, da Controller "HIDE" sendet wenn Taste losgelassen wird.
         return super().event(event)
@@ -267,6 +280,7 @@ def start_gui():
     window = OverviewWindow()
     # window wird durch CommandWatcher gesteuert
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     start_gui()

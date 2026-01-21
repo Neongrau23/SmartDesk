@@ -5,11 +5,11 @@
 
 
 __all__ = [
-    'SmartDeskGUI',
-    'launch_gui',
-    'DesktopCreatorGUI',
-    'show_create_desktop_window',
-    'SmartDeskControlPanel',
-    'show_control_panel',
-    'launch_create_desktop_dialog',
+    "SmartDeskGUI",
+    "launch_gui",
+    "DesktopCreatorGUI",
+    "show_create_desktop_window",
+    "SmartDeskControlPanel",
+    "show_control_panel",
+    "launch_create_desktop_dialog",
 ]

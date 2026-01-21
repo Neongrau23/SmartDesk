@@ -19,7 +19,8 @@ QFrame#sidebar {
 }
 
 QLabel#label_logo {
-    color: #0078d4; /* Akzentfarbe Blau */
+    color: #0078d4;
+    /* Akzentfarbe Blau */
     font-size: 22px;
     font-weight: bold;
     padding: 20px 10px;
@@ -31,7 +32,7 @@ QPushButton.nav-btn {
     background-color: transparent;
     border: none;
     border-left: 4px solid transparent;
-    border-radius: 0px; 
+    border-radius: 0px;
     text-align: left;
     padding: 12px 20px;
     color: #cccccc;
@@ -78,14 +79,18 @@ QGroupBox::title {
 }
 
 /* Specific Frames used as Cards in new Layout */
-QFrame#frame_list_container, QFrame#frame_banner, QFrame#frame_create_modal, QFrame#card_path {
+QFrame#frame_list_container,
+QFrame#frame_banner,
+QFrame#frame_create_modal,
+QFrame#card_path {
     background-color: #252526;
     border: 1px solid #3e3e42;
     border-radius: 8px;
 }
 
 /* --- LISTS --- */
-QListWidget, QTableWidget {
+QListWidget,
+QTableWidget {
     background-color: #252526;
     border: 1px solid #3e3e42;
     border-radius: 6px;
@@ -93,19 +98,23 @@ QListWidget, QTableWidget {
     padding: 5px;
 }
 
-QListWidget::item, QTableWidget::item {
+QListWidget::item,
+QTableWidget::item {
     padding: 10px;
     border-radius: 4px;
     color: #ddd;
     margin-bottom: 2px;
-    border: none; /* Reset gradient border */
+    border: none;
+    /* Reset gradient border */
 }
 
-QListWidget::item:hover, QTableWidget::item:hover {
+QListWidget::item:hover,
+QTableWidget::item:hover {
     background-color: #2a2d2e;
 }
 
-QListWidget::item:selected, QTableWidget::item:selected {
+QListWidget::item:selected,
+QTableWidget::item:selected {
     background-color: #0078d4;
     color: white;
 }
@@ -126,7 +135,8 @@ QPushButton {
     border-radius: 4px;
     padding: 8px 16px;
     color: #ffffff;
-    font-weight: normal; /* Reset bold from gradient theme */
+    font-weight: normal;
+    /* Reset bold from gradient theme */
 }
 
 QPushButton:hover {
@@ -140,8 +150,8 @@ QPushButton:pressed {
 }
 
 /* Primary Button */
-QPushButton#btn_add_desktop, 
-QPushButton#btn_confirm_create, 
+QPushButton#btn_add_desktop,
+QPushButton#btn_confirm_create,
 QPushButton#btn_activate_desktop,
 QPushButton#btn_start,
 QPushButton.primary-btn {
@@ -151,8 +161,8 @@ QPushButton.primary-btn {
     font-weight: 600;
 }
 
-QPushButton#btn_add_desktop:hover, 
-QPushButton#btn_confirm_create:hover, 
+QPushButton#btn_add_desktop:hover,
+QPushButton#btn_confirm_create:hover,
 QPushButton#btn_activate_desktop:hover,
 QPushButton#btn_start:hover,
 QPushButton.primary-btn:hover {
@@ -182,10 +192,12 @@ QPushButton#btn_edit_name {
     padding: 4px 10px;
     color: #eeeeee;
 }
+
 QPushButton#btn_edit_name:hover {
     background-color: #4a4a4a;
     border-color: #777;
 }
+
 QPushButton#btn_edit_name:disabled {
     background-color: transparent;
     border: 1px solid #333;
@@ -193,7 +205,8 @@ QPushButton#btn_edit_name:disabled {
 }
 
 /* --- INPUTS --- */
-QLineEdit, QTextEdit {
+QLineEdit,
+QTextEdit {
     background-color: #3c3c3c;
     border: 1px solid #3c3c3c;
     border-radius: 4px;
@@ -201,7 +214,8 @@ QLineEdit, QTextEdit {
     color: #f0f0f0;
 }
 
-QLineEdit:focus, QTextEdit:focus {
+QLineEdit:focus,
+QTextEdit:focus {
     background-color: #303030;
     border: 1px solid #0078d4;
 }
@@ -240,21 +254,26 @@ QScrollBar:vertical {
     width: 10px;
     margin: 0;
 }
+
 QScrollBar::handle:vertical {
     background: #424242;
     min-height: 20px;
     border-radius: 5px;
 }
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
     border: none;
     background: none;
 }
 
 /* --- STATUS BADGE --- */
 QLabel#label_status_badge {
-    background-color: transparent; /* Reset from cyan */
+    background-color: transparent;
+    /* Reset from cyan */
     color: #fff;
-    border-radius: 12px; /* Pill shape */
+    border-radius: 12px;
+    /* Pill shape */
     padding: 4px 10px;
     /* Color will be set by logic (green bg) usually, but default here */
 }

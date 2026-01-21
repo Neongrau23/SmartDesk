@@ -9,22 +9,16 @@ from ...shared.style import PREFIX_ERROR
 from ...shared.localization import get_text
 
 
-def update_registry_key(
-    key_path: str, value_name: str, value: str, value_type=winreg.REG_SZ
-) -> bool:
+def update_registry_key(key_path: str, value_name: str, value: str, value_type=winreg.REG_SZ) -> bool:
     """
     Setzt einen Wert in der Windows Registry (HKEY_CURRENT_USER).
     """
     try:
-        with winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE
-        ) as key:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE) as key:
             winreg.SetValueEx(key, value_name, 0, value_type, value)
         return True
     except WindowsError as e:
-        print(
-            f"{PREFIX_ERROR} {get_text('registry.error.update', key_path=key_path, e=e)}"
-        )
+        print(f"{PREFIX_ERROR} {get_text('registry.error.update', key_path=key_path, e=e)}")
         return False
 
 
@@ -34,9 +28,7 @@ def get_registry_value(key_path: str, value_name: str) -> str:
     Gibt einen leeren String zurück, wenn der Schlüssel nicht existiert.
     """
     try:
-        with winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ
-        ) as key:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_READ) as key:
             value, _ = winreg.QueryValueEx(key, value_name)
             return value
     except WindowsError:
@@ -83,12 +75,12 @@ def is_process_running(pid):
 
         # Prüfe ob es ein Python-Prozess ist
         process_name = process.name().lower()
-        if 'python' not in process_name:
+        if "python" not in process_name:
             return False
 
         try:
-            cmdline = ' '.join(process.cmdline()).lower()
-            if 'tray_icon' in cmdline:
+            cmdline = " ".join(process.cmdline()).lower()
+            if "tray_icon" in cmdline:
                 return True
             return True
         except (psutil.AccessDenied, psutil.NoSuchProcess):
@@ -106,9 +98,7 @@ def is_process_running(pid):
 def cleanup_tray_pid():
     """Entfernt die gespeicherte Tray-PID (beim Beenden aufrufen)"""
     try:
-        key = winreg.OpenKey(
-            winreg.HKEY_CURRENT_USER, r"Software\SmartDesk", 0, winreg.KEY_SET_VALUE
-        )
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\SmartDesk", 0, winreg.KEY_SET_VALUE)
         winreg.DeleteValue(key, "TrayPID")
         winreg.CloseKey(key)
     except Exception:
@@ -119,7 +109,7 @@ def set_autostart(enable: bool) -> bool:
     """Aktiviert oder deaktiviert den Autostart via Registry."""
     key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
     app_name = "SmartDesk"
-    
+
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE) as key:
             if enable:
@@ -127,21 +117,21 @@ def set_autostart(enable: bool) -> bool:
                 # pythonw.exe öffnet keine Konsole
                 python_exe = sys.executable.replace("python.exe", "pythonw.exe")
                 if not os.path.exists(python_exe):
-                    python_exe = sys.executable # Fallback
-                
+                    python_exe = sys.executable  # Fallback
+
                 # Pfad zu main.py im Root (4 Ebenen hoch von hier)
                 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
                 script_path = os.path.join(base_dir, "main.py")
-                
+
                 # command: "C:\...\pythonw.exe" "C:\...\main.py"
                 command = f'"{python_exe}" "{script_path}"'
-                
+
                 winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, command)
             else:
                 try:
                     winreg.DeleteValue(key, app_name)
                 except FileNotFoundError:
-                    pass # War schon nicht da
+                    pass  # War schon nicht da
         return True
     except Exception as e:
         print(f"[ERROR] Autostart Fehler: {e}")

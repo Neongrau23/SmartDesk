@@ -7,19 +7,17 @@ import sys
 # Wenn die App ohne Konsole läuft (z.B. als Tray-Icon), sind stdout/stderr None.
 # Schreibzugriffe (print, logging) würden zum Absturz führen.
 if sys.stdout is None:
-    sys.stdout = open(os.devnull, 'w')
+    sys.stdout = open(os.devnull, "w")
 if sys.stderr is None:
-    sys.stderr = open(os.devnull, 'w')
+    sys.stderr = open(os.devnull, "w")
 
 # Registry Keys (Bestehend)
-KEY_USER_SHELL = (
-    r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
-)
+KEY_USER_SHELL = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
 KEY_LEGACY_SHELL = r"Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders"
 VALUE_NAME = "Desktop"
 
 # AppData-Pfad für Benutzerdaten (empfohlen für installierte Programme)
-APPDATA_DIR = os.path.join(os.environ['APPDATA'], 'SmartDesk')
+APPDATA_DIR = os.path.join(os.environ["APPDATA"], "SmartDesk")
 DATA_DIR = APPDATA_DIR
 DESKTOPS_FILE = os.path.join(DATA_DIR, "desktops.json")
 WALLPAPERS_DIR = os.path.join(DATA_DIR, "wallpapers")
@@ -29,9 +27,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(WALLPAPERS_DIR, exist_ok=True)
 
 # Alternativ: Projekt-Root für Entwicklung/Portable Version
-BASE_DIR = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 DEV_DATA_DIR = os.path.join(BASE_DIR, "data")
 DEV_DESKTOPS_FILE = os.path.join(DEV_DATA_DIR, "desktops.json")
 DEV_WALLPAPERS_DIR = os.path.join(DEV_DATA_DIR, "wallpapers")
@@ -45,12 +41,12 @@ def get_resource_path(relative_path):
     Returns the absolute path to a resource.
     Works for dev and for PyInstaller.
     """
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, "frozen", False):
         # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     else:
         # In dev, relative to src folder
-        base_path = os.path.join(BASE_DIR, 'src')
+        base_path = os.path.join(BASE_DIR, "src")
 
     return os.path.join(base_path, relative_path)
 
@@ -70,8 +66,8 @@ class AnimationConfig:
     FADE_STEPS = 100
 
     # Anzeigeeinstellungen
-    BACKGROUND_COLOR = 'Black'
-    TEXT_COLOR = 'white'
+    BACKGROUND_COLOR = "Black"
+    TEXT_COLOR = "white"
     SHOW_LOGO = True
     HIDE_CURSOR = True
     TOPMOST = True

@@ -19,7 +19,5 @@ def ensure_directory_exists(path: str) -> bool:
             os.makedirs(path)
         return True
     except OSError as e:
-        print(
-            f"{PREFIX_ERROR} {get_text('path_validator.error.create_dir', path=path, e=e)}"
-        )
+        print(f"{PREFIX_ERROR} {get_text('path_validator.error.create_dir', path=path, e=e)}")
         return False

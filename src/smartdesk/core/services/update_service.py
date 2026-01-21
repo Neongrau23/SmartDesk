@@ -4,32 +4,33 @@ import logging
 from typing import Optional, Tuple, Dict, Any
 from smartdesk import __version__
 from smartdesk.shared.logging_config import get_logger
-from smartdesk.core.services import settings_service # Import settings_service
+from smartdesk.core.services import settings_service  # Import settings_service
 
 logger = get_logger(__name__)
 
+
 class UpdateService:
     """Service to check for updates on GitHub."""
-    
+
     GITHUB_API_URL = "https://api.github.com/repos/Neongrau23/SmartDesk/releases/latest"
-    
+
     def __init__(self):
         self.latest_release_info: Optional[Dict[str, Any]] = None
 
     def check_for_updates(self) -> Tuple[bool, Optional[str]]:
         """
         Checks if a newer version is available on GitHub.
-        
+
         Returns:
             Tuple[bool, Optional[str]]: (is_newer_version_available, latest_version_string)
         """
         try:
             # Use a User-Agent to avoid being blocked by GitHub API
-            headers = {'User-Agent': 'SmartDesk-Update-Checker'}
+            headers = {"User-Agent": "SmartDesk-Update-Checker"}
 
             github_pat = settings_service.get_setting("github_pat")
             if github_pat:
-                headers['Authorization'] = f'token {github_pat}'
+                headers["Authorization"] = f"token {github_pat}"
 
             req = urllib.request.Request(self.GITHUB_API_URL, headers=headers)
 
@@ -44,8 +45,8 @@ class UpdateService:
                     if not remote_version_raw:
                         logger.warning("tag_name not found in GitHub API response.")
                         return False, None
-                    
-                    remote_version = remote_version_raw.lstrip('v')
+
+                    remote_version = remote_version_raw.lstrip("v")
 
                     if self._is_version_newer(__version__, remote_version):
                         logger.info(f"New version available: {remote_version} (current: {__version__})")
@@ -85,8 +86,8 @@ class UpdateService:
     def _is_version_newer(self, current: str, remote: str) -> bool:
         """Simple semantic version comparison."""
         try:
-            c_parts = [int(p) for p in current.split('.')]
-            r_parts = [int(p) for p in remote.split('.')]
+            c_parts = [int(p) for p in current.split(".")]
+            r_parts = [int(p) for p in remote.split(".")]
 
             # Pad with zeros if necessary (e.g. 1.0 vs 1.0.1)
             length = max(len(c_parts), len(r_parts))

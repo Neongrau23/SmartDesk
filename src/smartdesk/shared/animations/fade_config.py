@@ -20,8 +20,8 @@ class FadeConfig:
     FADE_STEPS = 100  # Anzahl der Schritte für sanftes Fade
 
     # Anzeigeeinstellungen
-    BACKGROUND_COLOR = 'Black'  # Hintergrundfarbe
-    TEXT_COLOR = 'white'  # Textfarbe für ASCII-Art
+    BACKGROUND_COLOR = "Black"  # Hintergrundfarbe
+    TEXT_COLOR = "white"  # Textfarbe für ASCII-Art
     SHOW_LOGO = True  # SmartDesk Logo anzeigen
     HIDE_CURSOR = True  # Mauszeiger verstecken
     TOPMOST = True  # Fenster immer im Vordergrund

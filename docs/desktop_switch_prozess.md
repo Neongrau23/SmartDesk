@@ -21,7 +21,7 @@ graph TD
         LockFile -->|subprocess.Popen| ScreenFade[<b>screen_fade.py</b><br/>Vollbild-Overlay]
         ScreenFade -->|subprocess.Popen| Logo[<b>logo.py</b><br/>Zeigt Logo & Text]
         Logo -.->|Liest Style| LogoCfg[logo_config.py]
-        
+
         %% Warte-Logik der Animation
         ScreenFade -.->|Wartet auf Löschung| LockFile
     end

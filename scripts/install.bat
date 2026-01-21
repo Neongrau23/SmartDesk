@@ -16,7 +16,7 @@ if errorlevel 1 (
     echo    Bitte installieren Sie Python 3.8 oder höher:
     echo    https://www.python.org/downloads/
     echo.
-    echo    Stellen Sie sicher, dass "Add Python to PATH" 
+    echo    Stellen Sie sicher, dass "Add Python to PATH"
     echo    bei der Installation aktiviert ist.
     echo.
     pause
