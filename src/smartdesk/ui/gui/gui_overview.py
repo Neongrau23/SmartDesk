@@ -71,6 +71,7 @@ class OverviewWindow(QWidget):
         self.desktops_data: List[Dict] = []
         self.desktop_labels: List[QLabel] = []
         self._last_mtime = 0
+        self.json_path = self.get_desktops_file_path()
         
         # Hauptcontainer aus UI laden
         self.load_ui()
@@ -113,23 +114,23 @@ class OverviewWindow(QWidget):
         return Path(appdata) / "SmartDesk" / "desktops.json"
 
     def load_desktops(self) -> bool:
-        json_path = self.get_desktops_file_path()
         try:
-            if not json_path.exists():
-                self.desktops_data = []
-                self._last_mtime = 0
-                return False
-
             # Check modification time
-            current_mtime = json_path.stat().st_mtime
+            # Optimization: stat() raises FileNotFoundError if file missing
+            # This saves one syscall (exists() + stat() -> stat())
+            current_mtime = self.json_path.stat().st_mtime
             if current_mtime == self._last_mtime:
                 return False
 
-            with open(json_path, 'r', encoding='utf-8') as f:
+            with open(self.json_path, 'r', encoding='utf-8') as f:
                 self.desktops_data = json.load(f)
 
             self._last_mtime = current_mtime
             return True
+        except FileNotFoundError:
+            self.desktops_data = []
+            self._last_mtime = 0
+            return False
         except Exception as e:
             logger.error(f"Fehler beim Laden der Desktops: {e}")
             self.desktops_data = []
