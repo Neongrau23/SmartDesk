@@ -11,6 +11,7 @@ from typing import Optional
 
 from ...shared.config import DATA_DIR, KEY_USER_SHELL, KEY_LEGACY_SHELL, VALUE_NAME
 from ...shared.logging_config import get_logger
+from ...shared.localization import get_text
 
 logger = get_logger(__name__)
 
@@ -44,7 +45,7 @@ def create_registry_backup(reason: str = "manual") -> Optional[str]:
         legacy_shell_value = _read_registry_value(KEY_LEGACY_SHELL, VALUE_NAME)
 
         if not user_shell_value and not legacy_shell_value:
-            logger.warning("Keine Registry-Werte zum Sichern gefunden")
+            logger.warning(get_text("backup_manager.warn.no_values"))
             return None
 
         # .reg Datei erstellen
@@ -72,11 +73,11 @@ def create_registry_backup(reason: str = "manual") -> Optional[str]:
             f.write(f"; User Shell: {user_shell_value}\n")
             f.write(f"; Legacy Shell: {legacy_shell_value}\n")
 
-        logger.info(f"Registry-Backup erstellt: {backup_file}")
+        logger.info(get_text("backup_manager.info.created", path=backup_file))
         return backup_file
 
     except Exception as e:
-        logger.error(f"Fehler beim Erstellen des Registry-Backups: {e}")
+        logger.error(get_text("backup_manager.error.create", e=e))
         return None
 
 
@@ -131,7 +132,7 @@ def list_backups() -> list[dict]:
         backups.sort(key=lambda x: x["created"], reverse=True)
 
     except Exception as e:
-        logger.error(f"Fehler beim Auflisten der Backups: {e}")
+        logger.error(get_text("backup_manager.error.list", e=e))
 
     return backups
 
@@ -162,7 +163,7 @@ def restore_from_backup(backup_path: str) -> bool:
     import subprocess
 
     if not os.path.exists(backup_path):
-        logger.error(f"Backup-Datei nicht gefunden: {backup_path}")
+        logger.error(get_text("backup_manager.error.not_found", path=backup_path))
         return False
 
     try:
@@ -170,14 +171,14 @@ def restore_from_backup(backup_path: str) -> bool:
         result = subprocess.run(["reg", "import", backup_path], capture_output=True, text=True)
 
         if result.returncode == 0:
-            logger.info(f"Registry wiederhergestellt aus: {backup_path}")
+            logger.info(get_text("backup_manager.info.restored", path=backup_path))
             return True
         else:
-            logger.error(f"Registry-Import fehlgeschlagen: {result.stderr}")
+            logger.error(get_text("backup_manager.error.restore_failed", error=result.stderr))
             return False
 
     except Exception as e:
-        logger.error(f"Fehler bei der Wiederherstellung: {e}")
+        logger.error(get_text("backup_manager.error.restore_exception", e=e))
         return False
 
 
@@ -202,12 +203,12 @@ def cleanup_old_backups(keep_count: int = 10) -> int:
         try:
             os.remove(backup["path"])
             deleted += 1
-            logger.debug(f"Altes Backup gelöscht: {backup['filename']}")
+            logger.debug(get_text("backup_manager.info.deleted_single", name=backup['filename']))
         except Exception as e:
-            logger.warning(f"Konnte Backup nicht löschen: {e}")
+            logger.warning(get_text("backup_manager.warn.delete_failed", e=e))
 
     if deleted > 0:
-        logger.info(f"{deleted} alte Backup(s) gelöscht")
+        logger.info(get_text("backup_manager.info.deleted_count", count=deleted))
 
     return deleted
 

@@ -25,6 +25,17 @@ TEXT = {
             "status_active": " (Aktiv)",
             "status_protected": " (Geschützt)",
         },
+        "overview": {
+            "title": "Overview",
+            "no_desktops": "Keine Desktops",
+            "unnamed": "Unbenannt",
+            "command_received": "Kommando empfangen: {cmd}",
+            "watcher_error": "Watcher-Thread Fehler: {e}",
+            "ready": "Overview GUI gestartet und bereit.",
+            "load_error": "Fehler beim Laden der Desktops: {e}",
+            "label_error": "Fehler beim Erstellen der Desktop-Labels: {e}",
+            "style_warn": "Style nicht geladen: {e}",
+        },
         "create_dialog": {
             "title": "SmartDesk - Desktop erstellen",
             "header": "SmartDesk - Desktop erstellen",
@@ -35,12 +46,17 @@ TEXT = {
             "radio_new": "Neu erstellen",
             "browse_title_parent": "Übergeordneten Ordner auswählen",
             "browse_title_existing": "Vorhandenen Ordner auswählen",
+            "browse_folder_title": "Ordner wählen",
             "error_no_name": "Bitte geben Sie einen Desktop-Namen ein!",
             "error_no_path": "Bitte geben Sie einen Pfad an!",
             "error_path_not_absolute": "Der Pfad ist nicht absolut: {path}",
             "error_creation_failed": "Desktop konnte nicht erstellt werden.\n\nMögliche Gründe:\n- Der Name ist bereits vergeben.\n- Der Pfad ist ungültig.\n- Der Ordner existiert nicht (im 'Vorhanden'-Modus).\n- Fehlende Berechtigungen.",
             "success_creation": "Desktop '{name}' wurde erfolgreich erstellt.",
             "new_path_location": "Der neue Desktop wird hier erstellt: {path}",
+            "error_ui_file": "Cannot open UI file: {error}",
+            "warn_style": "Style nicht geladen: {e}",
+            "msg_error_create": "Konnte Desktop nicht erstellen.",
+            "log_test_mode": "Starte Create Desktop GUI im Testmodus...",
         },
         "control_panel": {
             "title": "SmartDesk Control",
@@ -58,6 +74,10 @@ TEXT = {
             "error_open_gui_failed": "SmartDesk GUI konnte nicht geöffnet werden:\n{e}",
             "error_create_gui_failed": "Desktop-Erstellung konnte nicht gestartet werden:\n{e}",
             "error_manage_gui_failed": "Desktop-Verwaltung konnte nicht gestartet werden:\n{e}",
+            "error_ui_file": "UI Datei nicht gefunden: {path}",
+            "warn_style": "Style.qss konnte nicht geladen werden: {e}",
+            "log_deactivate": "Deaktiviere SmartDesk...",
+            "log_activate": "Aktiviere SmartDesk...",
         },
         "main": {
             "title": "SmartDesk Manager",
@@ -157,6 +177,16 @@ TEXT = {
                 "button_start": "▶️ Tray Icon starten",
                 "success_start": "Tray Icon wurde gestartet!",
                 "success_stop": "Tray Icon wurde gestoppt!",
+                "tooltip": "SmartDesk",
+                "tooltip_active": "SmartDesk (Aktiv)",
+                "tooltip_inactive": "SmartDesk (Inaktiv)",
+                "log": {
+                    "path_hack_error": "FEHLER im Path Hack: {e}",
+                    "manager_not_impl": "Funktion 'SmartDesk Manager öffnen' ist noch nicht implementiert.",
+                    "deactivating": "Deaktiviere SmartDesk...",
+                    "activating": "Aktiviere SmartDesk...",
+                    "start_error": "Fehler beim Starten der Tray-Anwendung: {e}",
+                }
             },
             "settings": {
                 "title": "⚙️ Einstellungen",
@@ -203,6 +233,13 @@ TEXT = {
             "error_save": "Änderungen konnten nicht gespeichert werden.",
             "success_wallpaper": "Hintergrundbild wurde aktualisiert.",
             "error_wallpaper": "Hintergrundbild konnte nicht gesetzt werden.",
+            "error_ui_file": "UI nicht gefunden: {path}",
+            "rename_title": "Umbenennen",
+            "rename_label": "Neuer Name für '{name}':",
+            "error_rename": "Konnte Desktop nicht umbenennen.",
+            "wallpaper_title": "Hintergrundbild wählen",
+            "action_delete": "🗑️ Löschen",
+            "stop_title": "Stopp",
         },
     },
     # =============================================================================
@@ -264,6 +301,7 @@ TEXT = {
             "reading_icons": "Lese Icon-Positionen für '{name}'...",
             "old_wallpaper_removed": "Altes Hintergrundbild entfernt.",
             "setting_wallpaper_now": "Desktop ist aktiv. Setze Hintergrundbild sofort.",
+            "backup_created": "Registry-Backup erstellt",
         },
         "warn": {
             "sync_failed": "Warnung: Registry-Synchronisierung fehlgeschlagen: {e}",
@@ -273,7 +311,87 @@ TEXT = {
             "no_active_desktop": "Warnung: Kein Desktop war als aktiv markiert. Speichere keine Icons.",
             "sync_path_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
             "save_icons_not_registered": "Möglicherweise ist der in Windows eingestellte Pfad in SmartDesk nicht registriert.",
+            "lock_file_create": "Konnte Lock-File nicht erstellen: {e}",
+            "animation_script_missing": "Animationsskript nicht gefunden: {path}",
+            "animation_start_failed": "Animation konnte nicht gestartet werden: {e}",
+            "icon_save_failed": "Icon-Speicherung fehlgeschlagen: {e}",
+            "lock_file_remove_failed": "Konnte Lock-File nicht entfernen: {e}",
+            "explorer_timeout": "Timeout beim Warten auf Explorer-Neustart. Versuche trotzdem fortzufahren...",
         },
+    },
+    "auto_switch": {
+        "error": {
+            "load_rules": "Fehler beim Laden der Regeln: {e}",
+            "save_rules": "Fehler beim Speichern der Regeln: {e}",
+            "loop": "Fehler in AutoSwitchService Loop: {e}",
+            "process_list": "Fehler beim Zugriff auf Prozessliste: {e}",
+        },
+        "debug": {
+            "reload": "Regel-Datei extern geändert. Lade neu...",
+        },
+        "info": {
+            "added_rule": "Regel hinzugefügt: {process} -> {desktop}",
+            "deleted_rule": "Regel gelöscht für: {process}",
+            "started": "AutoSwitchService gestartet.",
+            "stopped": "AutoSwitchService gestoppt.",
+            "switching": "Auto-Switch zu '{desktop}' erkannt durch Prozess '{process}'",
+        },
+        "warn": {
+            "rule_not_found": "Regel nicht gefunden für: {process}",
+        }
+    },
+    "backup_manager": {
+        "warn": {
+            "no_values": "Keine Registry-Werte zum Sichern gefunden",
+            "delete_failed": "Konnte Backup nicht löschen: {e}",
+        },
+        "info": {
+            "created": "Registry-Backup erstellt: {path}",
+            "restored": "Registry wiederhergestellt aus: {path}",
+            "deleted_count": "{count} alte Backup(s) gelöscht",
+            "deleted_single": "Altes Backup gelöscht: {name}",
+        },
+        "error": {
+            "create": "Fehler beim Erstellen des Registry-Backups: {e}",
+            "list": "Fehler beim Auflisten der Backups: {e}",
+            "not_found": "Backup-Datei nicht gefunden: {path}",
+            "restore_failed": "Registry-Import fehlgeschlagen: {error}",
+            "restore_exception": "Fehler bei der Wiederherstellung: {e}",
+        },
+    },
+    "win_utils": {
+        "debug": {
+            "taskbar_top": "Taskleiste (HWND: {hwnd}) an die Spitze gezwungen.",
+            "taskbar_released": "Taskleiste (HWND: {hwnd}) wieder freigegeben.",
+        },
+        "warn": {
+            "taskbar_not_found": "Taskleiste ('Shell_TrayWnd') konnte nicht gefunden werden.",
+        },
+        "error": {
+            "top_failed": "Fehler bei ensure_taskbar_on_top: {e}",
+            "release_failed": "Fehler bei release_taskbar_from_top: {e}",
+        }
+    },
+    "settings_service": {
+        "error": {
+            "load": "Fehler beim Laden der Einstellungen: {e}",
+            "save": "Fehler beim Speichern der Einstellungen: {e}",
+        }
+    },
+    "update_service": {
+        "warn": {
+            "no_tag_name": "tag_name not found in GitHub API response.",
+        },
+        "info": {
+            "update_available": "New version available: {remote} (current: {current})",
+            "up_to_date": "SmartDesk is up to date (current: {current})",
+        },
+        "error": {
+            "status_code": "GitHub API returned status code: {status}",
+            "rate_limit": "GitHub API rate limit exceeded: {e}",
+            "check_failed_http": "Failed to check for updates (HTTP Error {code}): {e}",
+            "check_failed": "Failed to check for updates: {e}",
+        }
     },
     "icon_manager": {
         "error": {
@@ -378,6 +496,7 @@ TEXT = {
             "stopping": "Listener wird beendet.",
             "instructions": "\nDrücke Strg + Shift + Alt + [1-9] um einen Desktop zu wechseln.\nDrücke Strg + Shift + Alt + C um den Listener zu beenden.",
             "instructions_stop": "Drücke Strg+C im Terminal, um den Listener zu stoppen.",
+            "loaded": "[INFO] Listener geladen. Aktivierung: {act} (On Release), Aktion: {mod}",
         },
         "log": {
             "action_executed": "Hotkey Alt+{n} ausgeführt",
@@ -390,9 +509,22 @@ TEXT = {
             "stopped_user": "Listener durch Benutzer gestoppt (Strg+C)",
             "error_generic": "Fehler aufgetreten: {e}",
             "stopped": "Listener beendet",
+            "timer_expired": "{key}-Hold-Timer abgelaufen, führe Hold-Aktion aus.",
+            "activation_detected": "Aktivierung erkannt (Release)! Warte auf {key} + Taste...",
+            "no_action": "Keine Aktion für: {key}",
+            "cycle_ended": "{key} losgelassen, Zyklus beendet.",
+            "config": "Listener Konfiguration: Aktivierung='{act}', Aktion='{mod}'",
+            "hold_duration": "Hold duration set to {dur}s",
+            "hold_duration_error": "Error setting hold duration: {e}",
         },
     },
     "registry": {"error": {"update": "Registry Fehler bei {key_path}: {e}"}},
+    "scripts": {
+        "restart_listener": {
+            "starting": "Restarting the hotkey listener...",
+            "done": "Hotkey listener restarted."
+        }
+    },
     "wallpaper_manager": {
         "error": {
             "path_not_found": "Pfad '{path}' existiert nicht.",

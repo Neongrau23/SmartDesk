@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 
 from ...shared.config import DATA_DIR
 from ...shared.logging_config import get_logger
+from ...shared.localization import get_text
 from . import desktop_service
 from . import settings_service
 
@@ -44,7 +45,7 @@ class AutoSwitchService:
                 with open(RULES_FILE, "r", encoding="utf-8") as f:
                     self._rules = json.load(f)
             except Exception as e:
-                logger.error(f"Error loading rules: {e}")
+                logger.error(get_text("auto_switch.error.load_rules", e=e))
                 self._rules = {}
 
     def _check_rules_file(self):
@@ -55,7 +56,7 @@ class AutoSwitchService:
         try:
             mtime = os.path.getmtime(RULES_FILE)
             if mtime > self._rules_mtime:
-                logger.debug("Regel-Datei extern geändert. Lade neu...")
+                logger.debug(get_text("auto_switch.debug.reload"))
                 self.load_rules()
         except OSError:
             pass
@@ -73,7 +74,7 @@ class AutoSwitchService:
                 if os.path.exists(RULES_FILE):
                     self._rules_mtime = os.path.getmtime(RULES_FILE)
             except Exception as e:
-                logger.error(f"Error saving rules: {e}")
+                logger.error(get_text("auto_switch.error.save_rules", e=e))
 
     def add_rule(self, process_name: str, desktop_name: str):
         """Adds or updates a rule."""
@@ -82,7 +83,7 @@ class AutoSwitchService:
         with self._lock:
             self._rules[process_name] = desktop_name
             self.save_rules()
-        logger.info(f"Added rule: {process_name} -> {desktop_name}")
+        logger.info(get_text("auto_switch.info.added_rule", process=process_name, desktop=desktop_name))
 
     def delete_rule(self, process_name: str):
         """Deletes a rule."""
@@ -91,9 +92,9 @@ class AutoSwitchService:
             if process_name in self._rules:
                 del self._rules[process_name]
                 self.save_rules()
-                logger.info(f"Deleted rule for: {process_name}")
+                logger.info(get_text("auto_switch.info.deleted_rule", process=process_name))
             else:
-                logger.warning(f"Rule not found for: {process_name}")
+                logger.warning(get_text("auto_switch.warn.rule_not_found", process=process_name))
 
     def get_rules(self) -> Dict[str, str]:
         """Returns a copy of the current rules."""
@@ -108,14 +109,14 @@ class AutoSwitchService:
         self._running = True
         self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self._thread.start()
-        logger.info("AutoSwitchService started.")
+        logger.info(get_text("auto_switch.info.started"))
 
     def stop(self):
         """Stops the monitoring thread."""
         self._running = False
         if self._thread:
             self._thread.join(timeout=2)
-        logger.info("AutoSwitchService stopped.")
+        logger.info(get_text("auto_switch.info.stopped"))
 
     def _monitor_loop(self):
         """The main loop checking processes."""
@@ -124,7 +125,7 @@ class AutoSwitchService:
                 self._check_rules_file()  # Check for external changes
                 self._check_and_switch()
             except Exception as e:
-                logger.error(f"Error in AutoSwitchService loop: {e}")
+                logger.error(get_text("auto_switch.error.loop", e=e))
 
             # Sleep in small chunks to allow faster stopping
             for _ in range(self.check_interval * 2):
@@ -198,12 +199,12 @@ class AutoSwitchService:
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                     pass
         except Exception as e:
-            logger.error(f"Error accessing process list: {e}")
+            logger.error(get_text("auto_switch.error.process_list", e=e))
             return
 
         if target_desktop_name:
             if active_desktop.name != target_desktop_name:
-                logger.info(f"Auto-switching to '{target_desktop_name}' detected process '{matched_process}'")
+                logger.info(get_text("auto_switch.info.switching", desktop=target_desktop_name, process=matched_process))
                 success = desktop_service.switch_to_desktop(target_desktop_name)
                 if success:
                     self._last_switch_time = datetime.now()

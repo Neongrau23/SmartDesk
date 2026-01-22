@@ -271,7 +271,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     # Automatisches Backup vor dem Wechsel
     backup_path = create_backup_before_switch()
     if backup_path:
-        logger.info("Registry-Backup erstellt")
+        logger.info(get_text("desktop_handler.info.backup_created"))
 
     target_path = os.path.normpath(os.path.expandvars(target_desktop.path))
 
@@ -331,7 +331,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
             with open(lock_file, "w") as f:
                 f.write("Switching...")
         except Exception as e:
-            logger.warning(f"Konnte Lock-File nicht erstellen: {e}")
+            logger.warning(get_text("desktop_handler.warn.lock_file_create", e=e))
             lock_file = None
 
     # 2. Animation starten (nur wenn aktiviert)
@@ -340,7 +340,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
             animation_script = get_resource_path("smartdesk/shared/animations/screen_fade.py")
 
             if not os.path.exists(animation_script):
-                logger.warning(f"Animationsskript nicht gefunden: {animation_script}")
+                logger.warning(get_text("desktop_handler.warn.animation_script_missing", path=animation_script))
             else:
                 cmd = [sys.executable, animation_script]
                 if lock_file:
@@ -355,7 +355,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
                 # Kurz warten, damit das Fenster sichtbar wird (Fade-In)
                 time.sleep(0.5)
         except (OSError, ValueError, FileNotFoundError) as e:
-            logger.warning(f"Animation konnte nicht gestartet werden: {e}")
+            logger.warning(get_text("desktop_handler.warn.animation_start_failed", e=e))
 
     # 3. Icons des aktuellen Desktops sichern
     active_desktop = next((d for d in desktops if d.is_active), None)
@@ -369,7 +369,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
             msg = get_text("desktop_handler.success.db_update")
             logger.info(msg)
         except Exception as e:
-            logger.warning(f"Icon-Speicherung fehlgeschlagen: {e}")
+            logger.warning(get_text("desktop_handler.warn.icon_save_failed", e=e))
             active_desktop.is_active = False
             save_desktops(desktops)
     else:
@@ -424,7 +424,7 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
             os.remove(lock_file)
             logger.debug(f"Lock-File entfernt: {lock_file}")
         except Exception as e:
-            logger.warning(f"Konnte Lock-File nicht entfernen: {e}")
+            logger.warning(get_text("desktop_handler.warn.lock_file_remove_failed", e=e))
 
     logger.info(get_text("desktop_handler.info.registry_success"))
     return True
@@ -454,7 +454,7 @@ def sync_desktop_state_and_apply_icons():
     # Warten, bis der Explorer nach dem Neustart vollständig geladen ist
     # Dies verhindert, dass Wallpaper oder Icons ins Leere gesetzt werden.
     if not wait_for_desktop_listview(timeout=15, check_items=False):
-        logger.warning("Timeout beim Warten auf Explorer-Neustart. Versuche trotzdem fortzufahren...")
+        logger.warning(get_text("desktop_handler.warn.explorer_timeout"))
 
     if new_active_desktop.wallpaper_path:
         logger.info(get_text("desktop_handler.info.setting_wallpaper"))

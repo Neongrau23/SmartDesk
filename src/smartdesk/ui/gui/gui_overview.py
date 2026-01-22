@@ -27,11 +27,15 @@ except ImportError:
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
+    from smartdesk.shared.localization import get_text
 
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
+
+    def get_text(key, **kwargs):
+        return key
 
 
 class CommandWatcher(QObject):
@@ -62,10 +66,10 @@ class CommandWatcher(QObject):
 
                 cmd = line.strip().upper()
                 if cmd:
-                    logger.debug(f"Kommando empfangen: {cmd}")
+                    logger.debug(get_text("gui.overview.command_received", cmd=cmd))
                     self.command_received.emit(cmd)
         except Exception as e:
-            logger.error(f"Watcher-Thread Fehler: {e}")
+            logger.error(get_text("gui.overview.watcher_error", e=e))
             self.command_received.emit("QUIT")
 
 
@@ -82,7 +86,7 @@ class OverviewWindow(QWidget):
         # Hauptcontainer aus UI laden
         self.load_ui()
 
-        self.setWindowTitle("Overview")
+        self.setWindowTitle(get_text("gui.overview.title"))
 
         # STIL: Rahmenlos, immer oben, kein Taskleisten-Icon
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
@@ -100,7 +104,7 @@ class OverviewWindow(QWidget):
         self.watcher.command_received.connect(self.handle_command)
         self.watcher.start()
 
-        logger.info("Overview GUI gestartet und bereit.")
+        logger.info(get_text("gui.overview.ready"))
 
     @Slot(str)
     def handle_command(self, cmd):
@@ -139,7 +143,7 @@ class OverviewWindow(QWidget):
             self._last_mtime = current_mtime
             return True
         except Exception as e:
-            logger.error(f"Fehler beim Laden der Desktops: {e}")
+            logger.error(get_text("gui.overview.load_error", e=e))
             self.desktops_data = []
             self._last_mtime = 0
             return False
@@ -163,12 +167,12 @@ class OverviewWindow(QWidget):
             self.desktop_labels.clear()
 
             if not self.desktops_data:
-                label = self._create_desktop_label("Keine Desktops", is_active=False, is_placeholder=True)
+                label = self._create_desktop_label(get_text("gui.overview.no_desktops"), is_active=False, is_placeholder=True)
                 container.layout().addWidget(label)
                 return
 
             for desktop in self.desktops_data:
-                desktop_name = desktop.get("name", "Unbenannt")
+                desktop_name = desktop.get("name", get_text("gui.overview.unnamed"))
                 is_active = desktop.get("is_active", False)
                 label = self._create_desktop_label(desktop_name, is_active)
                 self.desktop_labels.append(label)
@@ -176,7 +180,7 @@ class OverviewWindow(QWidget):
 
             container.layout().addStretch()
         except Exception as e:
-            logger.error(f"Fehler beim Erstellen der Desktop-Labels: {e}")
+            logger.error(get_text("gui.overview.label_error", e=e))
 
     def _create_desktop_label(self, text: str, is_active: bool = False, is_placeholder: bool = False) -> QLabel:
         label = QLabel(text)
@@ -215,7 +219,7 @@ class OverviewWindow(QWidget):
             with open(style_path, "r", encoding="utf-8") as f:
                 self.setStyleSheet(f.read())
         except Exception as e:
-            logger.warning(f"Style nicht geladen: {e}")
+            logger.warning(get_text("gui.overview.style_warn", e=e))
 
         main_layout = QHBoxLayout(main_widget)
         main_layout.setContentsMargins(20, 15, 20, 15)

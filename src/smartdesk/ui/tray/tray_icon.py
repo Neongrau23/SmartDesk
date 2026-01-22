@@ -21,6 +21,7 @@ try:
     if src_dir not in sys.path:
         sys.path.append(src_dir)
 except Exception as e:
+    # Kann hier noch nicht get_text nutzen, da Importe noch fehlen könnten
     logger.error(f"FEHLER im Path Hack: {e}")
     sys.exit(1)
 
@@ -56,7 +57,7 @@ class SmartDeskTrayApp(QApplication):
 
         # --- Tray Icon Erstellen ---
         self.tray_icon = QSystemTrayIcon(self.idle_icon, self)
-        self.tray_icon.setToolTip("SmartDesk")
+        self.tray_icon.setToolTip(get_text("gui.tray.tooltip"))
 
         # --- Menü Erstellen ---
         menu = QMenu()
@@ -118,7 +119,7 @@ class SmartDeskTrayApp(QApplication):
 
     def open_manager_placeholder(self):
         # Hier kann später die Logik für den Manager implementiert werden
-        logger.info("Funktion 'SmartDesk Manager öffnen' ist noch nicht implementiert.")
+        logger.info(get_text("gui.tray.log.manager_not_impl"))
         pass
 
     def activate_hotkeys(self):
@@ -131,12 +132,12 @@ class SmartDeskTrayApp(QApplication):
         while True:
             if os.path.exists(LISTENER_PID_FILE):
                 self.tray_icon.setIcon(self.active_icon)
-                self.tray_icon.setToolTip("SmartDesk (Aktiv)")
+                self.tray_icon.setToolTip(get_text("gui.tray.tooltip_active"))
                 self.activate_action.setEnabled(False)
                 self.deactivate_action.setEnabled(True)
             else:
                 self.tray_icon.setIcon(self.idle_icon)
-                self.tray_icon.setToolTip("SmartDesk (Inaktiv)")
+                self.tray_icon.setToolTip(get_text("gui.tray.tooltip_inactive"))
                 self.activate_action.setEnabled(True)
                 self.deactivate_action.setEnabled(False)
             threading.Event().wait(1)
@@ -154,5 +155,5 @@ if __name__ == "__main__":
         cleanup_tray_pid()
         sys.exit(exit_code)
     except Exception as e:
-        logger.error(f"Fehler beim Starten der Tray-Anwendung: {e}")
+        logger.error(f"Fehler beim Starten der Tray-Anwendung: {e}") # Intentionally left f-string here as get_text might not work if import fails
         sys.exit(1)

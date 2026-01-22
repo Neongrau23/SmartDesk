@@ -56,7 +56,7 @@ class CreateDesktopWindow(QWidget):
         self.load_ui()
 
         # Konfiguration
-        self.setWindowTitle("Desktop erstellen")
+        self.setWindowTitle(get_text("gui.create_dialog.title"))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -96,7 +96,7 @@ class CreateDesktopWindow(QWidget):
         ui_file = QFile(ui_file_path)
 
         if not ui_file.open(QIODevice.ReadOnly):
-            logger.error(f"Cannot open UI file: {ui_file.errorString()}")
+            logger.error(get_text("gui.create_dialog.error_ui_file", error=ui_file.errorString()))
             sys.exit(-1)
 
         container_widget = loader.load(ui_file)
@@ -108,7 +108,7 @@ class CreateDesktopWindow(QWidget):
             with open(style_path, "r", encoding="utf-8") as f:
                 self.setStyleSheet(f.read())
         except Exception as e:
-            logger.warning(f"Style nicht geladen: {e}")
+            logger.warning(get_text("gui.create_dialog.warn_style", e=e))
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -209,7 +209,7 @@ class CreateDesktopWindow(QWidget):
         # Schutz AN
         self.is_browsing = True
 
-        title = "Ordner wählen"
+        title = get_text("gui.create_dialog.browse_folder_title")
         folder = QFileDialog.getExistingDirectory(self, title)
 
         # Schutz AUS
@@ -239,7 +239,7 @@ class CreateDesktopWindow(QWidget):
         if success:
             self.close_panel_animated()
         else:
-            QMessageBox.critical(self, "Fehler", "Konnte Desktop nicht erstellen.")
+            QMessageBox.critical(self, get_text("gui.common.error_title"), get_text("gui.create_dialog.msg_error_create"))
 
 
 def show_create_desktop_window():
@@ -250,5 +250,5 @@ def show_create_desktop_window():
 
 
 if __name__ == "__main__":
-    logger.info("Starte Create Desktop GUI im Testmodus...")
+    logger.info(get_text("gui.create_dialog.log_test_mode"))
     show_create_desktop_window()
