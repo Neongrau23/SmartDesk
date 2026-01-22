@@ -17,7 +17,7 @@ from ..models.desktop import Desktop
 from ..storage.file_operations import load_desktops, save_desktops
 from ...shared.localization import get_text
 from ...shared.logging_config import get_logger
-from .icon_service import get_current_icon_positions, set_icon_positions
+from .icon_service import get_current_icon_positions, set_icon_positions, wait_for_desktop_listview
 from . import wallpaper_service
 from . import settings_service
 from ...ui.gui.dialogs import show_choice_dialog, show_confirmation_dialog
@@ -450,6 +450,11 @@ def sync_desktop_state_and_apply_icons():
     logger.info(msg)
     msg = get_text("desktop_handler.info.sync_desktop_active", name=new_active_desktop.name)
     logger.info(msg)
+
+    # Warten, bis der Explorer nach dem Neustart vollständig geladen ist
+    # Dies verhindert, dass Wallpaper oder Icons ins Leere gesetzt werden.
+    if not wait_for_desktop_listview(timeout=15, check_items=False):
+        logger.warning("Timeout beim Warten auf Explorer-Neustart. Versuche trotzdem fortzufahren...")
 
     if new_active_desktop.wallpaper_path:
         logger.info(get_text("desktop_handler.info.setting_wallpaper"))

@@ -276,9 +276,18 @@ TEXT = {
         },
     },
     "icon_manager": {
-        "error": {"fatal_commctrl": "FATAL: 'commctrl' nicht gefunden."},
-        "info": {"reading": "[IconManager] Lese Icon-Positionen..."},
-        "warn": {"no_icons_on_desktop": "Aktueller Desktop hat 0 Icons."},
+        "error": {
+            "fatal_commctrl": "FATAL: 'commctrl' nicht gefunden.",
+            "listview_not_found": "Konnte Desktop-Handle nicht finden (Explorer noch nicht bereit?).",
+        },
+        "info": {
+            "reading": "[IconManager] Lese Icon-Positionen...",
+            "restore_complete": "Icons wiederhergestellt: {restored}, Fehlgeschlagen: {failed}",
+        },
+        "warn": {
+            "no_icons_on_desktop": "Aktueller Desktop hat 0 Icons.",
+            "no_icons_found": "Konnte keine Icon-Namen auslesen (Explorer noch nicht bereit?).",
+        },
         "debug": {"item_count": "[IconManager DEBUG] Anzahl Items: {count}"},
     },
     "system": {

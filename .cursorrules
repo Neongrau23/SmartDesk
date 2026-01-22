@@ -13,10 +13,12 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
 - **Persistent GUI Overlay:**
   - The hotkey overview (`gui_overview.py`) runs as a persistent background process managed by `BannerController`.
   - Communication happens via `stdin` commands: `SHOW`, `HIDE`, `QUIT`.
-- **UI Styling (CRITICAL):**
+- **UI Styling & UX (CRITICAL):**
   - **Centralized Styling:** All styles must be defined in `src/smartdesk/ui/gui/style.qss`.
   - **No Inline Styles:** Do not use the `styleSheet` property in `.ui` files or `setStyleSheet()` in Python code.
   - **Dynamic Properties:** Use custom properties (e.g., `window_type="overview"`, `status="error"`) for state-based styling in CSS.
+  - **Scroll Protection:** ComboBoxes and SpinBoxes must use an `eventFilter` to ignore wheel events when not focused (prevent accidental changes).
+  - **Layout Patterns:** Place complex form content inside a `QScrollArea` within tabs. GroupBoxes should be styled flat/transparent (title matches page background).
 - **Hotkey Logic:**
   - Triggers are "On-Release" (key up).
   - State Machine: `IDLE` -> `ARMED` -> `HOLDING` -> `SHOWING`.
