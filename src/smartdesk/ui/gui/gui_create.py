@@ -101,6 +101,14 @@ class CreateDesktopWindow(QWidget):
 
         container_widget = loader.load(ui_file)
         ui_file.close()
+        
+        # Load Stylesheet
+        try:
+            style_path = get_resource_path("smartdesk/ui/gui/style.qss")
+            with open(style_path, "r", encoding="utf-8") as f:
+                self.setStyleSheet(f.read())
+        except Exception as e:
+            logger.warning(f"Style nicht geladen: {e}")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)

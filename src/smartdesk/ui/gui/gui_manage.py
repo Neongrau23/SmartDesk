@@ -229,13 +229,7 @@ class ManageDesktopsWindow(QWidget):
             return
 
         menu = QMenu(self)
-        menu.setStyleSheet(
-            """
-            QMenu { background-color: #3c3c3c; color: white; border: 1px solid #555; }
-            QMenu::item:selected { background-color: #d9534f; }
-        """
-        )
-
+        
         action_delete = menu.addAction("🗑️ Löschen")
 
         # Zeige Menü unter dem Button

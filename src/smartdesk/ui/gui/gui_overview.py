@@ -187,11 +187,16 @@ class OverviewWindow(QWidget):
         label.setFont(font)
 
         if is_placeholder:
-            label.setStyleSheet("QLabel { background-color: transparent; color: #888; padding: 8px 16px; border-radius: 8px; font-style: italic; }")
+            label.setProperty("overview_type", "placeholder")
         elif is_active:
-            label.setStyleSheet("QLabel { background-color: rgba(20, 160, 133, 0.15); color: #1abc9c; padding: 8px 16px; border: 1px solid rgba(20, 160, 133, 0.4); border-radius: 8px; }")
+            label.setProperty("overview_type", "active")
         else:
-            label.setStyleSheet("QLabel { background-color: rgba(60, 60, 60, 0.6); color: #ccc; padding: 8px 16px; border: 1px solid rgba(80, 80, 80, 0.5); border-radius: 8px; }")
+            label.setProperty("overview_type", "normal")
+        
+        # Style Update erzwingen
+        label.style().unpolish(label)
+        label.style().polish(label)
+        
         return label
 
     def refresh_desktop_list(self):
@@ -201,7 +206,16 @@ class OverviewWindow(QWidget):
     def load_ui(self):
         main_widget = QWidget()
         main_widget.setObjectName("Form")
-        main_widget.setStyleSheet("#Form { background-color: #2b2b2b; border: 1px solid #454545; border-radius: 15px; } QWidget { color: #ffffff; }")
+        main_widget.setProperty("window_type", "overview") # Für CSS Selektor
+        
+        # Lade Style.qss
+        try:
+            from smartdesk.shared.config import get_resource_path
+            style_path = get_resource_path("smartdesk/ui/gui/style.qss")
+            with open(style_path, "r", encoding="utf-8") as f:
+                self.setStyleSheet(f.read())
+        except Exception as e:
+            logger.warning(f"Style nicht geladen: {e}")
 
         main_layout = QHBoxLayout(main_widget)
         main_layout.setContentsMargins(20, 15, 20, 15)

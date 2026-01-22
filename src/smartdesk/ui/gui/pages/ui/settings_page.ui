@@ -67,9 +67,7 @@
                         <property name="text">
                           <string>(Funktionen folgen in Kürze)</string>
                         </property>
-                        <property name="styleSheet">
-                          <string>color: #666; font-style: italic;</string>
-                        </property>
+
                       </widget>
                     </item>
                   </layout>

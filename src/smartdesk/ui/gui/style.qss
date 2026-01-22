@@ -20,7 +20,6 @@ QFrame#sidebar {
 
 QLabel#label_logo {
     color: #0078d4;
-    /* Akzentfarbe Blau */
     font-size: 22px;
     font-weight: bold;
     padding: 20px 10px;
@@ -270,10 +269,334 @@ QScrollBar::sub-line:vertical {
 /* --- STATUS BADGE --- */
 QLabel#label_status_badge {
     background-color: transparent;
-    /* Reset from cyan */
     color: #fff;
     border-radius: 12px;
-    /* Pill shape */
     padding: 4px 10px;
-    /* Color will be set by logic (green bg) usually, but default here */
+}
+
+QLabel#label_status_badge[active="true"] {
+    background-color: #1a7a65;
+    font-weight: bold;
+}
+
+/* --- DYNAMIC GROUP BOXES --- */
+QGroupBox#group_auto_switch,
+QGroupBox#group_autopilot {
+    font-weight: bold;
+    color: #00b4d8;
+    margin-top: 10px;
+}
+
+/* --- UPDATE STATUS MESSAGES --- */
+QLabel#lbl_update_status[state="success"] {
+    color: #50fa7b;
+}
+
+QLabel#lbl_update_status[state="warning"] {
+    color: #ffb86c;
+}
+
+QLabel#lbl_update_status[state="error"] {
+    color: #ff5555;
+}
+
+QLabel#lbl_update_status[state="normal"] {
+    color: #f0f0f0;
+}
+
+/* ============================================================
+   CONTROL PANEL & CREATE WINDOW STYLES
+   ============================================================ */
+
+/* Common Window Background for small tools */
+QWidget#Form {
+    background-color: #2b2b2b;
+    border-radius: 10px;
+}
+
+/* Control Panel Specifics */
+QFrame#separator_line {
+    background-color: #666666;
+}
+
+/* --- CREATE WINDOW --- */
+QWidget#Form QLineEdit {
+    background-color: #3c3c3c;
+    color: #ffffff;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+QWidget#Form QLineEdit:focus {
+    border: 1px solid #14a085;
+}
+
+QWidget#Form QRadioButton {
+    color: #ffffff;
+    spacing: 8px;
+}
+
+QWidget#Form QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+}
+
+QWidget#Form QRadioButton::indicator:unchecked {
+    border: 2px solid #555555;
+    border-radius: 8px;
+    background-color: #3c3c3c;
+}
+
+QWidget#Form QRadioButton::indicator:checked {
+    border: 2px solid #14a085;
+    border-radius: 8px;
+    background-color: #14a085;
+}
+
+/* Special Button: Create */
+QPushButton#btn_create {
+    background-color: #14a085;
+    color: #ffffff;
+}
+
+QPushButton#btn_create:hover {
+    background-color: #0d7377;
+}
+
+QPushButton#btn_create:pressed {
+    background-color: #0a5a5d;
+}
+
+/* --- OVERVIEW WINDOW --- */
+/* Overview Main Container */
+QWidget#Form[type="overview"] {
+    background-color: #2b2b2b;
+    border: 1px solid #454545;
+    border-radius: 15px;
+}
+
+/* Overview Labels */
+QLabel[overview_type="placeholder"] {
+    background-color: transparent;
+    color: #888;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-style: italic;
+}
+
+QLabel[overview_type="active"] {
+    background-color: rgba(20, 160, 133, 0.15);
+    color: #1abc9c;
+    padding: 8px 16px;
+    border: 1px solid rgba(20, 160, 133, 0.4);
+    border-radius: 8px;
+}
+
+QLabel[overview_type="normal"] {
+    background-color: rgba(60, 60, 60, 0.6);
+    color: #ccc;
+    padding: 8px 16px;
+    border: 1px solid rgba(80, 80, 80, 0.5);
+    border-radius: 8px;
+}
+
+/* --- TOGGLE BUTTON (Control Panel) --- */
+QPushButton#btn_toggle_hotkey[active="true"] {
+    background-color: #14a085;
+    color: white;
+}
+
+/* ============================================================
+   EXTRACTED STYLES FROM UI FILES
+   ============================================================ */
+
+/* --- DESKTOP PAGE --- */
+QFrame#frame_list_container {
+    background-color: #1a1a20;
+    border-radius: 12px;
+}
+
+QLabel#label_list_title {
+    font-weight: 800;
+    color: #555;
+}
+
+QPushButton#btn_add_desktop {
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 0;
+}
+
+QLabel#label_empty {
+    color: #666;
+    font-size: 16px;
+}
+
+QFrame#frame_banner {
+    background-color: #000;
+    border-radius: 12px;
+}
+
+QLabel#img_wallpaper_preview {
+    border-radius: 12px;
+}
+
+QLabel#label_desktop_name {
+    font-size: 32px;
+    font-weight: 800;
+    color: #fff;
+}
+
+QPushButton#btn_edit_name {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    color: #666;
+}
+
+QFrame#card_path {
+    background-color: #1e1e24;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+QLabel#lbl_path_title {
+    color: #00b4d8;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+QLabel#label_desktop_path {
+    color: #ccc;
+    font-family: monospace;
+}
+
+QPushButton#btn_change_wallpaper {
+    background-color: #2a2a30;
+    border: 1px solid #333;
+}
+
+QFrame#frame_create_modal {
+    background-color: #1e1e24;
+    border-radius: 16px;
+}
+
+QLabel#label_create_title {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* --- HOTKEY PAGE --- */
+QLabel#lbl_status_text {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton#btn_start {
+    background-color: #1a7a65;
+    color: white;
+    font-weight: bold;
+}
+
+QPushButton#btn_stop {
+    background-color: #7a1a1a;
+    color: white;
+}
+
+QLabel#lbl_message {
+    color: #aaa;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+/* Header override specific for hotkey table if needed,
+   otherwise generic table header style applies.
+   Keeping specific color from UI file. */
+QTableWidget#table_hotkeys QHeaderView::section {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 4px;
+}
+
+/* --- SETTINGS PAGE --- */
+QLabel#lbl_tray_hint {
+    color: #666;
+    font-style: italic;
+}
+
+/* --- OVERVIEW WINDOW --- */
+QWidget#Form[window_type="overview"] {
+    background-color: #2b2b2b;
+    border: 1px solid #454545;
+    border-radius: 15px;
+}
+
+QWidget#Form[window_type="overview"] QWidget {
+    color: #ffffff;
+}
+
+QWidget#Form[window_type="overview"] QListWidget {
+    background-color: transparent;
+    border: none;
+    outline: 0;
+    padding: 5px;
+}
+
+QWidget#Form[window_type="overview"] QListWidget::item {
+    background-color: #3c3c3c;
+    border-radius: 8px;
+    color: #ffffff;
+    padding: 8px 15px;
+    margin: 2px;
+    border: 2px solid transparent;
+}
+
+QWidget#Form[window_type="overview"] QListWidget::item:selected {
+    background-color: #1a7a65;
+    border: 2px solid #14a085;
+    color: #ffffff;
+}
+
+QWidget#Form[window_type="overview"] QListWidget::item:hover {
+    background-color: #4a4a4a;
+    border: 2px solid #5a5a5a;
+}
+
+QWidget#Form[window_type="overview"] QListWidget::item:selected:hover {
+    background-color: #14a085;
+    border: 2px solid #1abc9c;
+}
+
+/* --- MANAGE WINDOW --- */
+QWidget#Form[window_type="manage"] {
+    background-color: #2b2b2b;
+    color: #ffffff;
+}
+
+/* --- CONTEXT MENU (from gui_manage.py) --- */
+QMenu {
+    background-color: #3c3c3c;
+    color: white;
+    border: 1px solid #555;
+}
+
+QMenu::item:selected {
+    background-color: #d9534f;
+}
+
+/* --- HOTKEY STATUS MESSAGE (from hotkey_page.py) --- */
+QLabel#lbl_message {
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+QLabel#lbl_message[status="success"] {
+    color: #1a7a65;
+}
+
+QLabel#lbl_message[status="error"] {
+    color: #cc4444;
 }

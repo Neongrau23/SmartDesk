@@ -19,13 +19,8 @@
       <property name="windowTitle">
          <string>SmartDesk - Desktops verwalten</string>
       </property>
-      <property name="styleSheet">
-         <string notr="true">/* Die Styles werden idealerweise aus der style.qss geladen,
-            hier nur Basis-Layout-Farben für Vorschau im Designer */
-            QWidget {
-            background-color: #2b2b2b;
-            color: #ffffff;
-            }</string>
+      <property name="window_type" stdset="0">
+         <string>manage</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
          <property name="spacing">

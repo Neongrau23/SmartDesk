@@ -25,83 +25,6 @@
         <property name="windowTitle">
             <string>SmartDesk - Desktop erstellen</string>
         </property>
-        <property name="styleSheet">
-            <string notr="true">#Form {
-                background-color: #2b2b2b;
-                border-radius: 10px;
-                }
-
-                QWidget {
-                color: #ffffff;
-                }
-
-                QLabel {
-                color: #cccccc;
-                }
-
-                QLineEdit {
-                background-color: #3c3c3c;
-                color: #ffffff;
-                border: 1px solid #555555;
-                border-radius: 4px;
-                padding: 5px;
-                }
-
-                QLineEdit:focus {
-                border: 1px solid #14a085;
-                }
-
-                QPushButton {
-                background-color: #3c3c3c;
-                color: #ffffff;
-                border: none;
-                border-radius: 4px;
-                padding: 8px;
-                }
-
-                QPushButton:hover {
-                background-color: #4a4a4a;
-                }
-
-                QPushButton:pressed {
-                background-color: #2a2a2a;
-                }
-
-                QPushButton#btn_create {
-                background-color: #14a085;
-                color: #ffffff;
-                }
-
-                QPushButton#btn_create:hover {
-                background-color: #0d7377;
-                }
-
-                QPushButton#btn_create:pressed {
-                background-color: #0a5a5d;
-                }
-
-                QRadioButton {
-                color: #ffffff;
-                spacing: 8px;
-                }
-
-                QRadioButton::indicator {
-                width: 16px;
-                height: 16px;
-                }
-
-                QRadioButton::indicator:unchecked {
-                border: 2px solid #555555;
-                border-radius: 8px;
-                background-color: #3c3c3c;
-                }
-
-                QRadioButton::indicator:checked {
-                border: 2px solid #14a085;
-                border-radius: 8px;
-                background-color: #14a085;
-                }</string>
-        </property>
         <layout class="QVBoxLayout" name="verticalLayout">
             <property name="spacing">
                 <number>8</number>
@@ -358,9 +281,6 @@
                             </property>
                             <property name="cursor">
                                 <cursorShape>PointingHandCursor</cursorShape>
-                            </property>
-                            <property name="styleSheet">
-                                <string notr="true" />
                             </property>
                             <property name="text">
                                 <string>Erstellen</string>

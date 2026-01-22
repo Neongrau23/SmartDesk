@@ -77,6 +77,7 @@ class SettingsPage(QWidget):
 
         # Auto-Switch (dynamisch erstellt, da es BETA ist)
         self.group_autopilot = QGroupBox("Auto-Pilot (BETA)")
+        self.group_autopilot.setObjectName("group_autopilot")  # Für CSS Styling
         layout_ap = QVBoxLayout()
         self.check_autoswitch = QCheckBox("Automatisch wechseln bei erkanntem Programmstart")
         is_enabled = settings_service.get_setting("auto_switch_enabled", False)
@@ -134,34 +135,38 @@ class SettingsPage(QWidget):
         settings_service.set_setting("github_pat", text)
         logger.info("GitHub PAT updated in settings.")
 
+    def _update_status_label(self, text, state="normal"):
+        """Hilfsmethode zum Setzen von Text und Style-Status."""
+        self.lbl_update_status.setText(text)
+        self.lbl_update_status.setProperty("state", state)
+        self.lbl_update_status.style().unpolish(self.lbl_update_status)
+        self.lbl_update_status.style().polish(self.lbl_update_status)
+
     def check_for_updates(self):
-        self.lbl_update_status.setText("Suche nach Updates...")
+        self._update_status_label("Suche nach Updates...", "normal")
         self.btn_check_for_updates.setEnabled(False)
 
         try:
             is_newer, latest_version = self.update_service.check_for_updates()
 
             if is_newer:
-                self.lbl_update_status.setText(f"Neue Version verfügbar: v{latest_version}! Klicken zum Download.")
-                self.lbl_update_status.setStyleSheet("color: green;")
+                self.lbl_update_status.setStyleSheet("") # Reset legacy style if any
+                self._update_status_label(f"Neue Version verfügbar: v{latest_version}! Klicken zum Download.", "success")
+                
                 download_url = self.update_service.get_download_url()
                 if download_url:
                     self.lbl_update_status.setText(f'<a href="{download_url}">Neue Version v{latest_version} verfügbar! Hier klicken zum Download.</a>')
                     self.lbl_update_status.setOpenExternalLinks(True)
             elif latest_version == "RATE_LIMIT_EXCEEDED":
-                self.lbl_update_status.setText("GitHub API Rate Limit erreicht. Bitte später versuchen oder Personal Access Token (PAT) eingeben.")
-                self.lbl_update_status.setStyleSheet("color: orange;")
+                self._update_status_label("GitHub API Rate Limit erreicht. Bitte später versuchen oder Personal Access Token (PAT) eingeben.", "warning")
             elif latest_version:
-                self.lbl_update_status.setText(f"SmartDesk ist aktuell (v{__version__}).")
-                self.lbl_update_status.setStyleSheet("color: black;")
+                self._update_status_label(f"SmartDesk ist aktuell (v{__version__}).", "normal")
             else:
-                self.lbl_update_status.setText("Fehler beim Prüfen auf Updates (API-Antwort oder Netzwerk).")
-                self.lbl_update_status.setStyleSheet("color: red;")
+                self._update_status_label("Fehler beim Prüfen auf Updates (API-Antwort oder Netzwerk).", "error")
 
         except Exception as e:
             logger.error(f"Update check failed with an exception: {e}")
-            self.lbl_update_status.setText(f"Fehler: {e}")
-            self.lbl_update_status.setStyleSheet("color: red;")
+            self._update_status_label(f"Fehler: {e}", "error")
 
         self.btn_check_for_updates.setEnabled(True)
 

@@ -181,9 +181,13 @@ class HotkeyPage(QWidget):
         if not self.lbl_message:
             return
 
-        color = "#1a7a65" if success else "#cc4444"
+        status = "success" if success else "error"
         self.lbl_message.setText(text)
-        self.lbl_message.setStyleSheet(f"color: {color}; font-weight: bold; margin-top: 5px;")
+        self.lbl_message.setProperty("status", status)
+        
+        # Force style refresh
+        self.lbl_message.style().unpolish(self.lbl_message)
+        self.lbl_message.style().polish(self.lbl_message)
 
         self.msg_timer.start(3000)
 

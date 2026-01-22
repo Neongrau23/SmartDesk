@@ -101,7 +101,7 @@ class DesktopPage(QWidget):
 
         # GroupBox
         self.group_rules = QGroupBox("VERKNÜPFTE PROGRAMME (AUTO-SWITCH)")
-        self.group_rules.setStyleSheet("QGroupBox { font-weight: bold; color: #00b4d8; margin-top: 10px; }")
+        self.group_rules.setObjectName("group_auto_switch")  # Für CSS Styling
         layout_rules = QVBoxLayout()
 
         # List
@@ -278,12 +278,21 @@ class DesktopPage(QWidget):
             if desktop.is_active:
                 self.lbl_status.setVisible(True)
                 self.lbl_status.setText("AKTIV")
-                self.lbl_status.setStyleSheet("background-color: #1a7a65; color: white; padding: 4px 10px; border-radius: 12px; font-weight: bold;")
+                
+                # Set property for CSS styling
+                self.lbl_status.setProperty("active", True)
+                self.lbl_status.style().unpolish(self.lbl_status)
+                self.lbl_status.style().polish(self.lbl_status)
+
                 self.btn_activate.setEnabled(False)
                 self.btn_activate.setText("Bereits aktiv")
                 self.btn_delete.setEnabled(False)  # Aktive Desktops nicht löschen
             else:
                 self.lbl_status.setVisible(False)
+                self.lbl_status.setProperty("active", False) # Reset
+                self.lbl_status.style().unpolish(self.lbl_status)
+                self.lbl_status.style().polish(self.lbl_status)
+
                 self.btn_activate.setEnabled(True)
                 self.btn_activate.setText("Zu diesem Desktop wechseln")
                 self.btn_delete.setEnabled(not desktop.protected)

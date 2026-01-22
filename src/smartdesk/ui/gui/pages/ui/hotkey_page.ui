@@ -182,9 +182,7 @@
                                         <property name="text">
                                             <string>Status unbekannt</string>
                                         </property>
-                                        <property name="styleSheet">
-                                            <string>font-size: 16px; font-weight: bold;</string>
-                                        </property>
+
                                     </widget>
                                 </item>
                                 <item>
@@ -200,10 +198,7 @@
                                         <property name="text">
                                             <string>Starten</string>
                                         </property>
-                                        <property name="styleSheet">
-                                            <string>background-color: #1a7a65; color: white;
-                                                font-weight: bold;</string>
-                                        </property>
+
                                     </widget>
                                 </item>
                                 <item>
@@ -211,9 +206,7 @@
                                         <property name="text">
                                             <string>Stoppen</string>
                                         </property>
-                                        <property name="styleSheet">
-                                            <string>background-color: #7a1a1a; color: white;</string>
-                                        </property>
+
                                     </widget>
                                 </item>
                                 <item>
@@ -235,9 +228,7 @@
                                 <property name="alignment">
                                     <set>Qt::AlignCenter</set>
                                 </property>
-                                <property name="styleSheet">
-                                    <string>color: #aaa; font-style: italic; margin-top: 5px;</string>
-                                </property>
+
                             </widget>
                         </item>
                     </layout>
@@ -262,10 +253,7 @@
                                 <property name="editTriggers">
                                     <enum>QAbstractItemView::NoEditTriggers</enum>
                                 </property>
-                                <property name="styleSheet">
-                                    <string>QHeaderView::section { background-color: #333; color:
-                                        white; border: none; padding: 4px; }</string>
-                                </property>
+
                                 <column>
                                     <property name="text">
                                         <string>Taste</string>

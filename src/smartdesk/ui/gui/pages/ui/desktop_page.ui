@@ -42,9 +42,7 @@
                             <height>16777215</height>
                         </size>
                     </property>
-                    <property name="styleSheet">
-                        <string>background-color: #1a1a20; border-radius: 12px;</string>
-                    </property>
+
 
                     <layout class="QVBoxLayout" name="verticalLayout_list">
                         <property name="spacing">
@@ -70,10 +68,7 @@
                                         <property name="text">
                                             <string>DESKTOPS</string>
                                         </property>
-                                        <property name="styleSheet">
-                                            <string>font-weight: 800; color: #555; letter-spacing:
-                                                1px;</string>
-                                        </property>
+
                                     </widget>
                                 </item>
                                 <item>
@@ -103,10 +98,7 @@
                                         <property name="toolTip">
                                             <string>Neuen Desktop erstellen</string>
                                         </property>
-                                        <property name="styleSheet">
-                                            <string>border-radius: 15px; font-weight: bold;
-                                                font-size: 18px; padding: 0;</string>
-                                        </property>
+
                                     </widget>
                                 </item>
                             </layout>
@@ -154,9 +146,7 @@
                                     <property name="alignment">
                                         <set>Qt::AlignCenter</set>
                                     </property>
-                                    <property name="styleSheet">
-                                        <string>color: #666; font-size: 16px;</string>
-                                    </property>
+
                                 </widget>
                             </item>
                         </layout>
@@ -196,9 +186,7 @@
                                             <height>220</height>
                                         </size>
                                     </property>
-                                    <property name="styleSheet">
-                                        <string>background-color: #000; border-radius: 12px;</string>
-                                    </property>
+
 
                                     <layout class="QVBoxLayout" name="layout_banner_inner">
                                         <property name="margin">
@@ -216,9 +204,7 @@
                                                 <property name="scaledContents">
                                                     <bool>true</bool>
                                                 </property>
-                                                <property name="styleSheet">
-                                                    <string>border-radius: 12px;</string>
-                                                </property>
+
                                             </widget>
                                         </item>
                                     </layout>
@@ -240,10 +226,7 @@
                                                     <property name="text">
                                                         <string>Desktop Name</string>
                                                     </property>
-                                                    <property name="styleSheet">
-                                                        <string>font-size: 32px; font-weight: 800;
-                                                            color: #fff;</string>
-                                                    </property>
+
                                                 </widget>
                                             </item>
                                             <item>
@@ -251,10 +234,7 @@
                                                     <property name="text">
                                                         <string>✎</string>
                                                     </property>
-                                                    <property name="styleSheet">
-                                                        <string>background: transparent; border:
-                                                            none; font-size: 20px; color: #666;</string>
-                                                    </property>
+
                                                     <property name="maximumSize">
                                                         <size>
                                                             <width>30</width>
@@ -290,10 +270,7 @@
                                             <!-- Path Card -->
                                             <item>
                                                 <widget class="QFrame" name="card_path">
-                                                    <property name="styleSheet">
-                                                        <string>background-color: #1e1e24;
-                                                            border-radius: 8px; padding: 10px;</string>
-                                                    </property>
+
                                                     <layout class="QVBoxLayout" name="vl_path">
                                                         <item>
                                                             <widget class="QLabel"
@@ -301,11 +278,7 @@
                                                                 <property name="text">
                                                                     <string>SPEICHERORT</string>
                                                                 </property>
-                                                                <property name="styleSheet">
-                                                                    <string>color: #00b4d8;
-                                                                        font-weight: bold;
-                                                                        font-size: 10px;</string>
-                                                                </property>
+
                                                             </widget>
                                                         </item>
                                                         <item>
@@ -314,10 +287,7 @@
                                                                 <property name="text">
                                                                     <string>C:/...</string>
                                                                 </property>
-                                                                <property name="styleSheet">
-                                                                    <string>color: #ccc;
-                                                                        font-family: monospace;</string>
-                                                                </property>
+
                                                                 <property name="wordWrap">
                                                                     <bool>true</bool>
                                                                 </property>
@@ -370,10 +340,7 @@
                                                             <height>45</height>
                                                         </size>
                                                     </property>
-                                                    <property name="styleSheet">
-                                                        <string>background-color: #2a2a30; border:
-                                                            1px solid #333;</string>
-                                                    </property>
+
                                                 </widget>
                                             </item>
                                             <item>
@@ -425,10 +392,7 @@
                                                     <height>0</height>
                                                 </size>
                                             </property>
-                                            <property name="styleSheet">
-                                                <string>background-color: #1e1e24; border-radius:
-                                                    16px;</string>
-                                            </property>
+
 
                                             <layout class="QVBoxLayout" name="vl_create_inner">
                                                 <property name="margin">
@@ -443,10 +407,7 @@
                                                         <property name="text">
                                                             <string>Neuer Desktop</string>
                                                         </property>
-                                                        <property name="styleSheet">
-                                                            <string>font-size: 22px; font-weight:
-                                                                bold;</string>
-                                                        </property>
+
                                                     </widget>
                                                 </item>
 

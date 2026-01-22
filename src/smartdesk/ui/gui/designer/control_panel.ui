@@ -25,16 +25,6 @@
     <property name="windowTitle">
       <string>Control Panel</string>
     </property>
-    <property name="styleSheet">
-      <string notr="true">#Form {
-        background-color: #2b2b2b;
-        border-radius: 10px;
-        }
-
-        QLabel {
-        color: #cccccc;
-        }</string>
-    </property>
     <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
         <number>0</number>
@@ -111,9 +101,6 @@
               <width>16777215</width>
               <height>1</height>
             </size>
-          </property>
-          <property name="styleSheet">
-            <string notr="true">background-color: #666666;</string>
           </property>
           <property name="frameShape">
             <enum>QFrame::Shape::HLine</enum>
