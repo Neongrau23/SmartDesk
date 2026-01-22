@@ -4,6 +4,7 @@ import logging
 from typing import Optional, Tuple, Dict, Any
 from smartdesk import __version__
 from smartdesk.shared.logging_config import get_logger
+from smartdesk.shared.localization import get_text
 from smartdesk.core.services import settings_service  # Import settings_service
 
 logger = get_logger(__name__)
@@ -43,28 +44,28 @@ class UpdateService:
 
                     remote_version_raw = data.get("tag_name", "0.0.0")
                     if not remote_version_raw:
-                        logger.warning("tag_name not found in GitHub API response.")
+                        logger.warning(get_text("update_service.warn.no_tag_name"))
                         return False, None
 
                     remote_version = remote_version_raw.lstrip("v")
 
                     if self._is_version_newer(__version__, remote_version):
-                        logger.info(f"New version available: {remote_version} (current: {__version__})")
+                        logger.info(get_text("update_service.info.update_available", remote=remote_version, current=__version__))
                         return True, remote_version
 
-                    logger.info(f"SmartDesk is up to date (current: {__version__})")
+                    logger.info(get_text("update_service.info.up_to_date", current=__version__))
                     return False, remote_version
                 else:
-                    logger.error(f"GitHub API returned status code: {response.status}")
+                    logger.error(get_text("update_service.error.status_code", status=response.status))
         except urllib.error.HTTPError as http_e:
             if http_e.code == 403:
-                logger.error(f"GitHub API rate limit exceeded: {http_e}", exc_info=True)
+                logger.error(get_text("update_service.error.rate_limit", e=http_e), exc_info=True)
                 return False, "RATE_LIMIT_EXCEEDED"
             else:
-                logger.error(f"Failed to check for updates (HTTP Error {http_e.code}): {http_e}", exc_info=True)
+                logger.error(get_text("update_service.error.check_failed_http", code=http_e.code, e=http_e), exc_info=True)
                 return False, None
         except Exception as e:
-            logger.error(f"Failed to check for updates: {e}", exc_info=True)
+            logger.error(get_text("update_service.error.check_failed", e=e), exc_info=True)
 
         return False, None
 

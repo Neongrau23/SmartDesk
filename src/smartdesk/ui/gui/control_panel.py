@@ -23,11 +23,15 @@ except ImportError:
 
 try:
     from smartdesk.shared.logging_config import get_logger
+    from smartdesk.shared.localization import get_text
 
     logger = get_logger(__name__)
 except ImportError:
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
+
+    def get_text(key, **kwargs):
+        return key
 
 try:
     from smartdesk.core.services import desktop_service
@@ -82,7 +86,7 @@ class SmartDeskControlPanel(QWidget):
         self.load_ui()
         self.load_stylesheet()  # NEU: Lädt das CSS
 
-        self.setWindowTitle("Control Panel")
+        self.setWindowTitle(get_text("gui.control_panel.title"))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -123,7 +127,7 @@ class SmartDeskControlPanel(QWidget):
 
         ui_file = QFile(ui_file_path)
         if not ui_file.open(QIODevice.ReadOnly):
-            logger.error(f"UI Datei nicht gefunden: {ui_file_path}")
+            logger.error(get_text("gui.control_panel.error_ui_file", path=ui_file_path))
             sys.exit(-1)
 
         container_widget = loader.load(ui_file)
@@ -141,7 +145,7 @@ class SmartDeskControlPanel(QWidget):
             with open(style_path, "r") as f:
                 self.setStyleSheet(f.read())
         except Exception as e:
-            logger.warning(f"Style.qss konnte nicht geladen werden: {e}")
+            logger.warning(get_text("gui.control_panel.warn_style", e=e))
 
     def setup_positioning(self):
         screen = QApplication.primaryScreen()
@@ -215,7 +219,7 @@ class SmartDeskControlPanel(QWidget):
         self.is_active = is_running
 
         # Text Logik
-        new_text = "Hotkey Deaktivieren" if is_running else "Hotkey Aktivieren"
+        new_text = get_text("gui.control_panel.button_hotkey_deactivate") if is_running else get_text("gui.control_panel.button_hotkey_activate")
         if self.toggle_btn.text() != new_text:
             self.toggle_btn.setText(new_text)
 
@@ -228,10 +232,10 @@ class SmartDeskControlPanel(QWidget):
 
     def toggle_smartdesk(self):
         if self.is_active:
-            logger.info("Deaktiviere SmartDesk...")
+            logger.info(get_text("gui.control_panel.log_deactivate"))
             hotkey_manager.stop_listener()
         else:
-            logger.info("Aktiviere SmartDesk...")
+            logger.info(get_text("gui.control_panel.log_activate"))
             hotkey_manager.start_listener()
 
         # UI sofort aktualisieren
@@ -243,10 +247,10 @@ class SmartDeskControlPanel(QWidget):
         try:
             desktops = desktop_service.get_all_desktops()
             active_desktop = next((d for d in desktops if d.is_active), None)
-            text = f"Desktop: {active_desktop.name}" if active_desktop else "Desktop: -"
+            text = get_text("gui.control_panel.desktop_label_template", name=active_desktop.name) if active_desktop else get_text("gui.control_panel.desktop_label_none")
             self.desktop_name_label.setText(text)
         except Exception:
-            self.desktop_name_label.setText("Desktop: -")
+            self.desktop_name_label.setText(get_text("gui.control_panel.desktop_label_none"))
 
     def open_smartdesk(self):
         self._run_gui_script("gui_main.py")

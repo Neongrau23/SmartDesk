@@ -8,6 +8,7 @@ from typing import Any
 
 from ...shared.config import DATA_DIR
 from ...shared.logging_config import get_logger
+from ...shared.localization import get_text
 
 logger = get_logger(__name__)
 
@@ -39,7 +40,7 @@ def load_settings() -> dict:
             settings.update(data)
             return settings
     except Exception as e:
-        logger.error(f"Fehler beim Laden der Einstellungen: {e}")
+        logger.error(get_text("settings_service.error.load", e=e))
         return DEFAULTS.copy()
 
 
@@ -50,7 +51,7 @@ def save_settings(settings: dict) -> bool:
             json.dump(settings, f, indent=4, ensure_ascii=False)
         return True
     except Exception as e:
-        logger.error(f"Fehler beim Speichern der Einstellungen: {e}")
+        logger.error(get_text("settings_service.error.save", e=e))
         return False
 
 

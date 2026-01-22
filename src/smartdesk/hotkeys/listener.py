@@ -185,7 +185,7 @@ def _execute_hold_action():
     global wait_state
     if wait_state == "WAITING_FOR_ACTION":
         if _log_func:
-            _log_func(f"{ACTION_KEY_NAME}-Hold-Timer abgelaufen, führe Hold-Aktion aus.")
+            _log_func(get_text("hotkey_listener.log.timer_expired", key=ACTION_KEY_NAME))
 
         registry = get_registry()
         if registry.has_hold_action():
@@ -210,8 +210,8 @@ def _trigger_activation():
     action_key_used_after_activation = False  # Reset flag
 
     if _log_func:
-        _log_func(f"Aktivierung erkannt (Release)! Warte auf {ACTION_KEY_NAME} + Taste...")
-    print(get_text("hotkey_listener.info.wait_for_alt_num"))
+        _log_func(get_text("hotkey_listener.log.activation_detected", key=ACTION_KEY_NAME))
+    print(get_text("hotkey_listener.log.wait_for_alt_num"))
 
     ctrl = _get_banner_ctrl()
     if ctrl:
@@ -274,9 +274,9 @@ def on_press(key):
                 pass
             else:
                 if _log_func:
-                    _log_func(f"Keine Aktion für: {key_char}")
+                    _log_func(get_text("hotkey_listener.log.no_action", key=key_char))
                 _close_banner_and_reset()
-                print(get_text("hotkey_listener.info.abort_invalid_key"))
+                print(get_text("hotkey_listener.log.abort_no_alt"))
 
         elif is_ignored_key:
             pass
@@ -335,7 +335,7 @@ def on_release(key):
                 # NUR Resetten, wenn der Key NACH der Aktivierung benutzt wurde!
                 if action_key_used_after_activation:
                     if _log_func:
-                        _log_func(f"{ACTION_KEY_NAME} losgelassen, Zyklus beendet.")
+                        _log_func(get_text("hotkey_listener.log.cycle_ended", key=ACTION_KEY_NAME))
                     _close_banner_and_reset()
                 else:
                     # Grace Period: Key wurde losgelassen, der zur Aktivierung gehörte. Ignorieren.
@@ -387,8 +387,8 @@ def start_listener():
     for group in parsed_mod:
         ACTION_KEY_GROUP.update(group)
 
-    log_message(f"Listener Konfiguration: Aktivierung='{act_str}', Aktion='{mod_str}'")
-    print(f"[INFO] Listener geladen. Aktivierung: {act_str} (On Release), Aktion: {mod_str}")
+    log_message(get_text("hotkey_listener.log.config", act=act_str, mod=mod_str))
+    print(get_text("hotkey_listener.info.loaded", act=act_str, mod=mod_str))
 
     # Controller Config Update
     try:
@@ -396,9 +396,9 @@ def start_listener():
         ctrl = _get_banner_ctrl()
         if ctrl:
             ctrl.config.hold_duration_sec = hold_dur
-            log_message(f"Hold duration set to {hold_dur}s")
+            log_message(get_text("hotkey_listener.log.hold_duration", dur=hold_dur))
     except Exception as e:
-        logger.error(f"Error setting hold duration: {e}")
+        logger.error(get_text("hotkey_listener.log.hold_duration_error", e=e))
 
     print(get_text("hotkey_listener.info.starting"))
 

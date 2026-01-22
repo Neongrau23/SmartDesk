@@ -70,7 +70,7 @@ class ManageDesktopsWindow(QWidget):
         self.load_stylesheet()
 
         # Fenster-Settings
-        self.setWindowTitle("Desktops verwalten")
+        self.setWindowTitle(get_text("gui.manage_dialog.title"))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -106,7 +106,7 @@ class ManageDesktopsWindow(QWidget):
 
         ui_file = QFile(ui_path)
         if not ui_file.open(QIODevice.ReadOnly):
-            logger.error(f"UI nicht gefunden: {ui_path}")
+            logger.error(get_text("gui.manage_dialog.error_ui_file", path=ui_path))
             sys.exit(-1)
 
         container = loader.load(ui_file)
@@ -157,7 +157,7 @@ class ManageDesktopsWindow(QWidget):
         for d in desktops:
             display_text = f"🖥️ {d.name}"
             if d.is_active:
-                display_text += " (Aktiv)"
+                display_text += get_text("gui.common.status_active")
 
             btn = QPushButton(display_text)
             btn.setCheckable(True)
@@ -201,7 +201,7 @@ class ManageDesktopsWindow(QWidget):
             return
 
         self.block_close_on_blur = True
-        new_name, ok = QInputDialog.getText(self, "Umbenennen", f"Neuer Name für '{self.selected_desktop.name}':", text=self.selected_desktop.name)
+        new_name, ok = QInputDialog.getText(self, get_text("gui.manage_dialog.rename_title"), get_text("gui.manage_dialog.rename_label", name=self.selected_desktop.name), text=self.selected_desktop.name)
         self.block_close_on_blur = False
 
         if ok and new_name and new_name != self.selected_desktop.name:
@@ -209,19 +209,19 @@ class ManageDesktopsWindow(QWidget):
             if success:
                 self.refresh_list()
             else:
-                QMessageBox.warning(self, "Fehler", "Konnte Desktop nicht umbenennen.")
+                QMessageBox.warning(self, get_text("gui.common.error_title"), get_text("gui.manage_dialog.error_rename"))
 
     def action_wallpaper(self):
         if not self.selected_desktop:
             return
 
         self.block_close_on_blur = True
-        file_path, _ = QFileDialog.getOpenFileName(self, "Hintergrundbild wählen", "", "Bilder (*.png *.jpg *.jpeg *.bmp)")
+        file_path, _ = QFileDialog.getOpenFileName(self, get_text("gui.manage_dialog.wallpaper_title"), "", "Bilder (*.png *.jpg *.jpeg *.bmp)")
         self.block_close_on_blur = False
 
         if file_path:
             desktop_service.assign_wallpaper(self.selected_desktop.name, file_path)
-            QMessageBox.information(self, "Erfolg", "Hintergrundbild zugewiesen.")
+            QMessageBox.information(self, get_text("gui.common.success_title"), get_text("gui.manage_dialog.success_wallpaper"))
 
     def action_more_options(self):
         """Zeigt ein Kontextmenü für Löschen etc."""
@@ -230,7 +230,7 @@ class ManageDesktopsWindow(QWidget):
 
         menu = QMenu(self)
         
-        action_delete = menu.addAction("🗑️ Löschen")
+        action_delete = menu.addAction(get_text("gui.manage_dialog.action_delete"))
 
         # Zeige Menü unter dem Button
         self.block_close_on_blur = True
@@ -245,12 +245,12 @@ class ManageDesktopsWindow(QWidget):
         d = self.selected_desktop
         if d.is_active:
             self.block_close_on_blur = True
-            QMessageBox.warning(self, "Stopp", "Der aktive Desktop kann nicht gelöscht werden.")
+            QMessageBox.warning(self, get_text("gui.manage_dialog.stop_title"), get_text("gui.manage_dialog.error_delete_active"))
             self.block_close_on_blur = False
             return
 
         self.block_close_on_blur = True
-        confirm = QMessageBox.question(self, "Löschen", f"Soll '{d.name}' wirklich gelöscht werden?", QMessageBox.Yes | QMessageBox.No)
+        confirm = QMessageBox.question(self, get_text("gui.common.button_delete"), get_text("gui.manage_dialog.msgbox_delete_confirm_text", name=d.name), QMessageBox.Yes | QMessageBox.No)
         self.block_close_on_blur = False
 
         if confirm == QMessageBox.Yes:
