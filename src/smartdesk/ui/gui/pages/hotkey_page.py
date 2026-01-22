@@ -2,7 +2,7 @@ import os
 import logging
 from PySide6.QtWidgets import QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox, QDoubleSpinBox
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, Qt, QTimer
+from PySide6.QtCore import QFile, QIODevice, Qt, QTimer, QEvent
 
 from smartdesk.hotkeys import hotkey_manager
 from smartdesk.core.services.settings_service import get_setting, set_setting
@@ -77,6 +77,23 @@ class HotkeyPage(QWidget):
         self.spin_hold_duration = self.ui.findChild(QDoubleSpinBox, "spin_hold_duration")
         self.btn_save_config = self.ui.findChild(QPushButton, "btn_save_config")
 
+        self.setup_scroll_protection()
+
+    def setup_scroll_protection(self):
+        """Verhindert, dass Scrollen die Werte ändert, wenn das Widget keinen Fokus hat."""
+        widgets = [self.combo_activation, self.combo_action, self.spin_hold_duration]
+        for w in widgets:
+            if w:
+                w.setFocusPolicy(Qt.StrongFocus)
+                w.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Wheel and source in [self.combo_activation, self.combo_action, self.spin_hold_duration]:
+            if not source.hasFocus():
+                event.ignore()
+                return True # Event nicht an das Widget weitergeben (ScrollArea übernimmt)
+        return super().eventFilter(source, event)
+
     def setup_connections(self):
         if self.btn_start:
             self.btn_start.clicked.connect(self.action_start)
@@ -94,6 +111,23 @@ class HotkeyPage(QWidget):
         header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.Stretch)
         self.table.verticalHeader().setVisible(False)
+        self.table.setShowGrid(False)
+        self.table.setFocusPolicy(Qt.NoFocus)
+
+    def adjust_table_height(self):
+        """Berechnet die benötigte Höhe der Tabelle basierend auf den Zeilen."""
+        if not self.table:
+            return
+        
+        # Berechne Höhe: Header + alle Zeilen
+        height = self.table.horizontalHeader().height()
+        for i in range(self.table.rowCount()):
+            height += self.table.rowHeight(i)
+        
+        # Setze die Mindesthöhe, damit die Tabelle im Layout nicht gequetscht wird
+        # Wir fügen einen kleinen Puffer hinzu (2px)
+        self.table.setMinimumHeight(height + 2)
+        self.table.setMaximumHeight(height + 2)
 
     def load_config_to_ui(self):
         """Lädt die aktuellen Settings in die ComboBoxen."""
@@ -176,6 +210,9 @@ class HotkeyPage(QWidget):
         for row, (keys, action) in enumerate(hotkeys):
             self.table.setItem(row, 0, QTableWidgetItem(keys))
             self.table.setItem(row, 1, QTableWidgetItem(action))
+        
+        # Höhe anpassen damit kein interner Scrollbalken erscheint
+        self.adjust_table_height()
 
     def show_message(self, text, success=True):
         if not self.lbl_message:

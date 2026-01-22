@@ -6,57 +6,46 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
 - **Stability First:** System-level calls (Win32) must be wrapped in try-except blocks. Crashes in background threads must not kill the main app.
 - **Performance:** GUI operations (PySide6) must happen in the main thread. Heavy lifting (file I/O, system calls) goes to background threads.
 - **Clean Code:** Follow PEP 8. Use type hints (`typing`) strictly. Docstrings for complex functions.
+- **Communication:** Technical documentation and explanations must be in professional **German**.
 
-## 🏗️ Architecture & Features (v0.4.1+)
+## 🏗️ Architecture & Features (v0.5.6+)
+- **Target Platform:** Exclusively **Windows 10+**.
 - **Persistent GUI Overlay:**
   - The hotkey overview (`gui_overview.py`) runs as a persistent background process managed by `BannerController`.
   - Communication happens via `stdin` commands: `SHOW`, `HIDE`, `QUIT`.
-  - **Do not** revert to spawning a new process per keypress.
+- **UI Styling (CRITICAL):**
+  - **Centralized Styling:** All styles must be defined in `src/smartdesk/ui/gui/style.qss`.
+  - **No Inline Styles:** Do not use the `styleSheet` property in `.ui` files or `setStyleSheet()` in Python code.
+  - **Dynamic Properties:** Use custom properties (e.g., `window_type="overview"`, `status="error"`) for state-based styling in CSS.
 - **Hotkey Logic:**
-  - Triggers are "On-Release" (key up) to prevent conflicts.
-  - Supports an "Instant Mode" (0.0s delay) which bypasses timer threads entirely.
+  - Triggers are "On-Release" (key up).
   - State Machine: `IDLE` -> `ARMED` -> `HOLDING` -> `SHOWING`.
 - **Desktop Switching Workflow:**
   - Sequence: Create Lock File -> Create Registry Backup -> Save Icons -> Update Registry -> Restart Windows Explorer -> Restore Icons/Wallpaper.
-  - The fullscreen fade animation (`screen_fade.py`) is critical to hide the desktop flickering during this restart.
 
 ## ⚙️ Technical Implementation Details
 - **Threading & Locks:**
-  - Services requiring recursive internal calls (e.g., `add_rule` calling `save_rules`) **must** use `threading.RLock` instead of `threading.Lock` to avoid deadlocks.
-  - When iterating over system resources based on a shared locked resource, make a copy of the resource within the lock, then release the lock before starting the long iteration.
+  - Use `threading.RLock` for services requiring recursive internal calls to avoid deadlocks.
+  - Minimize lock contention: Copy shared resources within a lock, then release it before long iterations.
 - **Performance (psutil):**
-  - To check running processes against rules, iterate through `psutil.process_iter()` and check each process individually. Stop as soon as a match is found. Do not create a large set of all process names first.
-  - For process termination checks, prefer `psutil.wait_procs` with a pre-filtered list over polling loops.
-- **Environment:**
-  - Network access can be unreliable; avoid unnecessary `pip install` commands.
+  - Iterate through `psutil.process_iter()` and stop early on matches instead of pre-generating large sets.
+  - Use `psutil.wait_procs` for process termination checks.
+- **File I/O:**
+  - Use `file_lock` with exponential backoff (1ms to 100ms).
+  - Cache raw JSON dictionaries instead of complex objects to avoid expensive deep copies.
 
 ## 🧪 Testing & Development
-- **Framework:** `pytest`. Run via `python -m pytest` to ensure correct environment.
-- **Requirements:**
-  - Must set `PYTHONPATH=src` and provide the `APPDATA` environment variable.
-  - **Mocking:** Since SmartDesk is Windows-heavy, mock `win32*`, `ctypes`, `PySide6`, `PIL`, and `pynput` in `tests/conftest.py` to allow execution in limited environments.
+- **Framework:** `pytest`. Run via `python -m pytest`.
+- **Environment:** Must set `PYTHONPATH=src` and provide `APPDATA`.
+- **Mocking:** Mock `win32*`, `ctypes`, `PySide6`, `PIL`, and `pynput` in `tests/conftest.py` for cross-platform support.
+- **Headless GUI:** Set `QT_QPA_PLATFORM='offscreen'` for running PySide6 tests in CI.
 
 ## 📝 Coding Style
-- **Naming:**
-  - Variables/Functions: `snake_case` (e.g., `current_desktop`)
-  - Classes: `PascalCase` (e.g., `DesktopService`)
-  - Constants: `UPPER_CASE`
-- **File Structure:**
-  - `core/`: Business logic & Services
-  - `ui/`: PySide6 GUI & Tray
-  - `hotkeys/`: pynput Listeners
-  - `shared/`: Config & Logging
-- **Logging:**
-  - Use `smartdesk.shared.logging_config.get_logger`.
-  - **Never** use `print()` in production code (it crashes in `.pyw` no-console mode).
-
-## 📦 Tech Stack
-- **Language:** Python 3.10+
-- **GUI:** PySide6 (Qt for Python)
-- **System:** pywin32 (ctypes, user32, shell32)
-- **Input:** pynput (Global Hotkeys)
+- **Naming:** `snake_case` for variables/functions, `PascalCase` for classes, `UPPER_CASE` for constants.
+- **Logging:** Use `smartdesk.shared.logging_config.get_logger`. **Never** use `print()` (crashes in `.pyw` mode).
+- **Ruff:** Use `ruff` for linting and formatting.
 
 ## 🚀 Release Process
-- Update `__version__` in `src/smartdesk/__init__.py`.
-- Create Git Tag (e.g., `v0.4.1`).
+- Master version is defined in `src/smartdesk/__init__.py`.
+- Sync `pyproject.toml` version manually.
 - Document changes in `docs/releases/vX.X.X.md`.

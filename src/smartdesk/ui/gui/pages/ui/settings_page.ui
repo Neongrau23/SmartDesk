@@ -27,6 +27,7 @@
         <number>40</number>
       </property>
 
+      <!-- Titel (Fixiert) -->
       <item>
         <widget class="QLabel" name="label_title">
           <property name="text">
@@ -43,111 +44,13 @@
           <property name="currentIndex">
             <number>0</number>
           </property>
-          <!-- Tab 1: Allgemein -->
+
+          <!-- TAB 1: ALLGEMEIN -->
           <widget class="QWidget" name="tab_general">
             <attribute name="title">
               <string>Allgemein</string>
             </attribute>
-            <layout class="QVBoxLayout" name="verticalLayout_general">
-              <item>
-                <widget class="QGroupBox" name="group_tray">
-                  <property name="title">
-                    <string>System</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="layout_tray">
-                    <item>
-                      <widget class="QCheckBox" name="check_autostart">
-                        <property name="text">
-                          <string>SmartDesk mit Windows starten</string>
-                        </property>
-                      </widget>
-                    </item>
-                    <item>
-                      <widget class="QLabel" name="lbl_tray_hint">
-                        <property name="text">
-                          <string>(Funktionen folgen in Kürze)</string>
-                        </property>
-
-                      </widget>
-                    </item>
-                  </layout>
-                </widget>
-              </item>
-              <item>
-                <widget class="QGroupBox" name="group_animation">
-                  <property name="title">
-                    <string>Animationen</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="layout_animation">
-                    <item>
-                      <widget class="QCheckBox" name="check_show_fade">
-                        <property name="text">
-                          <string>Blende beim Desktop-Wechsel anzeigen</string>
-                        </property>
-                        <property name="checked">
-                          <bool>true</bool>
-                        </property>
-                      </widget>
-                    </item>
-                  </layout>
-                </widget>
-              </item>
-              <item>
-                <widget class="QGroupBox" name="group_updates">
-                  <property name="title">
-                    <string>Updates</string>
-                  </property>
-                  <layout class="QVBoxLayout" name="layout_updates">
-                    <item>
-                      <widget class="QPushButton" name="btn_check_for_updates">
-                        <property name="text">
-                          <string>Auf Updates prüfen</string>
-                        </property>
-                      </widget>
-                    </item>
-                    <item>
-                      <widget class="QLabel" name="lbl_update_status">
-                        <property name="text">
-                          <string>Aktuelle Version: v0.5.0</string>
-                        </property>
-                      </widget>
-                    </item>
-                    <item>
-                      <widget class="QLabel" name="label_github_pat">
-                        <property name="text">
-                          <string>GitHub Personal Access Token (PAT):</string>
-                        </property>
-                      </widget>
-                    </item>
-                    <item>
-                      <widget class="QLineEdit" name="edit_github_pat">
-                        <property name="echoMode">
-                          <enum>QLineEdit::Password</enum>
-                        </property>
-                        <property name="placeholderText">
-                          <string>Optional: Für höheres Rate Limit</string>
-                        </property>
-                      </widget>
-                    </item>
-                  </layout>
-                </widget>
-              </item>
-              <item>
-                <spacer>
-                  <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                  </property>
-                </spacer>
-              </item>
-            </layout>
-          </widget>
-
-          <!-- Tab 2: Hotkeys (Placeholder, wird per Code gefüllt) -->
-          <widget class="QWidget" name="tab_hotkeys">
-            <attribute name="title">
-              <string>Hotkeys</string>
-            </attribute>
-            <layout class="QVBoxLayout" name="layout_hotkeys_container">
+            <layout class="QVBoxLayout" name="vl_tab_general_outer">
               <property name="leftMargin">
                 <number>0</number>
               </property>
@@ -160,6 +63,205 @@
               <property name="bottomMargin">
                 <number>0</number>
               </property>
+              <item>
+                <widget class="QScrollArea" name="scrollArea_general">
+                  <property name="widgetResizable">
+                    <bool>true</bool>
+                  </property>
+                  <property name="frameShape">
+                    <enum>QFrame::NoFrame</enum>
+                  </property>
+                  <property name="horizontalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAlwaysOff</enum>
+                  </property>
+                  <widget class="QWidget" name="scrollAreaWidgetContents_gen">
+                    <property name="geometry">
+                      <rect>
+                        <x>0</x>
+                        <y>0</y>
+                        <width>100</width>
+                        <height>100</height>
+                      </rect>
+                    </property>
+                    <!-- Dieses Layout wird vom Code gesucht (verticalLayout_general) -->
+                    <layout class="QVBoxLayout" name="verticalLayout_general">
+                      <property name="spacing">
+                        <number>15</number>
+                      </property>
+                      <property name="leftMargin">
+                        <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                        <number>15</number>
+                      </property>
+                      <property name="rightMargin">
+                        <number>15</number>
+                      </property>
+                      <property name="bottomMargin">
+                        <number>15</number>
+                      </property>
+
+                      <item>
+                        <widget class="QGroupBox" name="group_tray">
+                          <property name="title">
+                            <string>System</string>
+                          </property>
+                          <layout class="QVBoxLayout" name="layout_tray">
+                            <item>
+                              <widget class="QCheckBox" name="check_autostart">
+                                <property name="text">
+                                  <string>SmartDesk mit Windows starten</string>
+                                </property>
+                              </widget>
+                            </item>
+                            <item>
+                              <widget class="QLabel" name="lbl_tray_hint">
+                                <property name="text">
+                                  <string>(Funktionen folgen in Kürze)</string>
+                                </property>
+                              </widget>
+                            </item>
+                          </layout>
+                        </widget>
+                      </item>
+                      <item>
+                        <widget class="QGroupBox" name="group_animation">
+                          <property name="title">
+                            <string>Animationen</string>
+                          </property>
+                          <layout class="QVBoxLayout" name="layout_animation">
+                            <item>
+                              <widget class="QCheckBox" name="check_show_fade">
+                                <property name="text">
+                                  <string>Blende beim Desktop-Wechsel anzeigen</string>
+                                </property>
+                                <property name="checked">
+                                  <bool>true</bool>
+                                </property>
+                              </widget>
+                            </item>
+                          </layout>
+                        </widget>
+                      </item>
+                      <item>
+                        <widget class="QGroupBox" name="group_updates">
+                          <property name="title">
+                            <string>Updates</string>
+                          </property>
+                          <layout class="QVBoxLayout" name="layout_updates">
+                            <item>
+                              <widget class="QPushButton" name="btn_check_for_updates">
+                                <property name="text">
+                                  <string>Auf Updates prüfen</string>
+                                </property>
+                              </widget>
+                            </item>
+                            <item>
+                              <widget class="QLabel" name="lbl_update_status">
+                                <property name="text">
+                                  <string>Aktuelle Version: v0.5.6</string>
+                                </property>
+                              </widget>
+                            </item>
+                            <item>
+                              <widget class="QLabel" name="label_github_pat">
+                                <property name="text">
+                                  <string>GitHub Personal Access Token (PAT):</string>
+                                </property>
+                              </widget>
+                            </item>
+                            <item>
+                              <widget class="QLineEdit" name="edit_github_pat">
+                                <property name="echoMode">
+                                  <enum>QLineEdit::Password</enum>
+                                </property>
+                                <property name="placeholderText">
+                                  <string>Optional: Für höheres Rate Limit</string>
+                                </property>
+                              </widget>
+                            </item>
+                          </layout>
+                        </widget>
+                      </item>
+                      <item>
+                        <spacer name="verticalSpacer_general">
+                          <property name="orientation">
+                            <enum>Qt::Vertical</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                            <size>
+                              <width>20</width>
+                              <height>40</height>
+                            </size>
+                          </property>
+                        </spacer>
+                      </item>
+                    </layout>
+                  </widget>
+                </widget>
+              </item>
+            </layout>
+          </widget>
+
+          <!-- TAB 2: HOTKEYS -->
+          <widget class="QWidget" name="tab_hotkeys">
+            <attribute name="title">
+              <string>Hotkeys</string>
+            </attribute>
+            <layout class="QVBoxLayout" name="vl_tab_hotkeys_outer">
+              <property name="leftMargin">
+                <number>0</number>
+              </property>
+              <property name="topMargin">
+                <number>0</number>
+              </property>
+              <property name="rightMargin">
+                <number>0</number>
+              </property>
+              <property name="bottomMargin">
+                <number>0</number>
+              </property>
+              <item>
+                <widget class="QScrollArea" name="scrollArea_hotkeys">
+                  <property name="widgetResizable">
+                    <bool>true</bool>
+                  </property>
+                  <property name="frameShape">
+                    <enum>QFrame::NoFrame</enum>
+                  </property>
+                  <property name="horizontalScrollBarPolicy">
+                    <enum>Qt::ScrollBarAlwaysOff</enum>
+                  </property>
+                  <widget class="QWidget" name="scrollAreaWidgetContents_hot">
+                    <property name="geometry">
+                      <rect>
+                        <x>0</x>
+                        <y>0</y>
+                        <width>100</width>
+                        <height>100</height>
+                      </rect>
+                    </property>
+                    <!-- Dieses Layout wird vom Code gesucht (layout_hotkeys_container) -->
+                    <layout class="QVBoxLayout" name="layout_hotkeys_container">
+                      <property name="spacing">
+                        <number>0</number>
+                      </property>
+                      <property name="leftMargin">
+                        <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                        <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                        <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                        <number>0</number>
+                      </property>
+                    </layout>
+                  </widget>
+                </widget>
+              </item>
             </layout>
           </widget>
 

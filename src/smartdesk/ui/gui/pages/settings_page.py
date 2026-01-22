@@ -84,7 +84,9 @@ class SettingsPage(QWidget):
         self.check_autoswitch.setChecked(is_enabled)
         layout_ap.addWidget(self.check_autoswitch)
         self.group_autopilot.setLayout(layout_ap)
-        self.layout_general.insertWidget(0, self.group_autopilot)
+        
+        if self.layout_general:
+            self.layout_general.insertWidget(0, self.group_autopilot)
 
         # Autostart
         if self.check_autostart:
