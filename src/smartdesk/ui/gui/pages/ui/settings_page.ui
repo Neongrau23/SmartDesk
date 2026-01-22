@@ -12,19 +12,19 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
-        <number>20</number>
+        <number>15</number>
       </property>
       <property name="leftMargin">
-        <number>40</number>
+        <number>30</number>
       </property>
       <property name="topMargin">
-        <number>40</number>
+        <number>30</number>
       </property>
       <property name="rightMargin">
-        <number>40</number>
+        <number>30</number>
       </property>
       <property name="bottomMargin">
-        <number>40</number>
+        <number>30</number>
       </property>
 
       <!-- Titel (Fixiert) -->
@@ -86,19 +86,19 @@
                     <!-- Dieses Layout wird vom Code gesucht (verticalLayout_general) -->
                     <layout class="QVBoxLayout" name="verticalLayout_general">
                       <property name="spacing">
-                        <number>15</number>
+                        <number>8</number>
                       </property>
                       <property name="leftMargin">
                         <number>0</number>
                       </property>
                       <property name="topMargin">
-                        <number>15</number>
+                        <number>10</number>
                       </property>
                       <property name="rightMargin">
-                        <number>15</number>
+                        <number>10</number>
                       </property>
                       <property name="bottomMargin">
-                        <number>15</number>
+                        <number>10</number>
                       </property>
 
                       <item>

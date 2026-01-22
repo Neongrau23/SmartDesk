@@ -75,12 +75,6 @@
           </item>
           <item>
             <widget class="QLabel" name="label_desktop_name">
-              <property name="font">
-                <font>
-                  <family>Segoe UI</family>
-                  <pointsize>12</pointsize>
-                </font>
-              </property>
               <property name="text">
                 <string>Desktop: Original (22.12.2025)</string>
               </property>

@@ -160,30 +160,39 @@ QLabel#lbl_update_status[state="normal"] {
     color: #858585;
 }
 
-/* ============================================================================
-   GROUPBOX
-   ============================================================================ */
+/* --- CARDS / GROUPBOXES --- */
 QGroupBox {
     background-color: transparent;
     border: 1px solid #3e3e42;
     border-radius: 8px;
-    margin-top: 20px;
-    padding: 18px;
-    padding-top: 24px;
+    margin-top: 18px;
+    padding: 15px 10px 10px 10px;
 }
 
 QGroupBox::title {
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    padding: 3px 8px;
+    padding: 0 5px;
     left: 12px;
-    top: -8px;
+    top: 5px; /* Sits precisely on the border with 18px margin */
     color: #0078d4;
     font-weight: 700;
     font-size: 11px;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    background-color: #1e1e1e;
+    background-color: #1e1e1e; /* Matches global background to cover border cleanly */
+}
+
+/* FIX: Ensure contents inside GroupBoxes are transparent */
+QGroupBox QWidget,
+QGroupBox QCheckBox, 
+QGroupBox QRadioButton, 
+QGroupBox QLabel {
+    background-color: transparent;
+}
+
+QCheckBox, QRadioButton {
+    background-color: transparent;
+    color: #cccccc;
+    spacing: 8px;
 }
 
 QGroupBox#group_auto_switch,
@@ -229,9 +238,14 @@ QFrame#card_path {
     padding: 16px;
 }
 
+/* Control Panel Specifics */
 QFrame#separator_line {
-    background-color: #3e3e42;
-    max-height: 1px;
+    background-color: #666666;
+}
+
+QLabel#label_desktop_name {
+    font-size: 11px;
+    color: #aaaaaa;
 }
 
 QLabel#img_wallpaper_preview {
@@ -248,7 +262,7 @@ QTextEdit {
     background-color: #3c3c3c;
     color: #cccccc;
     border: 1px solid #3c3c3c;
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 10px 12px;
     selection-background-color: #264f78;
     font-size: 14px;
@@ -813,47 +827,68 @@ QLabel#lbl_message[status="error"] {
    SPECIAL WINDOW TYPES
    ============================================================================ */
 
-/* Overview Window */
+/* ============================================================
+   OVERVIEW WINDOW (Legacy & Beautiful Version)
+   ============================================================ */
 QWidget#Form[window_type="overview"] {
     background-color: #2b2b2b;
     border: 1px solid #454545;
-    border-radius: 12px;
+    border-radius: 15px;
 }
 
-QWidget#Form[window_type="overview"] QWidget {
-    color: #ffffff;
+/* FIX: Transparenter Container für die Desktops, um den schwarzen Balken zu entfernen */
+QWidget#desktops_container {
+    background-color: transparent;
+    border: none;
 }
 
+/* Overview Labels (Dynamic Items) */
+QLabel[overview_type="placeholder"] {
+    background-color: transparent;
+    color: #888;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-style: italic;
+}
+
+QLabel[overview_type="active"] {
+    background-color: rgba(20, 160, 133, 0.15);
+    color: #1abc9c;
+    padding: 8px 16px;
+    border: 1px solid rgba(20, 160, 133, 0.4);
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+QLabel[overview_type="normal"] {
+    background-color: rgba(60, 60, 60, 0.6);
+    color: #ccc;
+    padding: 8px 16px;
+    border: 1px solid rgba(80, 80, 80, 0.5);
+    border-radius: 8px;
+}
+
+/* Fallback/Zusatz für QListWidget falls doch genutzt */
 QWidget#Form[window_type="overview"] QListWidget {
     background-color: transparent;
     border: none;
-    outline: none;
+    outline: 0;
     padding: 5px;
 }
 
 QWidget#Form[window_type="overview"] QListWidget::item {
     background-color: #3c3c3c;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #ffffff;
-    padding: 10px 16px;
-    margin: 3px;
+    padding: 8px 15px;
+    margin: 2px;
     border: 2px solid transparent;
 }
 
 QWidget#Form[window_type="overview"] QListWidget::item:selected {
-    background-color: #0078d4;
-    border: 2px solid #0078d4;
+    background-color: #1a7a65;
+    border: 2px solid #14a085;
     color: #ffffff;
-}
-
-QWidget#Form[window_type="overview"] QListWidget::item:hover {
-    background-color: #4a4a4a;
-    border: 2px solid #5a5a5a;
-}
-
-QWidget#Form[window_type="overview"] QListWidget::item:selected:hover {
-    background-color: #106ebe;
-    border: 2px solid #106ebe;
 }
 
 /* Manage Window */
@@ -862,10 +897,9 @@ QWidget#Form[window_type="manage"] {
     color: #ffffff;
 }
 
-/* ============================================================================
-   FORM WIDGETS (Create/Control Panel)
-   ============================================================================ */
-QWidget#Form {
+/* ============================================================ FORM WIDGETS (Create/Control Panel) ============================================================ */
+QWidget#Form, 
+QWidget#Form[window_type="form"] {
     background-color: #2b2b2b;
     border-radius: 10px;
 }
@@ -874,7 +908,7 @@ QWidget#Form QLineEdit {
     background-color: #3c3c3c;
     color: #ffffff;
     border: 1px solid #3e3e42;
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 8px 10px;
 }
 
