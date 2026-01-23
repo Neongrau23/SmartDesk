@@ -40,8 +40,8 @@ SmartDesk ermöglicht die Nutzung verschiedener Desktops durch das Umschalten de
 
 1.  **Repository klonen:**
     ```bash
-    git clone https://github.com/Neongrau23/Smart-Desk.git
-    cd Smart-Desk
+    git clone https://github.com/Neongrau23/SmartDesk.git
+    cd SmartDesk
     ```
 
 2.  **Installation:**
