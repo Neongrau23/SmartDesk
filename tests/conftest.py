@@ -31,7 +31,7 @@ if "winreg" not in sys.modules:
     sys.modules["winreg"] = mock_winreg
 
 # Mock win32 libraries and PySide6
-for lib in ["win32gui", "win32con", "win32api", "win32process", "ctypes", "ctypes.wintypes", "PySide6", "PySide6.QtWidgets", "PySide6.QtGui", "PySide6.QtCore"]:
+for lib in ["win32gui", "win32con", "win32api", "win32process", "ctypes", "ctypes.wintypes", "PySide6", "PySide6.QtWidgets", "PySide6.QtGui", "PySide6.QtCore", "colorama", "psutil", "pystray", "PIL", "pynput", "customtkinter"]:
     if lib not in sys.modules:
         sys.modules[lib] = MagicMock()
 

@@ -2,6 +2,7 @@
 
 import json
 import os
+import random
 import time
 from contextlib import contextmanager
 from typing import List
@@ -17,9 +18,9 @@ LOCK_FILE_PATH = os.path.join(DATA_DIR, "desktops.lock")
 def file_lock(lock_file, timeout=10):
     """
     A context manager for file-based locking.
-    Uses exponential backoff to reduce polling frequency.
+    Uses exponential backoff with jitter to reduce polling frequency and contention.
     """
-    start_time = time.time()
+    start_time = time.monotonic()
     sleep_time = 0.001  # Start with 1ms
     max_sleep = 0.1  # Cap at 100ms
 
@@ -30,10 +31,13 @@ def file_lock(lock_file, timeout=10):
             os.close(fd)
             break
         except FileExistsError:
-            if time.time() - start_time >= timeout:
+            if time.monotonic() - start_time >= timeout:
                 raise TimeoutError("Could not acquire lock within the specified timeout.")
 
-            time.sleep(sleep_time)
+            # Add random jitter to avoid thundering herd
+            jitter = random.uniform(0, 0.5 * sleep_time)
+            time.sleep(sleep_time + jitter)
+
             # Exponential backoff: double the wait time, but cap it
             sleep_time = min(sleep_time * 2, max_sleep)
 
@@ -93,11 +97,10 @@ def save_desktops(desktops: List[Desktop]) -> bool:
     os.makedirs(os.path.dirname(data_file), exist_ok=True)
 
     try:
-        with file_lock(LOCK_FILE_PATH):
-            data = []
-            for desktop in desktops:
-                data.append(desktop.to_dict())
+        # Prepare data outside the lock to minimize lock duration
+        data = [desktop.to_dict() for desktop in desktops]
 
+        with file_lock(LOCK_FILE_PATH):
             with open(data_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
 
