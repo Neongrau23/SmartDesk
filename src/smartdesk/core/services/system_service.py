@@ -17,9 +17,17 @@ def restart_explorer():
     print(get_text("system.info.restarting"))
 
     try:
+        # 1. Identifiziere laufende Explorer-Prozesse, um später auf deren Beendigung zu warten.
+        #    Dies verhindert Race-Conditions, bei denen der alte Prozess noch läuft, während wir auf den neuen warten.
+        old_procs = [p for p in psutil.process_iter(['name']) if p.name().lower() == "explorer.exe"]
+
         # Beende den Explorer via PowerShell.
         # Das löst unter Win 10/11 normalerweise einen automatischen, "stillen" Neustart der Shell aus.
         subprocess.run(["powershell.exe", "-NoProfile", "-Command", "Stop-Process -Name explorer -Force"], capture_output=True)
+
+        # 2. Warte effizient, bis die alten Prozesse wirklich beendet sind.
+        if old_procs:
+            psutil.wait_procs(old_procs, timeout=5)
 
         # Warte kurz und prüfe, ob Windows den Explorer selbstständig neu gestartet hat
         max_wait = 5
