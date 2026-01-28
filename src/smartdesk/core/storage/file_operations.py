@@ -2,6 +2,7 @@
 
 import json
 import os
+import random
 import time
 from contextlib import contextmanager
 from typing import List
@@ -33,7 +34,10 @@ def file_lock(lock_file, timeout=10):
             if time.time() - start_time >= timeout:
                 raise TimeoutError("Could not acquire lock within the specified timeout.")
 
-            time.sleep(sleep_time)
+            # Add jitter to prevent thundering herd
+            jitter = random.uniform(0, sleep_time * 0.1)
+            time.sleep(sleep_time + jitter)
+
             # Exponential backoff: double the wait time, but cap it
             sleep_time = min(sleep_time * 2, max_sleep)
 
