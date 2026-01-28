@@ -17,9 +17,20 @@ def restart_explorer():
     print(get_text("system.info.restarting"))
 
     try:
-        # Beende den Explorer via PowerShell.
-        # Das löst unter Win 10/11 normalerweise einen automatischen, "stillen" Neustart der Shell aus.
-        subprocess.run(["powershell.exe", "-NoProfile", "-Command", "Stop-Process -Name explorer -Force"], capture_output=True)
+        # Beende den Explorer via psutil (effizienter als PowerShell Subprozess)
+        # Das Killen des Prozesses löst unter Win 10/11 normalerweise einen automatischen Neustart aus.
+        procs = []
+        for p in psutil.process_iter(['name']):
+            if p.name().lower() == 'explorer.exe':
+                procs.append(p)
+                try:
+                    p.kill()
+                except psutil.NoSuchProcess:
+                    pass
+
+        if procs:
+            # Warte effizient bis die Prozesse wirklich beendet sind
+            psutil.wait_procs(procs, timeout=5)
 
         # Warte kurz und prüfe, ob Windows den Explorer selbstständig neu gestartet hat
         max_wait = 5
