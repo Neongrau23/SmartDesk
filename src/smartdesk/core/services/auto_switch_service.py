@@ -21,6 +21,7 @@ class AutoSwitchService:
     def __init__(self, check_interval: int = 2):
         self.check_interval = check_interval
         self._running = False
+        self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
         self._rules: Dict[str, str] = {}  # process_name -> desktop_name
         self._last_switch_time: Optional[datetime] = None
@@ -107,6 +108,7 @@ class AutoSwitchService:
             return
 
         self._running = True
+        self._stop_event.clear()
         self._thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self._thread.start()
         logger.info(get_text("auto_switch.info.started"))
@@ -114,24 +116,23 @@ class AutoSwitchService:
     def stop(self):
         """Stops the monitoring thread."""
         self._running = False
+        self._stop_event.set()
         if self._thread:
             self._thread.join(timeout=2)
         logger.info(get_text("auto_switch.info.stopped"))
 
     def _monitor_loop(self):
         """The main loop checking processes."""
-        while self._running:
+        while not self._stop_event.is_set():
             try:
                 self._check_rules_file()  # Check for external changes
                 self._check_and_switch()
             except Exception as e:
                 logger.error(get_text("auto_switch.error.loop", e=e))
 
-            # Sleep in small chunks to allow faster stopping
-            for _ in range(self.check_interval * 2):
-                if not self._running:
-                    break
-                time.sleep(0.5)
+            # Sleep with immediate wake-up on stop
+            if self._stop_event.wait(self.check_interval):
+                break
 
     def _check_and_switch(self):
         """Checks running processes and switches desktop if needed."""
