@@ -186,6 +186,8 @@ class FilePidStorage:
             filepath: Absoluter Pfad zur PID-Datei
         """
         self._filepath = filepath
+        self._cached_pid: Optional[int] = None
+        self._pid_loaded: bool = False
         self._ensure_directory()
 
     def _ensure_directory(self) -> None:
@@ -199,16 +201,25 @@ class FilePidStorage:
 
     def read(self) -> Optional[int]:
         """Liest die gespeicherte PID."""
+        if self._pid_loaded:
+            return self._cached_pid
+
         if not self.exists():
+            self._cached_pid = None
+            self._pid_loaded = True
             return None
 
         try:
             with open(self._filepath, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 if not content:
+                    self._cached_pid = None
+                    self._pid_loaded = True
                     return None
                 pid = int(content)
                 logger.debug(f"PID {pid} aus {self._filepath} gelesen")
+                self._cached_pid = pid
+                self._pid_loaded = True
                 return pid
         except ValueError as e:
             logger.warning(f"Ungültige PID in Datei: {e}")
@@ -224,22 +235,30 @@ class FilePidStorage:
             with open(self._filepath, "w", encoding="utf-8") as f:
                 f.write(str(pid))
             logger.debug(f"PID {pid} in {self._filepath} geschrieben")
+            self._cached_pid = pid
+            self._pid_loaded = True
             return True
         except IOError as e:
             logger.error(f"Fehler beim Schreiben der PID-Datei: {e}")
+            self._pid_loaded = False
             return False
 
     def delete(self) -> bool:
         """Löscht die PID-Datei."""
         if not self.exists():
+            self._cached_pid = None
+            self._pid_loaded = True
             return True
 
         try:
             os.remove(self._filepath)
             logger.debug(f"PID-Datei {self._filepath} gelöscht")
+            self._cached_pid = None
+            self._pid_loaded = True
             return True
         except OSError as e:
             logger.warning(f"Fehler beim Löschen der PID-Datei: {e}")
+            self._pid_loaded = False
             return False
 
     def exists(self) -> bool:
