@@ -13,6 +13,10 @@ from ...shared.config import DATA_DIR
 DATA_FILE_PATH = os.path.join(DATA_DIR, "desktops.json")
 LOCK_FILE_PATH = os.path.join(DATA_DIR, "desktops.lock")
 
+# Caching variables
+_json_cache = {}
+_cache_mtime = {}
+
 
 @contextmanager
 def file_lock(lock_file, timeout=10):
@@ -62,15 +66,36 @@ def load_desktops() -> List[Desktop]:
     Lädt alle Desktops aus der desktops.json Datei.
     Gibt eine leere Liste zurück, wenn die Datei nicht existiert.
     """
+    global _json_cache, _cache_mtime
     data_file = get_data_file_path()
 
     if not os.path.exists(data_file):
         return []
 
     try:
+        current_mtime = os.path.getmtime(data_file)
+
+        # Check cache
+        if data_file in _json_cache and data_file in _cache_mtime:
+            if current_mtime == _cache_mtime[data_file]:
+                # Return reconstructed objects from cache to ensure isolation
+                return [Desktop.from_dict(item) for item in _json_cache[data_file]]
+    except OSError:
+        pass
+
+    try:
         with file_lock(LOCK_FILE_PATH):
             with open(data_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
+
+                # Update cache
+                _json_cache[data_file] = data
+                try:
+                    _cache_mtime[data_file] = os.path.getmtime(data_file)
+                except OSError:
+                    # Fallback: use current_mtime if getmtime fails (rare)
+                    pass
+
                 desktops = []
                 for item in data:
                     desktop = Desktop.from_dict(item)
@@ -104,6 +129,15 @@ def save_desktops(desktops: List[Desktop]) -> bool:
 
             with open(data_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=4, ensure_ascii=False)
+
+            # Update cache after successful write to avoid next read
+            global _json_cache, _cache_mtime
+            _json_cache[data_file] = data
+            try:
+                _cache_mtime[data_file] = os.path.getmtime(data_file)
+            except OSError:
+                if data_file in _cache_mtime:
+                    del _cache_mtime[data_file]
 
         return True
     except Exception as e:
