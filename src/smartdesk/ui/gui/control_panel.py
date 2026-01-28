@@ -261,13 +261,26 @@ class SmartDeskControlPanel(QWidget):
     def _run_gui_script(self, script_name):
         # Use sys.executable for compatibility with frozen app
         python_exe = sys.executable
-        script = get_resource_path(f"smartdesk/ui/gui/{script_name}")
+
+        # Calculate src directory (3 levels up from this file)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        src_dir = os.path.abspath(os.path.join(current_dir, "..", "..", ".."))
+
+        # Setup environment with PYTHONPATH
+        env = os.environ.copy()
+        if "PYTHONPATH" in env:
+            env["PYTHONPATH"] = src_dir + os.pathsep + env["PYTHONPATH"]
+        else:
+            env["PYTHONPATH"] = src_dir
+
+        # Construct module name: "gui_main.py" -> "smartdesk.ui.gui.gui_main"
+        module_name = f"smartdesk.ui.gui.{script_name.replace('.py', '')}"
 
         flags = 0
         if sys.platform == "win32":
             flags = subprocess.CREATE_NO_WINDOW
 
-        subprocess.Popen([python_exe, script], creationflags=flags)
+        subprocess.Popen([python_exe, "-m", module_name], creationflags=flags, env=env)
         self.close_panel()
 
     # --- Transition Logic ---

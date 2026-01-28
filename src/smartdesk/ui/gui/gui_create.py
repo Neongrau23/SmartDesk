@@ -5,15 +5,6 @@ from PySide6.QtWidgets import QApplication, QWidget, QFileDialog, QMessageBox, Q
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer, QEvent
 
-# --- Pfad-Hack für direkten Aufruf ---
-if __name__ == "__main__" or __package__ is None:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    interfaces_dir = os.path.dirname(current_dir)
-    smartdesk_dir = os.path.dirname(interfaces_dir)
-    src_dir = os.path.dirname(smartdesk_dir)
-    if src_dir not in sys.path:
-        sys.path.insert(0, src_dir)
-
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger

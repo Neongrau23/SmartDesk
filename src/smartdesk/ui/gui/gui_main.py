@@ -6,15 +6,6 @@ from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, Slot, QTimer
 from PySide6.QtGui import QFontDatabase, QFont
 
-# --- Pfad-Hack ---
-if __name__ == "__main__" or __package__ is None:
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    interfaces_dir = os.path.dirname(current_dir)
-    smartdesk_dir = os.path.dirname(interfaces_dir)
-    src_dir = os.path.dirname(smartdesk_dir)
-    if src_dir not in sys.path:
-        sys.path.insert(0, src_dir)
-
 # --- Logger Setup ---
 try:
     from smartdesk.shared.logging_config import get_logger
