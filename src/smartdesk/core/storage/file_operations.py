@@ -71,11 +71,7 @@ def load_desktops() -> List[Desktop]:
         with file_lock(LOCK_FILE_PATH):
             with open(data_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                desktops = []
-                for item in data:
-                    desktop = Desktop.from_dict(item)
-                    desktops.append(desktop)
-                return desktops
+                return [Desktop.from_dict(item) for item in data]
     except Exception as e:
         print(f"Fehler beim Laden der Desktops: {e}")
         return []
