@@ -17,6 +17,7 @@ def test_restart_explorer_kills_and_waits(mocker):
     # Mock processes
     mock_proc = MagicMock()
     mock_proc.name.return_value = "explorer.exe"
+    mock_proc.info = {"name": "explorer.exe"}
 
     # Mock psutil.process_iter
     mock_iter = mocker.patch("psutil.process_iter")
@@ -38,6 +39,7 @@ def test_restart_explorer_kills_and_waits(mocker):
     # Note: loop uses process_iter(['name']).
     new_proc = MagicMock()
     new_proc.name.return_value = "explorer.exe"
+    new_proc.info = {"name": "explorer.exe"}
 
     mock_iter.side_effect = [
         [mock_proc], # Finding to kill
@@ -94,6 +96,7 @@ def test_restart_explorer_kill_permission_error(mocker):
     """
     mock_proc = MagicMock()
     mock_proc.name.return_value = "explorer.exe"
+    mock_proc.info = {"name": "explorer.exe"}
     mock_proc.kill.side_effect = psutil.NoSuchProcess(123)
 
     mock_iter = mocker.patch("psutil.process_iter", return_value=[mock_proc])
@@ -104,6 +107,7 @@ def test_restart_explorer_kill_permission_error(mocker):
     # Handle the restart check loop
     new_proc = MagicMock()
     new_proc.name.return_value = "explorer.exe"
+    new_proc.info = {"name": "explorer.exe"}
     mock_iter.side_effect = [
         [mock_proc],
         [new_proc] # Restarted immediately

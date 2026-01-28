@@ -21,7 +21,7 @@ def restart_explorer():
         # Das Killen des Prozesses löst unter Win 10/11 normalerweise einen automatischen Neustart aus.
         procs = []
         for p in psutil.process_iter(['name']):
-            if p.name().lower() == 'explorer.exe':
+            if (p.info.get('name') or "").lower() == 'explorer.exe':
                 procs.append(p)
                 try:
                     p.kill()
@@ -39,7 +39,7 @@ def restart_explorer():
 
         while time.time() - start_check < max_wait:
             time.sleep(0.5)
-            if any(p.name().lower() == "explorer.exe" for p in psutil.process_iter(["name"])):
+            if any((p.info.get("name") or "").lower() == "explorer.exe" for p in psutil.process_iter(["name"])):
                 restarted_by_system = True
                 break
 
