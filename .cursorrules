@@ -10,6 +10,10 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
 
 ## 🏗️ Architecture & Features (v0.5.6+)
 - **Target Platform:** Exclusively **Windows 10+**.
+- **Start & Deployment:**
+  - `start_smartdesk.bat`: Recommended launcher (starts Tray via `pythonw.exe`).
+  - `main.py start-tray`: Manual CLI start.
+  - `launch_gui.py`: Direct GUI start for debugging.
 - **Persistent GUI Overlay:**
   - The hotkey overview (`gui_overview.py`) runs as a persistent background process managed by `BannerController`.
   - Communication happens via `stdin` commands: `SHOW`, `HIDE`, `QUIT`.
@@ -22,6 +26,7 @@ You are an expert Python developer working on "SmartDesk", a Windows virtual des
 - **Hotkey Logic:**
   - Triggers are "On-Release" (key up).
   - State Machine: `IDLE` -> `ARMED` -> `HOLDING` -> `SHOWING`.
+  - **Robustness:** Listener callbacks (`on_press`, `on_release`) must be wrapped in `try-except` blocks to prevent thread crashes from unhandled exceptions in action handlers.
 - **Desktop Switching Workflow:**
   - Sequence: Create Lock File -> Create Registry Backup -> Save Icons -> Update Registry -> Restart Windows Explorer -> Restore Icons/Wallpaper.
 

@@ -221,131 +221,141 @@ def _trigger_activation():
 def on_press(key):
     global wait_state, alt_hold_timer, activation_potential, activation_spoiled, action_key_used_after_activation
 
-    # Debug
     try:
-        k_char = key.char
-    except:
-        k_char = str(key)
-    # print(f"[DEBUG] PRESS {k_char} | State: {wait_state}")
-
-    # Logik im WAITING State
-    if wait_state == "WAITING_FOR_ACTION":
-
-        # Markiere Action Key als aktiv benutzt
-        if is_action_key(key):
-            action_key_used_after_activation = True
-
-            # Controller synchronisieren:
-            # Falls der Controller (z.B. durch Timeout oder Reset) auf IDLE steht,
-            # stellen wir sicher, dass er ARMED ist, bevor wir HOLDING auslösen.
-            ctrl = _get_banner_ctrl()
-            if ctrl:
-                ctrl.on_ctrl_shift_triggered()  # Sicherstellen dass er ARMED ist
-                ctrl.on_alt_pressed()  # Jetzt HOLDING auslösen
-
-        # Timer starten wenn Action-Key gedrückt wird
-        if is_action_key(key):
-            registry = get_registry()
-            if registry.has_hold_action() and alt_hold_timer is None:
-                alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
-                alt_hold_timer.start()
-
-        action_held = is_any_action_key_held(current_keys) or is_action_key(key)
-        is_ignored_key = is_action_key(key) or is_part_of_activation(key)
-
-        key_char = None
+        # Debug
         try:
-            key_char = key.char
-        except AttributeError:
-            pass
+            k_char = key.char
+        except:
+            k_char = str(key)
+        # print(f"[DEBUG] PRESS {k_char} | State: {wait_state}")
 
-        if action_held:
-            registry = get_registry()
+        # Logik im WAITING State
+        if wait_state == "WAITING_FOR_ACTION":
 
-            if key_char and registry.has_combo_action(key_char):
-                _cancel_hold_timer()
-                if _log_func:
-                    desc = registry.get_combo_description(key_char)
-                    _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
+            # Markiere Action Key als aktiv benutzt
+            if is_action_key(key):
+                action_key_used_after_activation = True
 
-                _close_banner_and_reset()
-                registry.execute_combo(key_char)
+                # Controller synchronisieren:
+                # Falls der Controller (z.B. durch Timeout oder Reset) auf IDLE steht,
+                # stellen wir sicher, dass er ARMED ist, bevor wir HOLDING auslösen.
+                ctrl = _get_banner_ctrl()
+                if ctrl:
+                    ctrl.on_ctrl_shift_triggered()  # Sicherstellen dass er ARMED ist
+                    ctrl.on_alt_pressed()  # Jetzt HOLDING auslösen
+
+            # Timer starten wenn Action-Key gedrückt wird
+            if is_action_key(key):
+                registry = get_registry()
+                if registry.has_hold_action() and alt_hold_timer is None:
+                    alt_hold_timer = threading.Timer(0.3, _execute_hold_action)
+                    alt_hold_timer.start()
+
+            action_held = is_any_action_key_held(current_keys) or is_action_key(key)
+            is_ignored_key = is_action_key(key) or is_part_of_activation(key)
+
+            key_char = None
+            try:
+                key_char = key.char
+            except AttributeError:
+                pass
+
+            if action_held:
+                registry = get_registry()
+
+                if key_char and registry.has_combo_action(key_char):
+                    _cancel_hold_timer()
+                    if _log_func:
+                        desc = registry.get_combo_description(key_char)
+                        _log_func(get_text("hotkey_listener.log.action_executed", n=key_char, desc=desc))
+
+                    _close_banner_and_reset()
+                    registry.execute_combo(key_char)
+                elif is_ignored_key:
+                    pass
+                else:
+                    if _log_func:
+                        _log_func(get_text("hotkey_listener.log.no_action", key=key_char))
+                    _close_banner_and_reset()
+                    print(get_text("hotkey_listener.log.abort_no_alt"))
+
             elif is_ignored_key:
                 pass
             else:
-                if _log_func:
-                    _log_func(get_text("hotkey_listener.log.no_action", key=key_char))
+                # Irgendeine andere Taste ohne ActionKey -> Abbruch
                 _close_banner_and_reset()
-                print(get_text("hotkey_listener.log.abort_no_alt"))
 
-        elif is_ignored_key:
-            pass
-        else:
-            # Irgendeine andere Taste ohne ActionKey -> Abbruch
-            _close_banner_and_reset()
+        # Activation Logic im IDLE State
+        elif wait_state == "IDLE":
+            if is_part_of_activation(key):
+                # Prüfen ob mit diesem Key die Combo voll ist
+                temp_keys = current_keys.copy()
+                temp_keys.add(key)
+                if are_activation_keys_held(temp_keys):
+                    activation_potential = True
+                    activation_spoiled = False
+            else:
+                # Fremde Taste gedrückt -> Aktivierung kaputt
+                if activation_potential or are_activation_keys_held(current_keys):
+                    activation_spoiled = True
 
-    # Activation Logic im IDLE State
-    elif wait_state == "IDLE":
-        if is_part_of_activation(key):
-            # Prüfen ob mit diesem Key die Combo voll ist
-            temp_keys = current_keys.copy()
-            temp_keys.add(key)
-            if are_activation_keys_held(temp_keys):
-                activation_potential = True
-                activation_spoiled = False
-        else:
-            # Fremde Taste gedrückt -> Aktivierung kaputt
-            if activation_potential or are_activation_keys_held(current_keys):
-                activation_spoiled = True
-
-    current_keys.add(key)
+        current_keys.add(key)
+    except Exception as e:
+        if _log_func:
+            _log_func(f"ERROR in on_press: {e}")
+            # traceback könnte hier nützlich sein, aber _log_func erwartet nur string
+            # traceback.print_exc()
 
 
 def on_release(key):
     global wait_state, activation_potential, activation_spoiled, action_key_used_after_activation
 
-    just_triggered = False
-
-    # 1. Activation Trigger (beim Loslassen im IDLE State)
-    if wait_state == "IDLE":
-        if is_part_of_activation(key):
-            if activation_potential and not activation_spoiled:
-                _trigger_activation()
-                just_triggered = True
-
     try:
-        current_keys.remove(key)
-    except KeyError:
-        pass
+        just_triggered = False
 
-    # Timer abbrechen (Logik)
-    if is_action_key(key):
-        _cancel_hold_timer()
+        # 1. Activation Trigger (beim Loslassen im IDLE State)
+        if wait_state == "IDLE":
+            if is_part_of_activation(key):
+                if activation_potential and not activation_spoiled:
+                    _trigger_activation()
+                    just_triggered = True
 
-    # Safety Reset wenn ActionKey losgelassen wird und wir im Waiting Mode sind
-    if wait_state == "WAITING_FOR_ACTION" and not just_triggered:
+        try:
+            current_keys.remove(key)
+        except KeyError:
+            pass
+
+        # Timer abbrechen (Logik)
         if is_action_key(key):
-            # Banner Controller nur informieren, wenn wir wirklich warten
-            if not is_any_action_key_held(current_keys):
-                ctrl = _get_banner_ctrl()
-                if ctrl:
-                    ctrl.on_alt_released()
+            _cancel_hold_timer()
 
-            if not is_any_action_key_held(current_keys):
-                # NUR Resetten, wenn der Key NACH der Aktivierung benutzt wurde!
-                if action_key_used_after_activation:
-                    if _log_func:
-                        _log_func(get_text("hotkey_listener.log.cycle_ended", key=ACTION_KEY_NAME))
-                    _close_banner_and_reset()
-                else:
-                    # Grace Period: Key wurde losgelassen, der zur Aktivierung gehörte. Ignorieren.
-                    pass
+        # Safety Reset wenn ActionKey losgelassen wird und wir im Waiting Mode sind
+        if wait_state == "WAITING_FOR_ACTION" and not just_triggered:
+            if is_action_key(key):
+                # Banner Controller nur informieren, wenn wir wirklich warten
+                if not is_any_action_key_held(current_keys):
+                    ctrl = _get_banner_ctrl()
+                    if ctrl:
+                        ctrl.on_alt_released()
 
-    # Potential Reset wenn keine Activation Keys mehr gehalten werden
-    if wait_state == "IDLE":
-        if not any(is_part_of_activation(k) for k in current_keys):
-            activation_potential = False
-            activation_spoiled = False
+                if not is_any_action_key_held(current_keys):
+                    # NUR Resetten, wenn der Key NACH der Aktivierung benutzt wurde!
+                    if action_key_used_after_activation:
+                        if _log_func:
+                            _log_func(get_text("hotkey_listener.log.cycle_ended", key=ACTION_KEY_NAME))
+                        _close_banner_and_reset()
+                    else:
+                        # Grace Period: Key wurde losgelassen, der zur Aktivierung gehörte. Ignorieren.
+                        pass
+
+        # Potential Reset wenn keine Activation Keys mehr gehalten werden
+        if wait_state == "IDLE":
+            if not any(is_part_of_activation(k) for k in current_keys):
+                activation_potential = False
+                activation_spoiled = False
+    except Exception as e:
+        if _log_func:
+            _log_func(f"ERROR in on_release: {e}")
 
 
 def start_listener():
