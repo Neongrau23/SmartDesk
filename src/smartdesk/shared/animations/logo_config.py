@@ -49,7 +49,7 @@ LOGO_CONFIG = {
     "text_color": "#ffffff",
     "background_color": "#000000",
     # Ausrichtung
-    "justify": "center",
+    "justify": "left",
 }
 
 
