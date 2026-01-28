@@ -34,9 +34,14 @@ except ImportError:
         return key
 
 try:
+    from smartdesk.shared.config import get_resource_path
+except ImportError:
+    def get_resource_path(path):
+        return path
+
+try:
     from smartdesk.core.services import desktop_service
     from smartdesk.hotkeys import hotkey_manager
-    from smartdesk.shared.config import get_resource_path
 except ImportError:
     # Mocking für Tests ohne Backend
     class FakeHotkeys:
@@ -267,7 +272,19 @@ class SmartDeskControlPanel(QWidget):
         if sys.platform == "win32":
             flags = subprocess.CREATE_NO_WINDOW
 
-        subprocess.Popen([python_exe, script], creationflags=flags)
+        env = os.environ.copy()
+        if not getattr(sys, "frozen", False):
+            # In source mode, add src directory to PYTHONPATH
+            # control_panel.py is in src/smartdesk/ui/gui
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            src_dir = os.path.abspath(os.path.join(current_dir, "../../.."))
+
+            if "PYTHONPATH" in env:
+                env["PYTHONPATH"] = src_dir + os.pathsep + env["PYTHONPATH"]
+            else:
+                env["PYTHONPATH"] = src_dir
+
+        subprocess.Popen([python_exe, script], creationflags=flags, env=env)
         self.close_panel()
 
     # --- Transition Logic ---
