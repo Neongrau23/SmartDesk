@@ -118,7 +118,9 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
     Löscht einen Desktop aus der Datenbank, inkl. Bestätigungsabfrage.
     Geschützte Desktops (z.B. Original) können nicht gelöscht werden.
     """
-    desktops = get_all_desktops(sync_registry=True)
+    desktops = get_all_desktops()
+    synchronize_desktops_with_registry(desktops, save_changes=True)
+
     target_desktop = next((d for d in desktops if d.name == name), None)
 
     if not target_desktop:
@@ -192,10 +194,14 @@ def delete_desktop(name: str, delete_folder: bool = False, skip_confirm: bool = 
     return True
 
 
-def synchronize_desktops_with_registry(desktops: List[Desktop]) -> bool:
+def synchronize_desktops_with_registry(desktops: List[Desktop], save_changes: bool = True) -> bool:
     """
     Synchronisiert den 'is_active' Status der Desktops mit der Registry.
-    Gibt True zurück, wenn Änderungen gespeichert wurden.
+    Gibt True zurück, wenn Änderungen vorgenommen wurden (unabhängig ob gespeichert).
+
+    Args:
+        desktops: Liste der zu prüfenden Desktops.
+        save_changes: Wenn True, werden Änderungen direkt in desktops.json gespeichert.
     """
     try:
         real_registry_path = get_registry_value(KEY_USER_SHELL, VALUE_NAME)
@@ -213,7 +219,8 @@ def synchronize_desktops_with_registry(desktops: List[Desktop]) -> bool:
                     data_changed = True
 
             if data_changed:
-                save_desktops(desktops)
+                if save_changes:
+                    save_desktops(desktops)
                 return True
 
     except Exception as e:
@@ -223,20 +230,12 @@ def synchronize_desktops_with_registry(desktops: List[Desktop]) -> bool:
     return False
 
 
-def get_all_desktops(sync_registry: bool = False) -> List[Desktop]:
+def get_all_desktops() -> List[Desktop]:
     """
     Gibt eine Liste aller Desktops zurück.
-
-    Args:
-        sync_registry: Wenn True, wird der Status mit der Registry abgeglichen (kann Disk-Write auslösen).
-                       Default ist False um implizite Disk-Writes zu vermeiden.
-
     Geschützte Desktops werden immer zuerst angezeigt.
     """
     desktops = load_desktops()
-
-    if sync_registry:
-        synchronize_desktops_with_registry(desktops)
 
     # Sortierung: Geschützte Desktops zuerst, dann alphabetisch
     desktops.sort(key=lambda d: (not d.protected, d.name.lower()))
@@ -255,7 +254,8 @@ def switch_to_desktop(desktop_name: str, parent=None) -> bool:
     """
     from ..utils.backup_service import create_backup_before_switch
 
-    desktops = get_all_desktops(sync_registry=True)
+    desktops = get_all_desktops()
+    synchronize_desktops_with_registry(desktops, save_changes=True)
 
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
     if not target_desktop:
@@ -436,7 +436,9 @@ def sync_desktop_state_and_apply_icons():
     """
     logger.info(get_text("desktop_handler.info.sync_after_restart"))
 
-    desktops = get_all_desktops(sync_registry=True)
+    desktops = get_all_desktops()
+    synchronize_desktops_with_registry(desktops, save_changes=True)
+
     new_active_desktop = next((d for d in desktops if d.is_active), None)
 
     if not new_active_desktop:
@@ -471,7 +473,9 @@ def save_current_desktop_icons() -> bool:
     Findet den aktuell aktiven Desktop, liest seine
     Icon-Positionen aus und speichert sie.
     """
-    desktops = get_all_desktops(sync_registry=True)
+    desktops = get_all_desktops()
+    synchronize_desktops_with_registry(desktops, save_changes=True)
+
     active_desktop = next((d for d in desktops if d.is_active), None)
 
     if not active_desktop:
@@ -505,7 +509,9 @@ def assign_wallpaper(desktop_name: str, source_image_path: str) -> bool:
         logger.error(msg)
         return False
 
-    desktops = get_all_desktops(sync_registry=True)
+    desktops = get_all_desktops()
+    synchronize_desktops_with_registry(desktops, save_changes=True)
+
     target_desktop = next((d for d in desktops if d.name == desktop_name), None)
 
     if not target_desktop:
