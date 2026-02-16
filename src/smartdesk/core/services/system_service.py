@@ -11,14 +11,13 @@ from ...shared.localization import get_text
 def restart_explorer():
     """
     Startet den Windows Explorer Prozess neu.
-    Nutzt Stop-Process, um Windows zum automatischen Neustart der Shell zu zwingen,
-    was das Öffnen eines neuen Fensters verhindert.
+    Nutzt psutil für einen effizienten Prozess-Kill und prüft anschließend,
+    ob Windows den Prozess automatisch neu startet.
     """
     print(get_text("system.info.restarting"))
 
     try:
         # Beende den Explorer via psutil (effizienter als PowerShell Subprozess)
-        # Das Killen des Prozesses löst unter Win 10/11 normalerweise einen automatischen Neustart aus.
         procs = []
         for p in psutil.process_iter(['name']):
             if p.name().lower() == 'explorer.exe':
@@ -29,7 +28,7 @@ def restart_explorer():
                     pass
 
         if procs:
-            # Warte effizient bis die Prozesse wirklich beendet sind
+            # Warte bis die Prozesse beendet sind
             psutil.wait_procs(procs, timeout=5)
 
         # Warte kurz und prüfe, ob Windows den Explorer selbstständig neu gestartet hat
@@ -43,13 +42,11 @@ def restart_explorer():
                 restarted_by_system = True
                 break
 
-        if restarted_by_system:
-            print(get_text("system.info.restarted"))
-            return
+        if not restarted_by_system:
+            # Fallback: Falls der Autostart von Windows deaktiviert ist, manuell starten
+            subprocess.Popen("explorer.exe")
 
-        # Fallback: Falls der Autostart von Windows deaktiviert ist, manuell starten
-        print(get_text("system.warning.explorer_not_running"))
-        subprocess.Popen("explorer.exe")
+        print(get_text("system.info.restarted"))
 
     except Exception as e:
         print(get_text("system.error.restart_exception").format(error=str(e)))
@@ -62,13 +59,16 @@ def restart_explorer():
 
 def restart_explorer_simple():
     """
-    Vereinfachte Version, die ebenfalls den PowerShell-Weg nutzt.
+    Vereinfachte Version des Explorer-Neustarts.
     """
     print(get_text("system.info.restarting"))
     try:
+        # Direkter Stop via PowerShell (schneller Einzeiler)
         subprocess.run(["powershell.exe", "-NoProfile", "-Command", "Stop-Process -Name explorer -Force"], capture_output=True)
-        time.sleep(1.0)
+        time.sleep(0.5)
+        # Sicherstellen, dass er läuft
+        if not any(p.name().lower() == "explorer.exe" for p in psutil.process_iter(["name"])):
+            subprocess.Popen("explorer.exe")
         print(get_text("system.info.restarted"))
     except Exception:
-        # Fallback auf die alte Methode
-        subprocess.Popen("explorer.exe", shell=True)
+        subprocess.Popen("explorer.exe")

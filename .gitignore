@@ -57,6 +57,7 @@ __pypackages__/
 *.temp
 
 # Project specific
+.gemini/
 data/
 .coverage
 coverage.xml
