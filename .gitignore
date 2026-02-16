@@ -95,9 +95,8 @@ coverage/
 .coverage.*
 
 # Documentation
-docs/
-!docs/releases/
-!docs/adr/
+docs/_build/
+docs/site/
 doc/
 _build/
 site/
