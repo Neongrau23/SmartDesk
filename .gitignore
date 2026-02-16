@@ -97,6 +97,7 @@ coverage/
 # Documentation
 docs/
 !docs/releases/
+!docs/adr/
 doc/
 _build/
 site/
