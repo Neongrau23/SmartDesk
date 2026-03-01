@@ -88,7 +88,6 @@ class SmartDeskControlPanel(QWidget):
 
         self.setWindowTitle(get_text("gui.control_panel.title"))
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
-        self.setAttribute(Qt.WA_TranslucentBackground)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # UI Elemente finden
