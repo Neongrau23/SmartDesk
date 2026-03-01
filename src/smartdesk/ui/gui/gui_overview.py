@@ -90,6 +90,7 @@ class OverviewWindow(QWidget):
 
         # STIL: Rahmenlos, immer oben, kein Taskleisten-Icon
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
         # Desktop-Liste laden und anzeigen
         self.load_desktops()
