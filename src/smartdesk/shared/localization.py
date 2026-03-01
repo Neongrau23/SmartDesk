@@ -318,6 +318,15 @@ TEXT = {
             "lock_file_remove_failed": "Konnte Lock-File nicht entfernen: {e}",
             "explorer_timeout": "Timeout beim Warten auf Explorer-Neustart. Versuche trotzdem fortzufahren...",
         },
+        "prompts": {
+            "path_not_found_title": "Pfad nicht gefunden",
+            "path_not_found_message": "Der zugeordnete Ordner für diesen Desktop wurde nicht gefunden.\nWas möchten Sie tun?",
+            "path_recreate": "Neu erstellen",
+            "path_remove": "Desktop entfernen",
+            "path_abort": "Abbrechen",
+            "delete_confirm_title": "Desktop löschen",
+            "delete_confirm": "Möchten Sie den Desktop '{name}' und den zugehörigen Ordner auf der Festplatte wirklich löschen?",
+        },
     },
     "auto_switch": {
         "error": {
