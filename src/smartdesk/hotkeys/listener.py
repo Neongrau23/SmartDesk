@@ -231,6 +231,17 @@ def on_press(key):
 
         # Logik im WAITING State
         if wait_state == "WAITING_FOR_ACTION":
+            # STRENGER CHECK: Die erste Taste nach der Aktivierung MUSS der Action-Key sein.
+            if not action_key_used_after_activation and not is_action_key(key):
+                if _log_func:
+                    _log_func(get_text("hotkey_listener.log.abort_no_alt"))
+                _close_banner_and_reset()
+                # Wichtig: current_keys noch aktualisieren und dann raus, 
+                # damit diese Taste nicht sofort wieder als IDLE-Aktivierung zählt
+                current_keys.add(key)
+                return
+
+        if wait_state == "WAITING_FOR_ACTION":
 
             # Markiere Action Key als aktiv benutzt
             if is_action_key(key):
@@ -252,7 +263,7 @@ def on_press(key):
                     alt_hold_timer.start()
 
             action_held = is_any_action_key_held(current_keys) or is_action_key(key)
-            is_ignored_key = is_action_key(key) or is_part_of_activation(key)
+            is_ignored_key = is_action_key(key) # Strg/Shift nicht mehr ignorieren!
 
             key_char = None
             try:
@@ -282,11 +293,13 @@ def on_press(key):
             elif is_ignored_key:
                 pass
             else:
-                # Irgendeine andere Taste ohne ActionKey -> Abbruch
+                # Irgendeine andere Taste (auch Strg/Shift) ohne ActionKey -> Abbruch
                 _close_banner_and_reset()
+                current_keys.add(key)
+                return
 
         # Activation Logic im IDLE State
-        elif wait_state == "IDLE":
+        if wait_state == "IDLE":
             if is_part_of_activation(key):
                 # Prüfen ob mit diesem Key die Combo voll ist
                 temp_keys = current_keys.copy()
