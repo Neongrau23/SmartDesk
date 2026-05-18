@@ -3,7 +3,6 @@
 import subprocess
 import time
 import psutil
-import os
 
 from ...shared.localization import get_text
 

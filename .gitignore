@@ -59,6 +59,7 @@ __pypackages__/
 # Project specific
 .gemini/
 data/
+obsidian/
 .coverage
 coverage.xml
 *.cover

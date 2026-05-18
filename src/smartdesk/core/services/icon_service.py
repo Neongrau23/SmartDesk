@@ -1,12 +1,9 @@
 # Dateipfad: src/smartdesk/core/services/icon_service.py
 
 import ctypes
-from ctypes import wintypes
 import time
 import win32gui
 import win32process
-import win32con
-from threading import Thread
 from typing import List
 
 from ...shared.localization import get_text

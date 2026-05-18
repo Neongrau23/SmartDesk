@@ -1,9 +1,9 @@
 import os
 import sys
 import logging
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, QStackedWidget, QListWidget, QListWidgetItem, QTextEdit
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QStackedWidget, QTextEdit
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, Qt, Slot, QTimer
+from PySide6.QtCore import QFile, QIODevice
 from PySide6.QtGui import QFontDatabase, QFont
 
 # --- Pfad-Hack ---

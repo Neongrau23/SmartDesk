@@ -1,3 +1,8 @@
+"""Einstiegspunkt der SmartDesk-Anwendung.
+
+Konfiguriert den Ausführungspfad, verarbeitet CLI-Argumente und startet die Tray-App.
+"""
+
 import sys
 import os
 import traceback
@@ -5,14 +10,22 @@ import argparse
 
 
 def main():
-    """Main function to run the SmartDesk application."""
-    # --- PATH SETUP ---
+    """Startet die Hauptanwendung.
+
+    Konfiguriert den Systempfad, parst Kommandozeilenargumente und führt den
+    angeforderten Befehl aus. Fehler werden in 'smartdesk_error.log' protokolliert.
+
+    Raises:
+        SystemExit: Beendet mit Status 1 bei Fehlern oder dem Exit-Code der App bei Erfolg.
+    """
     try:
+        # Ermittelt Projektpfad (inkl. PyInstaller-Support).
         if getattr(sys, "frozen", False):
             project_root = os.path.dirname(sys.executable)
         else:
             project_root = os.path.dirname(os.path.abspath(__file__))
 
+        # Fügt src-Verzeichnis zum Import-Pfad hinzu.
         src_dir = os.path.join(project_root, "src")
         if src_dir not in sys.path:
             sys.path.insert(0, src_dir)
@@ -22,15 +35,19 @@ def main():
             f.write(f"FATAL ERROR: Could not configure sys.path. {e}\n")
         sys.exit(1)
 
-    # --- ARGUMENT PARSING ---
     parser = argparse.ArgumentParser(description="SmartDesk Application")
-    parser.add_argument("command", nargs="?", default="start-tray", choices=["start-tray"], help="Command to execute (default: start-tray)")
+    parser.add_argument(
+        "command",
+        nargs="?",
+        default="start-tray",
+        choices=["start-tray"],
+        help="Command to execute (default: start-tray)",
+    )
     args = parser.parse_args()
 
-    # --- APPLICATION LAUNCH ---
     if args.command == "start-tray":
         try:
-            # SmartDeskTrayApp is a QApplication subclass, so we just instantiate it
+            # Dynamischer Import nach Pfadkonfiguration.
             from smartdesk.ui.tray.tray_icon import SmartDeskTrayApp
 
             app = SmartDeskTrayApp(sys.argv)

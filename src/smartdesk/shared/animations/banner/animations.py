@@ -7,7 +7,6 @@ verschiedenen Easing-Funktionen für ein professionelles Erscheinungsbild.
 """
 
 import tkinter as tk
-import math
 from typing import Callable, Optional
 from abc import ABC, abstractmethod
 

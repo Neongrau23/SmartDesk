@@ -17,12 +17,11 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, Qt, QSize
-from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtCore import QFile, QIODevice, Qt
+from PySide6.QtGui import QPixmap
 
 from smartdesk.core.services import desktop_service
 from smartdesk.core.services.auto_switch_service import AutoSwitchService
-from smartdesk.shared.localization import get_text
 
 # Logger Setup
 try:

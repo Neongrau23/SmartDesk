@@ -3,7 +3,7 @@ import sys
 import logging
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QMessageBox, QFileDialog, QInputDialog, QMenu
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, Qt, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer, QEvent
+from PySide6.QtCore import QFile, QIODevice, Qt, Signal, QPropertyAnimation, QEasingCurve, QRect, QEvent
 
 # --- Pfad-Hack ---
 if __name__ == "__main__" or __package__ is None:

@@ -1,6 +1,5 @@
 import urllib.request
 import json
-import logging
 from typing import Optional, Tuple, Dict, Any
 from smartdesk import __version__
 from smartdesk.shared.logging_config import get_logger

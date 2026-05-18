@@ -2,8 +2,6 @@
 from pynput.keyboard import Listener, Key, KeyCode
 import sys
 import os
-import traceback
-from datetime import datetime
 import threading
 
 
@@ -449,7 +447,7 @@ def start_listener():
         except KeyboardInterrupt:
             cleanup_pid_file()
             sys.exit(0)
-        except Exception as e:
+        except Exception:
             cleanup_pid_file()
         finally:
             cleanup_pid_file()

@@ -1,6 +1,6 @@
 import os
 import logging
-from PySide6.QtWidgets import QWidget, QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox, QDoubleSpinBox
+from PySide6.QtWidgets import QWidget, QTableWidget, QTableWidgetItem, QHeaderView, QLabel, QPushButton, QComboBox, QDoubleSpinBox
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice, Qt, QTimer, QEvent
 

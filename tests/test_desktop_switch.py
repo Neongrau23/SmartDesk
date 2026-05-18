@@ -3,12 +3,12 @@ Tests für die switch_to_desktop Funktion in smartdesk.core.services.desktop_ser
 Testet den kompletten Ablauf inkl. Animation, Registry, Restart und Sync.
 """
 
-import pytest
-from unittest.mock import patch, MagicMock, call, mock_open
 import os
-import sys
+from unittest.mock import mock_open, patch
 
-from smartdesk.core.models.desktop import Desktop, IconPosition
+import pytest
+
+from smartdesk.core.models.desktop import Desktop
 
 
 # Dummy Desktop Daten
@@ -27,25 +27,47 @@ def mock_dependencies():
     mocks = {}
 
     # Storage & Model
-    mocks["get_all"] = patch("smartdesk.core.services.desktop_service.get_all_desktops").start()
-    mocks["save"] = patch("smartdesk.core.services.desktop_service.save_desktops").start()
-    mocks["get_icons"] = patch("smartdesk.core.services.desktop_service.get_current_icon_positions").start()
+    mocks["get_all"] = patch(
+        "smartdesk.core.services.desktop_service.get_all_desktops"
+    ).start()
+    mocks["save"] = patch(
+        "smartdesk.core.services.desktop_service.save_desktops"
+    ).start()
+    mocks["get_icons"] = patch(
+        "smartdesk.core.services.desktop_service.get_current_icon_positions"
+    ).start()
 
     # System / OS
-    mocks["reg_update"] = patch("smartdesk.core.services.desktop_service.update_registry_key").start()
-    mocks["restart_explorer"] = patch("smartdesk.core.services.desktop_service.restart_explorer").start()
-    mocks["sync"] = patch("smartdesk.core.services.desktop_service.sync_desktop_state_and_apply_icons").start()
-    mocks["popen"] = patch("smartdesk.core.services.desktop_service.subprocess.Popen").start()
-    mocks["tempdir"] = patch("smartdesk.core.services.desktop_service.tempfile.gettempdir").start()
-    mocks["path_exists"] = patch("smartdesk.core.services.desktop_service.os.path.exists").start()
+    mocks["reg_update"] = patch(
+        "smartdesk.core.services.desktop_service.update_registry_key"
+    ).start()
+    mocks["restart_explorer"] = patch(
+        "smartdesk.core.services.desktop_service.restart_explorer"
+    ).start()
+    mocks["sync"] = patch(
+        "smartdesk.core.services.desktop_service.sync_desktop_state_and_apply_icons"
+    ).start()
+    mocks["popen"] = patch(
+        "smartdesk.core.services.desktop_service.subprocess.Popen"
+    ).start()
+    mocks["tempdir"] = patch(
+        "smartdesk.core.services.desktop_service.tempfile.gettempdir"
+    ).start()
+    mocks["path_exists"] = patch(
+        "smartdesk.core.services.desktop_service.os.path.exists"
+    ).start()
     mocks["remove"] = patch("smartdesk.core.services.desktop_service.os.remove").start()
-    mocks["backup"] = patch("smartdesk.core.utils.backup_service.create_backup_before_switch").start()
+    mocks["backup"] = patch(
+        "smartdesk.core.utils.backup_service.create_backup_before_switch"
+    ).start()
 
     # Defaults
     mocks["get_icons"].return_value = []
     mocks["reg_update"].return_value = True
     mocks["tempdir"].return_value = "C:\\Temp"
-    mocks["path_exists"].return_value = True  # Standardmäßig existiert alles (Skript, Zielpfad)
+    mocks[
+        "path_exists"
+    ].return_value = True  # Standardmäßig existiert alles (Skript, Zielpfad)
 
     yield mocks
 
@@ -53,7 +75,6 @@ def mock_dependencies():
 
 
 class TestSwitchToDesktop:
-
     def test_switch_success_flow(self, mock_desktops, mock_dependencies):
         """
         Prüft den Happy Path:
@@ -185,7 +206,9 @@ class TestSwitchToDesktop:
         # Simuliere: Zielpfad existiert nicht
         mock_dependencies["path_exists"].return_value = False
 
-        with patch("smartdesk.core.services.desktop_service.show_choice_dialog") as mock_dialog:
+        with patch(
+            "smartdesk.core.services.desktop_service.show_choice_dialog"
+        ) as mock_dialog:
             # Simuliere User wählt "Abbrechen" (oder nichts)
             mock_dialog.return_value = None
 
@@ -198,17 +221,21 @@ class TestSwitchToDesktop:
     def test_target_path_recreate(self, mock_desktops, mock_dependencies):
         """Wenn Ziel-Ordner fehlt und User 'Neu erstellen' wählt."""
         from smartdesk.core.services.desktop_service import switch_to_desktop
-        from smartdesk.shared.localization import get_text
 
         mock_dependencies["get_all"].return_value = mock_desktops
 
         # Pfad existiert nicht
         mock_dependencies["path_exists"].return_value = False
 
-        with patch("smartdesk.core.services.desktop_service.show_choice_dialog") as mock_dialog, patch("smartdesk.core.services.desktop_service.ensure_directory_exists") as mock_ensure, patch(
-            "builtins.open", mock_open()
+        with (
+            patch(
+                "smartdesk.core.services.desktop_service.show_choice_dialog"
+            ) as mock_dialog,
+            patch(
+                "smartdesk.core.services.desktop_service.ensure_directory_exists"
+            ) as mock_ensure,
+            patch("builtins.open", mock_open()),
         ):
-
             # User wählt "Neu erstellen"
             # Achtung: get_text liefert den Key zurück, wenn keine Übersetzung geladen ist (Mock-Umgebung?)
             # Da wir aber localization importieren, liefert es echte Werte oder Keys.
@@ -216,7 +243,9 @@ class TestSwitchToDesktop:
             # Es gibt den Text des Buttons zurück.
 
             # Wir mocken get_text, damit wir stabile Strings haben
-            with patch("smartdesk.core.services.desktop_service.get_text") as mock_get_text:
+            with patch(
+                "smartdesk.core.services.desktop_service.get_text"
+            ) as mock_get_text:
                 mock_get_text.side_effect = lambda k, **kw: k  # Key als Text
 
                 mock_dialog.return_value = "desktop_handler.prompts.path_recreate"

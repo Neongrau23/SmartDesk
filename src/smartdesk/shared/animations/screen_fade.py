@@ -249,7 +249,7 @@ class MultiMonitorFade:
 
             # --- Warten auf Signal statt fester Zeit ---
             if self.config.DEBUG:
-                print(f"Bildschirm verdeckt. Warte auf Signal...")
+                print("Bildschirm verdeckt. Warte auf Signal...")
 
             self.wait_for_signal()
             # --- (Die alte time.sleep()-Zeile wurde entfernt) ---

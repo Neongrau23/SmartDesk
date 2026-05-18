@@ -5,12 +5,11 @@ import sys
 import threading
 import json
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 from PySide6.QtWidgets import QApplication, QWidget, QHBoxLayout, QLabel
-from PySide6.QtUiTools import QUiLoader
-from PySide6.QtCore import QFile, QIODevice, QPropertyAnimation, QEasingCurve, QRect, Qt, QTimer, Signal, QObject, Slot
-from PySide6.QtGui import QScreen, QFont
+from PySide6.QtCore import QPropertyAnimation, QEasingCurve, QRect, Qt, Signal, QObject, Slot
+from PySide6.QtGui import QFont
 
 # --- Optional Imports ---
 try:

@@ -5,7 +5,6 @@ import threading
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QSystemTrayIcon, QMenu
-from PIL import Image
 
 # --- Grundlegendes Logging ---
 logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s] %(message)s")

@@ -1,6 +1,4 @@
-import pytest
-from unittest.mock import MagicMock, patch
-import time
+from unittest.mock import MagicMock
 import psutil
 
 from smartdesk.core.services import system_service

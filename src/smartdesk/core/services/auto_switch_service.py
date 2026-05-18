@@ -3,8 +3,8 @@ import os
 import threading
 import time
 import psutil
-from typing import Dict, List, Optional
-from datetime import datetime, timedelta
+from typing import Dict, Optional
+from datetime import datetime
 
 from ...shared.config import DATA_DIR
 from ...shared.logging_config import get_logger

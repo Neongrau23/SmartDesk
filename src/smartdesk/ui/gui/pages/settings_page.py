@@ -1,9 +1,8 @@
 import os
 import logging
-from PySide6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QCheckBox, QGroupBox, QPushButton, QLabel, QLineEdit
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QGroupBox, QPushButton, QLabel, QLineEdit
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtCore import QFile, QIODevice
-from PySide6.QtGui import QDesktopServices
 
 # Importiere die existierende HotkeyPage
 from .hotkey_page import HotkeyPage
